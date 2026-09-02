@@ -14,10 +14,25 @@ It is a static page. All the compute runs in the browser, so it needs no server.
 ## Quick start
 
 ```sh
-python3 build.py                 # src/ -> dist/index.html
+python3 build.py                 # src/ -> dist/index.html + dist/artifact.html
 python3 verify.py                # acceptance test: metrics + the ten checks
 open dist/index.html
 ```
+
+Two outputs, because they are served differently:
+
+- **`dist/index.html`** — a complete document with its own doctype and
+  `<meta charset>`. This is what Cloudflare serves.
+- **`dist/artifact.html`** — the same page body without `<html>`/`<head>`/`<body>`,
+  for publishing through the Claude Artifact tool, which supplies its own
+  skeleton.
+
+The charset matters more than it looks. Without it a web server hands the
+browser this UTF-8 file with no encoding declared, it is decoded as Latin-1,
+`À-ÿ` inside a regex becomes an out-of-order character range, and the boot
+script dies before the page renders. `file://` sniffs the encoding and hides
+this, so `verify.py` serves `dist/` over HTTP and loads the root URL — the way
+Cloudflare will.
 
 `verify.py` needs Playwright (`pip install playwright && playwright install chromium`).
 
@@ -62,6 +77,7 @@ Connect the repo in the Cloudflare dashboard under Workers & Pages, then set:
 | Setting | Value |
 |---|---|
 | Build command | `python3 build.py` |
+| Deploy directory | `./dist` (set in `wrangler.jsonc`) |
 | Deploy command | `npx wrangler deploy` (the default) |
 | Production branch | `main` |
 

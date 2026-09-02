@@ -5,14 +5,24 @@ The expected values came off the live artifact before the split. If one moves,
 the split changed behaviour — find the cause; never edit the expectation.
 """
 from playwright.sync_api import sync_playwright
-import pathlib, sys, json
+import pathlib, sys, json, threading, functools
+from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 
 EXPECT = {"roster":400, "surplus":1, "blockHrs":3786, "asmM":192.6, "gates":213,
           "routes":404, "deps":1650, "tails":366, "fleetRequired":399, "checksFailing":0}
 CHECKS = ["unflown","extra","brkSpace","brkGround","open","brkNight","brkSpan","imb","curfew","rangeBad"]
 
 def main():
-    page_url = "file://" + str((pathlib.Path(__file__).parent/"dist/index.html").resolve())
+    # Serve dist/ over HTTP and load the ROOT URL, because that is how Cloudflare
+    # will serve it — not file://. The difference is not cosmetic: a missing
+    # <meta charset> makes a browser decode this UTF-8 page as Latin-1, which
+    # turns a regex range into a syntax error and kills the boot script. file://
+    # sniffs the encoding and hides that entirely.
+    root = pathlib.Path(__file__).parent / "dist"
+    srv = ThreadingHTTPServer(("127.0.0.1", 0),
+          functools.partial(SimpleHTTPRequestHandler, directory=str(root)))
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    page_url = f"http://127.0.0.1:{srv.server_address[1]}/"
     with sync_playwright() as p:
         b = p.chromium.launch(); pg = b.new_page(viewport={"width":1480,"height":1050})
         errs=[]; pg.on("pageerror", lambda e: errs.append(str(e)))
@@ -26,6 +36,7 @@ def main():
             pg.evaluate("(t)=>{document.querySelectorAll('.tab').forEach(b=>{if(b.textContent.trim()===t)b.click();})}", t)
             pg.wait_for_timeout(400)
         b.close()
+    srv.shutdown()
 
     ok = True
     print("metric            expected        got")
