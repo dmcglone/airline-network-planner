@@ -14,9 +14,9 @@ It is a static page. All the compute runs in the browser, so it needs no server.
 ## Quick start
 
 ```sh
-python3 build.py                 # src/ -> dist/planner.html
+python3 build.py                 # src/ -> dist/index.html
 python3 verify.py                # acceptance test: metrics + the ten checks
-open dist/planner.html
+open dist/index.html
 ```
 
 `verify.py` needs Playwright (`pip install playwright && playwright install chromium`).
@@ -42,12 +42,40 @@ src/
     config.json     hubs, banks, curfews, feed modes, spacing, red-eye seeds
 engine.py           reference implementation — the JS mirrors this
 validate.py         the ten checks, Python side
-build.py            src/ -> dist/planner.html
+build.py            src/ -> dist/index.html
 verify.py           acceptance test
 make_legs.py        network.json -> legs.json, so engine.py sees the same network
 network.json        the committed network state
-dist/planner.html   GENERATED — never hand-edit
+wrangler.jsonc      Cloudflare Workers static-assets config
+dist/index.html     GENERATED — not committed; run build.py
 ```
+
+## Deploying
+
+Cloudflare Workers with static assets. (Cloudflare recommends Workers over Pages
+for new projects — Pages still works, but new development goes to Workers.)
+There is no Worker script: all the compute runs in the visitor's browser, so
+Cloudflare just serves `./dist`.
+
+Connect the repo in the Cloudflare dashboard under Workers & Pages, then set:
+
+| Setting | Value |
+|---|---|
+| Build command | `python3 build.py` |
+| Deploy command | `npx wrangler deploy` (the default) |
+| Production branch | `main` |
+
+The build image ships Python 3.13, so no version pin is needed. `wrangler.jsonc`
+supplies the rest. Locally, `npm run deploy` does the same thing.
+
+`dist/` is not committed — it is 770KB of generated output that changes on every
+source edit, and committing it reinvites exactly the source-of-truth ambiguity
+the build step removes. CI rebuilds it. If you would rather have a checked-in
+copy as a fallback, delete the `dist/` line from `.gitignore`.
+
+The acceptance test needs a browser, which the Cloudflare build image does not
+have, so it runs in GitHub Actions (`.github/workflows/verify.yml`) on every
+push instead — build, acceptance metrics, the ten checks, and Python↔JS parity.
 
 ## Two rules that matter
 

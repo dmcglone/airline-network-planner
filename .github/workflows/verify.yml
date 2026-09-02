@@ -1,0 +1,45 @@
+name: verify
+
+# The project's rule is verify, don't assert. Cloudflare's build image has
+# Python but not a browser, so the acceptance test cannot run there — it runs
+# here instead, on every push and pull request.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install Playwright
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+
+      - name: Build
+        run: python3 build.py
+
+      - name: Acceptance metrics and the ten checks
+        run: python3 verify.py
+
+      - name: Python reference engine agrees with the JS engine
+        run: |
+          python3 make_legs.py
+          python3 engine.py | tee /tmp/engine.out
+          python3 validate.py
+          python3 - <<'EOF'
+          import json, re
+          from collections import Counter
+          lines = json.load(open("lines.json"))["lines"]
+          want = {"A319":129, "A320":61, "A320E":17, "A321":66, "E175":76, "E145":17}
+          got = dict(Counter(l["type"] for l in lines))
+          assert got == want, f"rotation split changed: {got} != {want}"
+          assert len(lines) == 366, f"{len(lines)} rotations, expected 366"
+          print("python engine: 366 rotations, split matches")
+          EOF

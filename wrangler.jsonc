@@ -1,0 +1,12 @@
+{
+  // Cloudflare Workers Static Assets. Cloudflare recommends Workers over Pages
+  // for new projects; Pages still works but new work goes to Workers.
+  //
+  // There is no Worker script — this is a static page whose compute all runs in
+  // the visitor's browser, so Cloudflare just serves ./dist.
+  "name": "airline-network-planner",
+  "compatibility_date": "2026-09-02",
+  "assets": {
+    "directory": "./dist"
+  }
+}

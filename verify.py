@@ -12,7 +12,7 @@ EXPECT = {"roster":400, "surplus":1, "blockHrs":3786, "asmM":192.6, "gates":213,
 CHECKS = ["unflown","extra","brkSpace","brkGround","open","brkNight","brkSpan","imb","curfew","rangeBad"]
 
 def main():
-    page_url = "file://" + str((pathlib.Path(__file__).parent/"dist/planner.html").resolve())
+    page_url = "file://" + str((pathlib.Path(__file__).parent/"dist/index.html").resolve())
     with sync_playwright() as p:
         b = p.chromium.launch(); pg = b.new_page(viewport={"width":1480,"height":1050})
         errs=[]; pg.on("pageerror", lambda e: errs.append(str(e)))
@@ -42,7 +42,7 @@ def main():
         ok = False
         print("\npage errors:", errs[:5])
     json.dump({"tails":tails,"gates":gates,"metrics":got},
-              open(pathlib.Path(__file__).parent/"dist/fingerprint.json","w"), indent=1)
+              open(pathlib.Path(__file__).parent/"fingerprint.json","w"), indent=1)
     print("\n" + ("PASS — the split is clean" if ok else "FAIL — do not publish"))
     sys.exit(0 if ok else 1)
 

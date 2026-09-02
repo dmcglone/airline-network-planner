@@ -1,0 +1,13 @@
+{
+  "name": "airline-network-planner",
+  "private": true,
+  "description": "Airline network planning model — deployed as a static site on Cloudflare Workers",
+  "scripts": {
+    "build": "python3 build.py",
+    "verify": "python3 verify.py",
+    "deploy": "python3 build.py && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "4.128.0"
+  }
+}

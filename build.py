@@ -58,7 +58,9 @@ def main():
                    "function drawMap", "function exportState", "function build("):
         if marker not in html:
             sys.exit(f"build: output is missing {marker} — refusing to write a broken page")
-    dest = ROOT / "dist/planner.html"
+    # index.html, not planner.html: Workers serves ./dist at the site root,
+    # so the page has to be the directory index.
+    dest = ROOT / "dist/index.html"
     dest.parent.mkdir(exist_ok=True)
     # Write via a temp file and rename, so a reader (verify.py's browser) can
     # never open a half-written 760KB document and fail confusingly.
