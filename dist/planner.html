@@ -2022,8 +2022,12 @@ $("#btnAddGo").onclick=()=>{
       const payload=JSON.stringify({airports:AP,routes:state.routes,stations:STA,demand:RAW.demand}).replace(/<\//g,"<\\/");
       if(RAW.demand && payload.indexOf('"demand"')<0) throw new Error("payload lost demand data — refusing to save");
       const src = PRISTINE || pageSource();
-      if(src.indexOf('id="geo"')<0 || src.indexOf("function drawMap")<0)
-        throw new Error("page source incomplete — refusing to publish a truncated document");
+      // A truncated self-publish once shipped a dead artifact, and a save that
+      // dropped the demand block once emptied the Grow tab. Check for every
+      // block the page cannot run without, not just the ones that broke before.
+      for(const need of ['id="geo"', 'id="cfg"', 'id="fleet"', "function drawMap", "function build("])
+        if(src.indexOf(need)<0)
+          throw new Error("page source is missing "+need+" — refusing to publish a broken document");
       const next=src.replace(/(<script type="application\/json" id="net">)[\s\S]*?(<\/script>)/, (m,a,c)=>a+payload+c);
       await art.publish(next);
       toast("Network saved — this is now the version everyone opens");
