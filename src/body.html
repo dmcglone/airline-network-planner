@@ -2,8 +2,8 @@
 
 <header>
   <div class="bar">
-    <div class="mark"><b>FRONTIER</b><span>Network Planner</span></div>
-    <span class="tag" id="designday">Design day · Mon 8 Jun 2026</span>
+    <div class="mark"><b id="brandName">&nbsp;</b><span id="brandProduct"></span></div>
+    <span class="tag" id="designday"></span>
     <div class="spacer"></div>
     <button class="btn" id="btnTheme">Theme</button>
     <button class="btn" id="btnCopy">Copy routes CSV</button>
@@ -223,7 +223,7 @@
               <span class="sw" style="background:var(--steel);margin-left:9px"></span>Destination</div>
             <div style="margin-top:4px"><span style="color:var(--accent);font-size:12px">&#9650;</span> Aircraft in flight</div>
           </div>
-          <svg id="map" role="img" aria-label="Frontier route map"></svg>
+          <svg id="map" role="img" aria-label="Route map"></svg>
         </div>
         <div class="mapside" id="mapside"></div>
       </div>
@@ -232,7 +232,7 @@
 
   <section class="pane" id="pane-board" hidden>
     <div class="panel">
-      <h2>Airport board <span class="sub">Every Frontier movement at one airport, with gates assigned from the real aircraft rotations</span></h2>
+      <h2>Airport board <span class="sub">Every movement at one airport, with gates assigned from the real aircraft rotations</span></h2>
       <div class="toolbar">
         <label style="font-size:12.5px;color:var(--ink-2)">Airport</label>
         <span class="ac" style="min-width:270px"><input type="text" id="bAp" class="grow" placeholder="Type a code or city — e.g. PHL, Nashville" autocomplete="off"></span>

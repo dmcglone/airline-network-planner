@@ -38,6 +38,10 @@ function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e
    Everything the UI can change must round-trip through here. If a number moves
    after an export/import cycle, something is being held outside this function. */
 const STATE_SCHEMA = 1;
+const APP_ID = "airline-network-planner";
+// Exports written before the project was renamed carry the old id. They are the
+// same format, so keep reading them — refusing them would strand real work.
+const APP_IDS = new Set([APP_ID, "frontier-network-planner"]);
 function currentConfig(){
   return { stations: STA.slice(),
            roles: Object.assign({}, ROLE),
@@ -65,7 +69,7 @@ function headline(){
            gates:T.gates, routes:T.routes, checksFailing:failCount() };
 }
 function exportState(){
-  return { app:"frontier-network-planner", schema:STATE_SCHEMA,
+  return { app:APP_ID, schema:STATE_SCHEMA,
            exported:new Date().toISOString(),
            config: currentConfig(),
            state: JSON.parse(JSON.stringify(state)),
@@ -74,7 +78,7 @@ function exportState(){
 function importState(obj){
   const o = (typeof obj==="string") ? JSON.parse(obj) : obj;
   if(!o || typeof o!=="object") throw new Error("not a state file");
-  if(o.app && o.app!=="frontier-network-planner") throw new Error("this file is not a Frontier network export");
+  if(o.app && !APP_IDS.has(o.app)) throw new Error("this file is not a network export from this planner");
   if(o.schema>STATE_SCHEMA) throw new Error("that file was written by a newer version of the planner (schema "+o.schema+")");
   const st = o.state || o;                       // tolerate a bare state object
   if(!st.routes || !st.fleet) throw new Error("no routes or fleet in that file");

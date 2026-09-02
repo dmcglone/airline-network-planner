@@ -36,7 +36,7 @@ button,input,select{font:inherit;color:inherit}
 header{position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--line)}
 .bar{display:flex;align-items:center;gap:18px;padding:12px 20px;flex-wrap:wrap}
 .mark{display:flex;align-items:baseline;gap:9px;margin-right:2px}
-.mark b{font-family:var(--disp);font-size:22px;font-weight:700;letter-spacing:.02em}
+.mark b{font-family:var(--disp);font-size:22px;font-weight:700;letter-spacing:.02em;text-transform:uppercase}
 .mark span{font-family:var(--disp);font-size:22px;font-weight:500;color:var(--ink-3)}
 .tag{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;
   color:var(--accent);border:1px solid var(--accent);border-radius:3px;padding:2px 6px;align-self:center}

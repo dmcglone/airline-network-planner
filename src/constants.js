@@ -1,6 +1,6 @@
 <script>
 "use strict";
-/* Everything Frontier-specific arrives as data: src/data/config.json,
+/* Everything airline-specific arrives as data: src/data/config.json,
    fleet.json, stations.json and the network seed. Nothing about this airline
    is written into the engine, so another network is another config, not a
    fork. Fallbacks below keep the page alive if a block fails to parse. */
@@ -38,4 +38,8 @@ const SM = 1.15078;
 const KEY = CFG.storageKey || "frontier-planner-v1";
 // The fleet this schedule needed when the roster feature was added — the reference line.
 const FLEET_PINNED = Object.assign({}, FLEETDATA.pinned);
+// The airline's own name is config too — this app plans networks, and Frontier
+// is the example that ships with it, not the thing it is.
+const BRAND = Object.assign({name:"My Airline", product:"Network Planner",
+                             possessive:"This airline", designDay:""}, CFG.brand);
 const pinTotal = () => TYPES.reduce((a,t)=>a+(FLEET_PINNED[t]||0),0);

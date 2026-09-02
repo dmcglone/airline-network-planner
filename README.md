@@ -1,8 +1,13 @@
-# Frontier Network Planner
+# Airline Network Planner
 
 An airline network planning model: routes in, a flyable schedule out — aircraft
 rotations, station banks, gate requirements, and a suggestion engine that
 proposes routes rather than only reporting problems.
+
+The airline that ships with it is Frontier, a fantasy carrier with 8 bases and
+400 aircraft. That is example data, not the product: the airline's name, hubs,
+banks, curfews and fleet all live in `src/data/`, so a different network is a
+different config rather than a fork.
 
 It is a static page. All the compute runs in the browser, so it needs no server.
 
@@ -49,10 +54,15 @@ dist/planner.html   GENERATED — never hand-edit
 **`dist/planner.html` is an output.** Edit the part in `src/` and rebuild. A
 hand-edit there is reverted by the next build, silently.
 
-**Frontier is configuration, not code.** Hubs, focus cities, bank times,
-curfews, the fleet table and the pinned roster all live in `src/data/`. The end
-goal is a site where anyone plans their own network; that only works if nothing
-about this particular airline is welded into the engine.
+**The airline is configuration, not code.** Its name and wordmark, hubs, focus
+cities, bank times, curfews, feed modes, spacing presets, red-eye seeds, the
+fleet table and the pinned roster all live in `src/data/`. The end goal is a
+site where anyone plans their own network under their own airline's name; that
+only works if nothing about any particular airline is welded into the engine.
+
+To plan a different airline, edit `src/data/config.json` (start with `brand`),
+`fleet.json` and `stations.json`, put its routes in `network.json`, and
+rebuild. Nothing in `src/*.js` needs to change.
 
 ## Verifying a change
 

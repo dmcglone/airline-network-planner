@@ -38,6 +38,10 @@ function pageSource(){
 }
 /* ---------- go ---------- */
 PRISTINE = pageSource();
+document.title = BRAND.name ? BRAND.name+" "+BRAND.product : BRAND.product;
+$("#brandName").textContent = BRAND.name;
+$("#brandProduct").textContent = BRAND.product;
+$("#designday").textContent = BRAND.designDay ? "Design day · "+BRAND.designDay : "";
 state = load();
 SPEC={}; state.fleet.forEach(f=>{SPEC[f.t]=f; f.seats=f.F+f.PE+f.Y;});
 fillSelects(); drawTabs(); M=build();

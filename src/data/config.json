@@ -1,4 +1,10 @@
 {
+ "brand": {
+  "name": "Frontier",
+  "product": "Network Planner",
+  "possessive": "Frontier",
+  "designDay": "Mon 8 Jun 2026"
+ },
  "roles": {
   "SJC": "Hub",
   "PIT": "Hub",

@@ -36,7 +36,7 @@ function boardRows(list,now,when,key){
 }
 function drawBoard(){
   const ap=boardAp;
-  if(!M.apStats[ap]){ $("#apsum").innerHTML=`<div class="note">Frontier does not serve <b>${esc(ap)}</b> in the current network. Pick another airport, or add a route to it on the Network tab.</div>`;
+  if(!M.apStats[ap]){ $("#apsum").innerHTML=`<div class="note">${esc(BRAND.possessive)} does not serve <b>${esc(ap)}</b> in the current network. Pick another airport, or add a route to it on the Network tab.</div>`;
     $("#fidsDep").innerHTML=""; $("#fidsArr").innerHTML=""; return; }
   const when=$("#bWhen").value, now=nowAt(ap);
   const deps=M.flights.filter(f=>f.o===ap), arrs=M.flights.filter(f=>f.d===ap);
