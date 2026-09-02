@@ -60,7 +60,11 @@ def main():
             sys.exit(f"build: output is missing {marker} — refusing to write a broken page")
     dest = ROOT / "dist/planner.html"
     dest.parent.mkdir(exist_ok=True)
-    dest.write_text(html, encoding="utf-8")
+    # Write via a temp file and rename, so a reader (verify.py's browser) can
+    # never open a half-written 760KB document and fail confusingly.
+    tmp = dest.with_suffix(".html.tmp")
+    tmp.write_text(html, encoding="utf-8")
+    tmp.replace(dest)
     print(f"built {dest.relative_to(ROOT)} — {len(html):,} bytes")
 
 if __name__ == "__main__":
