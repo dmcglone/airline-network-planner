@@ -1,0 +1,107 @@
+{
+ "roles": {
+  "SJC": "Hub",
+  "PIT": "Hub",
+  "MCO": "Hub",
+  "DEN": "Focus",
+  "RDU": "Focus",
+  "AUS": "P2P",
+  "LAS": "P2P",
+  "COS": "P2P"
+ },
+ "banks": {
+  "Hub": [
+   360,
+   480,
+   600,
+   720,
+   840,
+   960,
+   1080,
+   1230
+  ],
+  "Focus": [
+   375,
+   540,
+   750,
+   960,
+   1170
+  ],
+  "P2P": [
+   360,
+   510,
+   660,
+   810,
+   990,
+   1170
+  ]
+ },
+ "curfew": {
+  "SJC": [
+   360,
+   1380
+  ]
+ },
+ "feedMode": {
+  "SJC": "dawn",
+  "PIT": "dawn",
+  "MCO": 600,
+  "RDU": "dawn",
+  "DEN": "dawn"
+ },
+ "mct": 40,
+ "spokeEarliest": 330,
+ "dawnStagger": 7,
+ "redDep": [
+  1260,
+  1380
+ ],
+ "redArr": 405,
+ "defaultRedEyes": [
+  "BOS|SJC",
+  "EWR|SJC",
+  "LAS|MCO",
+  "LAS|PIT",
+  "LAS|RDU",
+  "LAX|PIT",
+  "LAX|RDU",
+  "LIM|MCO",
+  "MCO|PDX",
+  "MCO|SEA",
+  "MCO|SJC",
+  "PDX|RDU",
+  "PHX|RDU",
+  "PIT|SEA",
+  "PIT|SJC",
+  "RDU|SEA",
+  "RDU|SJC",
+  "JFK|SJC"
+ ],
+ "spacing": {
+  "off": {
+   "gap": 0,
+   "win": 0,
+   "cap": 0,
+   "label": "Off \u2014 pack tightest"
+  },
+  "min": {
+   "gap": 40,
+   "win": 0,
+   "cap": 95,
+   "label": "40-minute floor only"
+  },
+  "balanced": {
+   "gap": 40,
+   "win": 560,
+   "cap": 95,
+   "label": "Balanced (recommended)"
+  },
+  "wide": {
+   "gap": 40,
+   "win": 780,
+   "cap": 140,
+   "label": "Wide \u2014 spread across the day"
+  }
+ },
+ "storageKey": "frontier-planner-v1"
+}

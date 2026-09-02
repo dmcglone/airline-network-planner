@@ -1,0 +1,5 @@
+dist/fingerprint.json
+lines.json
+legs.json
+__pycache__/
+*.pyc

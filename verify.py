@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+"""Acceptance test for dist/planner.html.
+
+The expected values came off the live artifact before the split. If one moves,
+the split changed behaviour — find the cause; never edit the expectation.
+"""
+from playwright.sync_api import sync_playwright
+import pathlib, sys, json
+
+EXPECT = {"roster":400, "surplus":1, "blockHrs":3786, "asmM":192.6, "gates":213,
+          "routes":404, "deps":1650, "tails":366, "fleetRequired":399, "checksFailing":0}
+CHECKS = ["unflown","extra","brkSpace","brkGround","open","brkNight","brkSpan","imb","curfew","rangeBad"]
+
+def main():
+    page_url = "file://" + str((pathlib.Path(__file__).parent/"dist/planner.html").resolve())
+    with sync_playwright() as p:
+        b = p.chromium.launch(); pg = b.new_page(viewport={"width":1480,"height":1050})
+        errs=[]; pg.on("pageerror", lambda e: errs.append(str(e)))
+        pg.goto(page_url); pg.wait_for_timeout(3000)
+        got = pg.evaluate("()=>exportState().metrics")
+        checks = pg.evaluate("()=>{const c={...M.checks};c.rangeBad=c.rangeBad.length;return c;}")
+        tails = pg.evaluate("()=>M.rots.map(r=>r.id).sort()")
+        gates = pg.evaluate("()=>M.stations.map(s=>[s.code,s.gates]).sort()")
+        # every tab must render without throwing
+        for t in pg.evaluate("()=>[...document.querySelectorAll('.tab')].map(t=>t.textContent.trim())"):
+            pg.evaluate("(t)=>{document.querySelectorAll('.tab').forEach(b=>{if(b.textContent.trim()===t)b.click();})}", t)
+            pg.wait_for_timeout(400)
+        b.close()
+
+    ok = True
+    print("metric            expected        got")
+    for k, want in EXPECT.items():
+        good = got.get(k) == want
+        ok &= good
+        print(f"  {k:<16}{str(want):<16}{got.get(k)}  {'ok' if good else '<-- MISMATCH'}")
+    print("\nten checks (all must be 0):")
+    for c in CHECKS:
+        good = checks.get(c) == 0
+        ok &= good
+        print(f"  {c:<14}{checks.get(c)}  {'ok' if good else '<-- FAIL'}")
+    if errs:
+        ok = False
+        print("\npage errors:", errs[:5])
+    json.dump({"tails":tails,"gates":gates,"metrics":got},
+              open(pathlib.Path(__file__).parent/"dist/fingerprint.json","w"), indent=1)
+    print("\n" + ("PASS — the split is clean" if ok else "FAIL — do not publish"))
+    sys.exit(0 if ok else 1)
+
+if __name__ == "__main__":
+    main()

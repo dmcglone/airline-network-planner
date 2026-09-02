@@ -1,0 +1,255 @@
+</style>
+
+<header>
+  <div class="bar">
+    <div class="mark"><b>FRONTIER</b><span>Network Planner</span></div>
+    <span class="tag" id="designday">Design day · Mon 8 Jun 2026</span>
+    <div class="spacer"></div>
+    <button class="btn" id="btnTheme">Theme</button>
+    <button class="btn" id="btnCopy">Copy routes CSV</button>
+    <button class="btn" id="btnReset">Revert to baseline</button>
+    <button class="btn" id="btnExport">Export state</button>
+    <button class="btn" id="btnImport">Import state</button>
+    <button class="btn" id="btnBackup" hidden>Back up</button>
+    <input type="file" id="fileImport" accept=".json,application/json" hidden>
+    <button class="btn primary" id="btnSave" hidden>Save network</button>
+  </div>
+  <div class="kpis" id="kpis"></div>
+  <div class="tabs" role="tablist" id="tabs"></div>
+</header>
+
+<main>
+  <section class="pane" id="pane-network">
+    <div class="panel">
+      <h2>Route network <span class="sub" id="routeCount"></span></h2>
+      <div class="toolbar">
+        <input type="text" id="q" class="grow" placeholder="Filter by airport code, city or country…">
+        <select id="fStation"><option value="">All stations</option></select>
+        <select id="fType"><option value="">All gauges</option></select>
+        <select id="fRed"><option value="">All routes</option><option value="ok">Red-eye viable (43)</option><option value="on">Red-eye operating</option></select>
+        <button class="btn sm" id="btnAdd">+ Add route</button>
+      </div>
+      <div id="addRow" hidden style="padding:14px 16px;border-bottom:1px solid var(--line-2);background:var(--surface-2)">
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+          <label style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-2)">From station
+            <select id="nO"></select></label>
+          <label style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-2);min-width:250px">To airport
+            <span class="ac"><input type="text" id="nD" placeholder="Type a code or city — e.g. BOI, Nashville" autocomplete="off"></span></label>
+          <label style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-2)">Gauge
+            <select id="nT"></select></label>
+          <label style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-2)">Flights/day
+            <input type="number" id="nN" value="2" min="1" max="20"></label>
+          <label style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-2)">Days/week
+            <input type="number" id="nW" value="7" min="1" max="7"></label>
+          <label id="nRedWrap" hidden style="display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--ink-2);padding-bottom:6px">
+            <input type="checkbox" id="nRed"> Fly overnight <span class="mono" id="nRedLbl"></span></label>
+          <button class="btn primary" id="btnAddGo">Add to network</button>
+          <button class="btn" id="btnAddCancel">Cancel</button>
+        </div>
+        <div class="note" id="addInfo" style="margin-top:10px"></div>
+      </div>
+      <div class="scroll"><table id="tRoutes"></table></div>
+    </div>
+    <p class="note">Every cell in the gauge columns is editable — type a number to change frequency, or clear it to drop that
+      aircraft type from the route. The schedule, rotations, fleet count and gate requirements all rebuild on every edit.</p>
+    <p class="note">Routes between two of your own stations are listed in both directions, and the two must match: a turn is
+      flown by one aircraft, so if you set SJC&#8211;LAS to four A320s you need four A320s coming back. Mismatches are
+      auto-balanced for the build and reported on the Checks tab.</p>
+  </section>
+
+  <section class="pane" id="pane-schedule" hidden>
+    <div class="panel">
+      <h2>Flight schedule <span class="sub" id="schedCount"></span></h2>
+      <div class="toolbar">
+        <input type="text" id="sq" class="grow" placeholder="Filter by flight number, airport or rotation…">
+        <select id="sStation"><option value="">All origins</option></select>
+        <select id="sType"><option value="">All gauges</option></select>
+        <label style="font-size:12.5px;color:var(--ink-2);display:flex;gap:6px;align-items:center">
+          <input type="checkbox" id="sRon"> Overnight legs only</label>
+      </div>
+      <div class="scroll"><table id="tSched"></table></div>
+    </div>
+    <p class="note">All times are local to the airport shown. <b>+1</b> means the flight arrives the following calendar day.
+      Showing the first 400 matches; narrow the filter to see the rest.</p>
+  </section>
+
+  <section class="pane" id="pane-rot" hidden>
+    <div class="panel">
+      <h2>Aircraft rotations <span class="sub" id="rotCount"></span></h2>
+      <div class="toolbar">
+        <input type="text" id="rq" class="grow" placeholder="Filter by base, gauge, overnight station or routing…">
+        <select id="rStation"><option value="">All bases</option></select>
+        <select id="rType"><option value="">All gauges</option></select>
+      </div>
+      <div class="scroll"><table id="tRot"></table></div>
+    </div>
+    <p class="note">Each row is one aircraft's full day. The routing string starts and ends at the same airport, so the
+      pattern repeats indefinitely. <b>Overnights at</b> is where the aircraft sits between the last arrival and the first
+      departure — 06:00 departures from a spoke city are only possible because an aircraft slept there.</p>
+  </section>
+
+  <section class="pane" id="pane-stations" hidden>
+    <div class="panel">
+      <h2>Stations <span class="sub">Departures and arrivals by local hour · peak aircraft on the ground is your gate requirement</span></h2>
+      <div class="pad"><div class="stations" id="stnGrid"></div>
+        <div class="legend"><span><i class="sw" style="background:var(--accent)"></i>Departures</span>
+          <span><i class="sw" style="background:var(--steel)"></i>Arrivals</span>
+          <span class="dim">Hubs run banked complexes; focus cities and point-to-point bases run rolling schedules.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pane" id="pane-fleet" hidden>
+    <div class="panel">
+      <h2>Fleet requirement <span class="sub">Tails counted from the rotations actually built</span></h2>
+      <div class="scroll"><table id="tFleet"></table></div>
+    </div>
+    <div class="panel">
+      <h2>Fleet roster <span class="sub">How many aircraft you actually own, against what this schedule needs</span></h2>
+      <div class="toolbar">
+        <label style="font-size:12.5px;color:var(--ink-2);display:flex;gap:7px;align-items:center">Spare ratio
+          <input type="number" id="spareIn" min="0" max="50" step="1" style="width:58px"> %</label>
+        <button class="btn sm" id="btnMatch">Match roster to requirement</button>
+        <button class="btn sm" id="btnPinReset">Reset roster to baseline</button>
+      </div>
+      <div class="scroll"><table id="tRoster"></table></div>
+      <div class="pad" id="rosterNote"></div>
+    </div>
+    <div class="panel">
+      <h2>Schedule strategy <span class="sub">Bank feed and departure-time rationalisation</span></h2>
+      <div class="pad">
+        <div class="k mono" style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px">Morning bank feed</div>
+        <div id="feedBoxes" style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:14px"></div>
+        <div class="k mono" style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px">Red-eyes</div>
+        <label style="display:flex;gap:7px;align-items:center;font-size:13px;margin-bottom:14px">
+          <input type="checkbox" id="redeyeChk"> Operate red-eyes
+          <span class="dim">Master switch. Individual markets are ticked in the Red-eye column on the Network tab — only the 43 routes whose geometry works can be ticked.</span></label>
+        <div class="k mono" style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px">Departure-time spacing within a market</div>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+          <select id="spacingSel"></select>
+          <span class="dim" style="font-size:12.5px">Tighter packing needs fewer aircraft and gates; wider spacing gives every market a usable spread of times.</span>
+        </div>
+        <div id="feedStats" style="display:flex;gap:26px;flex-wrap:wrap;margin-bottom:12px"></div>
+        <p class="note">A spoke city earns a morning departure by having an aircraft sleep there overnight. When a station is
+          switched on here, each of its spokes is assigned to whichever enabled station serves it most, and the rotation builder
+          prefers that spoke as its overnight stop — so the aircraft pushes at 05:30 local and lands in time to connect onto the
+          station's bank. <b>MCO is different:</b> it is timed to the 10:00 Caribbean wave rather than a dawn push, and its
+          arrivals are spread over the two hours before it so they don't all need a gate at once.</p>
+        <p class="note">Turning a station off doesn't remove any flying — those spokes just take whatever times fall out of
+          hub-side packing, which is usually mid-morning or later.</p>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Assumptions <span class="sub">Every field is editable and drives the whole rebuild</span></h2>
+      <div class="scroll"><table id="tAssume"></table></div>
+      <div class="pad"><p class="note">Block time = ground time (taxi plus climb and descent allowance) ÷ 60 + great-circle
+        distance ÷ cruise speed. Calibrated so SJC&#8211;LAX blocks about 1h15 and SJC&#8211;EWR about 5h20. Range is a
+        conservative full-payload figure; the A319 sits at 2,700 nm against an Airbus book figure of roughly 3,590 nm at
+        124 seats. Utilization is the target the rotation builder packs toward — raise it and you need fewer tails.</p></div>
+    </div>
+  </section>
+
+  <section class="pane" id="pane-suggest" hidden>
+    <div class="panel">
+      <h2>Demand source <span class="sub">What the growth suggestions are ranked on</span></h2>
+      <div class="toolbar">
+        <select id="demSel"></select>
+        <button class="btn sm" id="btnImport">Import demand data…</button>
+        <button class="btn sm" id="btnClearDem" hidden>Clear imported data</button>
+      </div>
+      <div class="pad"><p class="note" id="demNote"></p>
+        <div id="importBox" hidden style="margin-top:10px">
+          <p class="note">Paste a CSV with a header row containing <b>origin</b>, <b>dest</b>, <b>passengers</b> and optionally <b>fare</b>.
+            A BTS DB1B Market or T-100 Domestic Segment export works as-is once you rename the columns.
+            Passengers should be one direction per day; the importer halves and divides annual totals if you tell it to.</p>
+          <textarea id="demCsv" rows="6" style="width:100%;font-family:var(--mono);font-size:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:8px" placeholder="origin,dest,passengers,fare&#10;SJC,LAX,1840,118&#10;RDU,EWR,720,196"></textarea>
+          <div style="display:flex;gap:9px;align-items:center;margin-top:8px;flex-wrap:wrap">
+            <label style="font-size:12.5px;color:var(--ink-2);display:flex;gap:6px;align-items:center">
+              <input type="checkbox" id="demAnnual"> figures are annual round-trip totals</label>
+            <button class="btn primary sm" id="btnDoImport">Load</button>
+            <span class="dim" id="demStatus" style="font-size:12.5px"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel"><h2>Fix <span class="sub">Problems in the current schedule, with the remedy</span></h2>
+      <div class="pad" id="sFix"></div></div>
+    <div class="panel"><h2>Fill <span class="sub">Routes that would absorb idle aircraft time</span></h2>
+      <div class="pad" id="sFill"></div></div>
+    <div class="panel"><h2>Grow <span class="sub">Unserved markets ranked by demand</span></h2>
+      <div class="pad" id="sGrow"></div></div>
+  </section>
+  <section class="pane" id="pane-checks" hidden>
+    <div class="panel">
+      <h2>Schedule integrity <span class="sub">Run against the rotations on every rebuild</span></h2>
+      <div class="pad" id="checks"></div>
+    </div>
+    <div class="panel">
+      <h2>Network shape</h2>
+      <div class="pad"><div class="grid2" id="shape"></div></div>
+    </div>
+  </section>
+
+  <section class="pane" id="pane-map" hidden>
+    <div class="panel">
+      <h2>Route map <span class="sub" id="mapCount"></span></h2>
+      <div class="toolbar">
+        <select id="mStation"><option value="">Whole network</option></select>
+        <select id="mType"><option value="">All gauges</option></select>
+        <label style="font-size:12.5px;color:var(--ink-2);display:flex;gap:6px;align-items:center">
+          <input type="checkbox" id="mLab" checked> Airport codes</label>
+        <span style="border-left:1px solid var(--line);padding-left:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <label style="font-size:12.5px;color:var(--ink-2);display:flex;gap:6px;align-items:center">
+            <input type="checkbox" id="liveOn" checked> Live traffic</label>
+          <button class="btn sm" id="liveNow">Now</button>
+          <select id="liveSpeed" title="Playback speed">
+            <option value="1">real time</option><option value="30">30&times;</option>
+            <option value="120" selected>120&times;</option><option value="600">600&times;</option></select>
+          <span class="mono" id="liveClock" style="font-size:13px;font-weight:600"></span>
+        </span>
+        <span class="dim" id="liveStat" style="font-size:12.5px"></span>
+      </div>
+      <div class="maprow">
+        <div class="mapwrap" id="mapwrap">
+          <div class="mapctl">
+            <button class="btn sm" id="mIn">+</button><button class="btn sm" id="mOut">&minus;</button>
+            <button class="btn sm" id="mFit">Fit all</button>
+          </div>
+          <div class="maplegend">
+            <div class="mono" style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)">Flights per day</div>
+            <div class="ramp" id="ramp"></div>
+            <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--ink-3)"><span>1</span><span id="rampMax">11</span></div>
+            <div style="margin-top:7px"><span class="sw" style="background:var(--accent)"></span>Station
+              <span class="sw" style="background:var(--steel);margin-left:9px"></span>Destination</div>
+            <div style="margin-top:4px"><span style="color:var(--accent);font-size:12px">&#9650;</span> Aircraft in flight</div>
+          </div>
+          <svg id="map" role="img" aria-label="Frontier route map"></svg>
+        </div>
+        <div class="mapside" id="mapside"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pane" id="pane-board" hidden>
+    <div class="panel">
+      <h2>Airport board <span class="sub">Every Frontier movement at one airport, with gates assigned from the real aircraft rotations</span></h2>
+      <div class="toolbar">
+        <label style="font-size:12.5px;color:var(--ink-2)">Airport</label>
+        <span class="ac" style="min-width:270px"><input type="text" id="bAp" class="grow" placeholder="Type a code or city — e.g. PHL, Nashville" autocomplete="off"></span>
+        <select id="bWhen"><option value="now">Starting from now</option><option value="all">Full day, 00:00 onward</option></select>
+        <label style="font-size:12.5px;color:var(--ink-2);display:flex;gap:6px;align-items:center">
+          <input type="checkbox" id="bIrr"> Simulate irregular ops</label>
+      </div>
+      <div class="apsum" id="apsum"></div>
+    </div>
+    <div class="boardgrid">
+      <div class="fids" id="fidsDep"></div>
+      <div class="fids" id="fidsArr"></div>
+    </div>
+    <p class="note" style="margin-top:14px">Gates are not decorative. Every aircraft's arrival and its onward departure hold the
+      same gate for the whole ground period, and no two aircraft ever hold a gate at once — the assignment is a graph colouring over
+      the ground periods in the rotations, so the gate count you see is the real requirement. Status is derived from the current
+      clock at that airport. <b>Simulate irregular ops</b> layers a deterministic delay pattern on top; it is off by default and
+      changes nothing in the underlying schedule.</p>
+  </section>
+</main>
