@@ -94,6 +94,7 @@ function draw(){
   else if(tab==="rot") drawRot();
   else if(tab==="stations") drawStations();
   else if(tab==="fleet") drawFleet();
+  else if(tab==="econ") drawEcon();
   else if(tab==="suggest") drawSuggest();
   else if(tab==="map"){ drawMap(); requestAnimationFrame(()=>{restyle(); drawPlanes();}); }
   else if(tab==="suggest") drawSuggest();

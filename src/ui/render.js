@@ -9,7 +9,7 @@ const tc = s => String(s).replace(/([A-Za-zÀ-ÿ])([A-Za-zÀ-ÿ']*)/g,(m,a,b)=>a
 const cityOf = a => AP[a] ? (tc(AP[a][1])+", "+(AP[a][5]==="United States"?"US":AP[a][5])) : "";
 const cityName = a => AP[a] ? tc(AP[a][1]) : a;
 
-const TABS=[["network","Network"],["map","Map"],["board","Board"],["schedule","Schedule"],["rot","Rotations"],["stations","Stations"],["fleet","Fleet"],["suggest","Suggestions"],["checks","Checks"]];
+const TABS=[["network","Network"],["map","Map"],["board","Board"],["schedule","Schedule"],["rot","Rotations"],["stations","Stations"],["fleet","Fleet"],["econ","Economics"],["suggest","Suggestions"],["checks","Checks"]];
 let tab="network";
 function drawTabs(){
   const c=$("#tabs"); c.innerHTML="";

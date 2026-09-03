@@ -114,6 +114,29 @@ function suggestFill(){
   return out;
 }
 
+/* Estimated daily contribution from adding one round trip on a new market.
+   Revenue is our QSI share of the market at the observed fare, capped by the
+   gauge's seats; cost is the round trip's direct operating cost from the Form
+   41 rates. Ownership is deliberately excluded — the roster already exists,
+   and a route that fits into existing slack costs no aircraft. This is an
+   ESTIMATE, not a verified rebuild: unlike the Fix candidates it does not run
+   trialBuild(), because doing so for several hundred candidates per base is
+   far too slow. Rank on it, then verify the one you pick. */
+function growEconomics(o,d,t,dem,fare){
+  const blkHr = blk(o,d,t)/60;
+  const c = typeof econFlightCost === "function" ? econFlightCost(t, blkHr) : null;
+  if(!c || !SPEC[t]) return {};
+  // A single new nonstop scores QSI 1 against the competition term, so the
+  // share matches what revenue.js would give the same route.
+  const share = 1/(1 + (typeof REV_COMPETITION === "number" ? REV_COMPETITION : 1));
+  const f = fare || (typeof FARE_FIT === "object" && FARE_FIT.a
+                     ? FARE_FIT.a*Math.pow(dist(o,d), FARE_FIT.b) : 0);
+  if(!f) return {};
+  const pax = Math.min(SPEC[t].seats, dem*share);
+  const rev = pax*f*2, cost = c.direct*2;          // both directions of the turn
+  return {rev, cost, pax, contrib: rev-cost};
+}
+
 function suggestGrow(){
   const out=[];
   const pool=new Set(Object.keys(DEM.size).filter(a=>AP[a]));
@@ -129,18 +152,27 @@ function suggestGrow(){
       if(!fits.length) continue;
       const dd=demandOf(B,c); const dem=dd.v; if(dem<=0) continue;
       const g=gauges.find(t=>fits.includes(t))||fits[fits.length-1];
-      cands.push({c,nm,dem,fare:dd.fare,season:seasonCurve(dd.season),g,others:stationsServing(c).length,spare:gauges.includes(g)});
+      cands.push(Object.assign({c,nm,dem,fare:dd.fare,season:seasonCurve(dd.season),g,
+        others:stationsServing(c).length,spare:gauges.includes(g)},
+        growEconomics(B,c,g,dem,dd.fare)));
     }
-    // rank on market revenue where real fares exist — 300 passengers at $95 is not
-    // the same opportunity as 300 at $290 — and on volume alone where they don't
-    cands.sort((a,b)=>(b.fare?b.dem*b.fare:b.dem)-(a.fare?a.dem*a.fare:a.dem));
+    // Rank on estimated contribution, not on market size. A big market flown
+    // at the wrong stage length can still lose money, and a 300 nm E145 leg
+    // pays a full cycle for 1.3 block hours — which is exactly what the cost
+    // model exists to say. Falls back to revenue where a route cannot be
+    // costed, so a missing rate never silently sorts a candidate to the top.
+    cands.sort((a,b)=>(b.contrib!=null?b.contrib:-Infinity)
+                     -(a.contrib!=null?a.contrib:-Infinity)
+                     || (b.fare?b.dem*b.fare:b.dem)-(a.fare?a.dem*a.fare:a.dem));
     const top=cands.slice(0,4);
     if(top.length) out.push({kind:"grow",base:B,items:top.map(o=>({
       code:o.c,
       txt:`${B}–${o.c} · ${esc(cityName(o.c))} · ${fmt(o.nm)} nm · ${fmt(o.dem)} ${demandUnit()}`
-        + (o.fare?` · $${fmt(o.fare)} avg fare · <b>$${fmt(o.dem*o.fare*2)}</b> market/day`:"")
+        + (o.fare?` · $${fmt(o.fare)} avg fare · $${fmt(o.dem*o.fare*2)} market/day`:"")
+        + (o.contrib!=null?` · <b>${o.contrib>=0?"+":"−"}$${fmt(Math.abs(Math.round(o.contrib)))}</b>/day est. contribution`:"")
         + (o.season?` <span class="mono" title="Jul 2025 → May 2026">${o.season.spark}</span> peak ${o.season.peak} ${o.season.peakX.toFixed(1)}×`:""),
-      sub:`${o.others?`already flown from ${o.others} of your stations`:"new city for the network"}${o.spare?` · you have a spare ${o.g}`:` · would need a ${o.g}`}`,
+      sub:`${o.others?`already flown from ${o.others} of your stations`:"new city for the network"}${o.spare?` · you have a spare ${o.g}`:` · would need a ${o.g}`}`
+        + (o.contrib!=null?` · est. $${fmt(Math.round(o.rev))} revenue vs $${fmt(Math.round(o.cost))} direct cost, before any aircraft charge`:""),
       apply:()=>{ state.routes.push({o:B,d:o.c,dow:7,mix:{[o.g]:1}}); state.routes.sort((a,b)=>a.o<b.o?-1:a.o>b.o?1:(a.d<b.d?-1:1)); }}))});
   }
   return out;

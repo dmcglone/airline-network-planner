@@ -1,0 +1,2692 @@
+{
+ "meta": {
+  "source": "US DOT Form 41 Schedule P-5.2 and P-6, T-100 Domestic Segment, calendar 2025",
+  "region": "domestic entities only, both sides of the join",
+  "periods": [
+   "2025Q1",
+   "2025Q2",
+   "2025Q3",
+   "2025Q4"
+  ],
+  "peerSet": "lcc",
+  "cycleEquivHours": {
+   "fuel": 0.35,
+   "maint": 0.3,
+   "crew": 0.1
+  },
+  "caveats": [
+   "The cycle/hour split is assumed, not measured -- Form 41 cannot identify it. Only cycleEquivHours is an assumption; the totals reconcile to Form 41 at each type's observed stage length.",
+   "Widebody rows come from domestic flying only, a small and unrepresentative slice of mostly-international fleets. Treat as provisional until T-100 Segment (All Carriers) is joined against all P-5.2 regions.",
+   "Regional carriers fly under capacity purchase agreements: fuel dollars and often ownership sit with the mainline partner. Gallons are still reported, so burn is real and fuel is priced here rather than taken from their books.",
+   "Aircraft type 699 is treated as the A321ceo despite being labelled A321neoXLR in T_AIRCRAFT_TYPES; 721 is the neo."
+  ]
+ },
+ "fuel": {
+  "pricePerGal": 2.277,
+  "note": "implied by mainline fuel dollars over gallons issued, 2025; regionals excluded because their fuel is bought by the mainline partner"
+ },
+ "ops": {
+  "spareRatio": 0.08,
+  "overheadPct": 0.18,
+  "handlingPerDep": 450,
+  "landingRefSeats": 175
+ },
+ "peerSets": {
+  "lcc": [
+   "WN",
+   "NK",
+   "F9",
+   "G4",
+   "AS",
+   "B6",
+   "SY",
+   "XP",
+   "MX"
+  ],
+  "legacy": [
+   "AA",
+   "DL",
+   "UA",
+   "HA"
+  ],
+  "regional": [
+   "OO",
+   "YX",
+   "MQ",
+   "QX",
+   "YV",
+   "9E",
+   "OH",
+   "ZW",
+   "C5",
+   "PT",
+   "G7"
+  ],
+  "all": [
+   "9E",
+   "AA",
+   "AS",
+   "B6",
+   "C5",
+   "DL",
+   "F9",
+   "G4",
+   "G7",
+   "HA",
+   "MQ",
+   "MX",
+   "NK",
+   "OH",
+   "OO",
+   "PT",
+   "QX",
+   "SY",
+   "UA",
+   "WN",
+   "XP",
+   "YV",
+   "YX",
+   "ZW"
+  ]
+ },
+ "types": {
+  "A220-100": {
+   "gal": {
+    "cyc": 173.1,
+    "hr": 494.5
+   },
+   "crew": {
+    "cyc": 186.6,
+    "hr": 1865.6
+   },
+   "maint": {
+    "cyc": 206.9,
+    "hr": 689.5
+   },
+   "ownDay": 4513,
+   "seats": 109,
+   "taxiMin": 29.1,
+   "obsStage": 928,
+   "carriers": [
+    "DL"
+   ],
+   "deps": 50054,
+   "flags": [
+    "outside-peer-set"
+   ]
+  },
+  "A220-300": {
+   "gal": {
+    "cyc": 209.3,
+    "hr": 598.1
+   },
+   "crew": {
+    "cyc": 128.7,
+    "hr": 1286.7
+   },
+   "maint": {
+    "cyc": 166.1,
+    "hr": 553.6
+   },
+   "ownDay": 8917,
+   "seats": 139,
+   "taxiMin": 27.6,
+   "obsStage": 849,
+   "carriers": [
+    "B6",
+    "MX"
+   ],
+   "deps": 113083,
+   "flags": []
+  },
+  "A319": {
+   "gal": {
+    "cyc": 237.1,
+    "hr": 677.4
+   },
+   "crew": {
+    "cyc": 116.0,
+    "hr": 1159.6
+   },
+   "maint": {
+    "cyc": 207.5,
+    "hr": 691.6
+   },
+   "ownDay": 4444,
+   "seats": 156,
+   "taxiMin": 21.5,
+   "obsStage": 824,
+   "carriers": [
+    "G4"
+   ],
+   "deps": 32328,
+   "flags": []
+  },
+  "A320": {
+   "gal": {
+    "cyc": 245.5,
+    "hr": 701.4
+   },
+   "crew": {
+    "cyc": 139.6,
+    "hr": 1395.9
+   },
+   "maint": {
+    "cyc": 247.4,
+    "hr": 824.7
+   },
+   "ownDay": 6781,
+   "seats": 172,
+   "taxiMin": 24.8,
+   "obsStage": 974,
+   "carriers": [
+    "B6",
+    "F9",
+    "G4",
+    "NK"
+   ],
+   "deps": 262482,
+   "flags": [
+    "thin"
+   ]
+  },
+  "A320neo": {
+   "gal": {
+    "cyc": 198.0,
+    "hr": 565.6
+   },
+   "crew": {
+    "cyc": 106.8,
+    "hr": 1067.9
+   },
+   "maint": {
+    "cyc": 106.7,
+    "hr": 355.6
+   },
+   "ownDay": 9838,
+   "seats": 182,
+   "taxiMin": 27.4,
+   "obsStage": 898,
+   "carriers": [
+    "F9",
+    "NK"
+   ],
+   "deps": 162937,
+   "flags": []
+  },
+  "A321ceo": {
+   "gal": {
+    "cyc": 278.2,
+    "hr": 794.8
+   },
+   "crew": {
+    "cyc": 167.2,
+    "hr": 1672.3
+   },
+   "maint": {
+    "cyc": 103.4,
+    "hr": 344.6
+   },
+   "ownDay": 5150,
+   "seats": 192,
+   "taxiMin": 27.6,
+   "obsStage": 1629,
+   "carriers": [
+    "B6",
+    "NK"
+   ],
+   "deps": 69690,
+   "flags": []
+  },
+  "A321neo": {
+   "gal": {
+    "cyc": 232.1,
+    "hr": 663.2
+   },
+   "crew": {
+    "cyc": 133.1,
+    "hr": 1330.8
+   },
+   "maint": {
+    "cyc": 118.4,
+    "hr": 394.6
+   },
+   "ownDay": 12029,
+   "seats": 230,
+   "taxiMin": 28.8,
+   "obsStage": 1099,
+   "carriers": [
+    "B6",
+    "F9",
+    "NK"
+   ],
+   "deps": 111193,
+   "flags": [
+    "thin"
+   ]
+  },
+  "A330-200": {
+   "gal": {
+    "cyc": 710.3,
+    "hr": 2029.5
+   },
+   "crew": {
+    "cyc": 195.0,
+    "hr": 1949.9
+   },
+   "maint": {
+    "cyc": 429.9,
+    "hr": 1432.9
+   },
+   "ownDay": 10838,
+   "seats": 278,
+   "taxiMin": 30.1,
+   "obsStage": 2748,
+   "carriers": [
+    "HA"
+   ],
+   "deps": 11689,
+   "flags": [
+    "outside-peer-set"
+   ]
+  },
+  "A330-300": {
+   "gal": {
+    "cyc": 652.3,
+    "hr": 1863.7
+   },
+   "crew": {
+    "cyc": 260.9,
+    "hr": 2608.8
+   },
+   "maint": {
+    "cyc": 257.5,
+    "hr": 858.3
+   },
+   "ownDay": 7964,
+   "seats": 282,
+   "taxiMin": 30.6,
+   "obsStage": 3147,
+   "carriers": [
+    "DL"
+   ],
+   "deps": 2567,
+   "flags": [
+    "outside-peer-set",
+    "thin"
+   ]
+  },
+  "A330-900": {
+   "gal": {
+    "cyc": 538.9,
+    "hr": 1539.7
+   },
+   "crew": {
+    "cyc": 205.6,
+    "hr": 2056.2
+   },
+   "maint": {
+    "cyc": 230.4,
+    "hr": 768.0
+   },
+   "ownDay": 9138,
+   "seats": 281,
+   "taxiMin": 36.8,
+   "obsStage": 2115,
+   "carriers": [
+    "DL"
+   ],
+   "deps": 648,
+   "flags": [
+    "outside-peer-set",
+    "thin"
+   ]
+  },
+  "A350-900": {
+   "gal": {
+    "cyc": 615.3,
+    "hr": 1758.0
+   },
+   "crew": {
+    "cyc": 213.5,
+    "hr": 2135.4
+   },
+   "maint": {
+    "cyc": 249.4,
+    "hr": 831.2
+   },
+   "ownDay": 8554,
+   "seats": 305,
+   "taxiMin": 30.0,
+   "obsStage": 1267,
+   "carriers": [
+    "DL"
+   ],
+   "deps": 1179,
+   "flags": [
+    "outside-peer-set",
+    "thin"
+   ]
+  },
+  "ATR-42": {
+   "gal": {
+    "cyc": 37.3,
+    "hr": 106.5
+   },
+   "crew": {
+    "cyc": 42.8,
+    "hr": 428.4
+   },
+   "maint": {
+    "cyc": 80.7,
+    "hr": 269.1
+   },
+   "ownDay": null,
+   "seats": 46,
+   "taxiMin": 15.3,
+   "obsStage": 154,
+   "carriers": [
+    "3M"
+   ],
+   "deps": 2842,
+   "flags": [
+    "no-ownership",
+    "outside-peer-set",
+    "thin"
+   ]
+  },
+  "ATR-72": {
+   "gal": {
+    "cyc": 31.4,
+    "hr": 89.8
+   },
+   "crew": {
+    "cyc": 46.5,
+    "hr": 465.1
+   },
+   "maint": {
+    "cyc": 104.2,
+    "hr": 347.2
+   },
+   "ownDay": null,
+   "seats": 70,
+   "taxiMin": 20.4,
+   "obsStage": 262,
+   "carriers": [
+    "3M"
+   ],
+   "deps": 3158,
+   "flags": [
+    "no-ownership",
+    "outside-peer-set",
+    "thin"
+   ]
+  },
+  "B717": {
+   "gal": {
+    "cyc": 186.9,
+    "hr": 534.0
+   },
+   "crew": {
+    "cyc": 167.5,
+    "hr": 1674.8
+   },
+   "maint": {
+    "cyc": 208.8,
+    "hr": 695.9
+   },
+   "ownDay": 2984,
+   "seats": 115,
+   "taxiMin": 21.5,
+   "obsStage": 346,
+   "carriers": [
+    "DL",
+    "HA"
+   ],
+   "deps": 190714,
+   "flags": [
+    "outside-peer-set"
+   ]
+  },
+  "B737-700": {
+   "gal": {
+    "cyc": 216.1,
+    "hr": 617.4
+   },
+   "crew": {
+    "cyc": 160.7,
+    "hr": 1606.9
+   },
+   "maint": {
+    "cyc": 180.1,
+    "hr": 600.3
+   },
+   "ownDay": 3558,
+   "seats": 143,
+   "taxiMin": 19.1,
+   "obsStage": 668,
+   "carriers": [
+    "AS",
+    "WN",
+    "XP"
+   ],
+   "deps": 623352,
+   "flags": [
+    "thin"
+   ]
+  },
+  "B737-800": {
+   "gal": {
+    "cyc": 235.6,
+    "hr": 673.3
+   },
+   "crew": {
+    "cyc": 162.2,
+    "hr": 1621.8
+   },
+   "maint": {
+    "cyc": 250.6,
+    "hr": 835.5
+   },
+   "ownDay": 5288,
+   "seats": 173,
+   "taxiMin": 21.0,
+   "obsStage": 889,
+   "carriers": [
+    "AS",
+    "WN"
+   ],
+   "deps": 402233,
+   "flags": []
+  },
+  "B737-900ER": {
+   "gal": {
+    "cyc": 258.3,
+    "hr": 738.1
+   },
+   "crew": {
+    "cyc": 142.8,
+    "hr": 1428.3
+   },
+   "maint": {
+    "cyc": 252.4,
+    "hr": 841.2
+   },
+   "ownDay": 4157,
+   "seats": 178,
+   "taxiMin": 31.9,
+   "obsStage": 1463,
+   "carriers": [
+    "AS"
+   ],
+   "deps": 78908,
+   "flags": []
+  },
+  "B737MAX8": {
+   "gal": {
+    "cyc": 205.3,
+    "hr": 586.6
+   },
+   "crew": {
+    "cyc": 166.4,
+    "hr": 1664.0
+   },
+   "maint": {
+    "cyc": 46.3,
+    "hr": 154.2
+   },
+   "ownDay": 4347,
+   "seats": 175,
+   "taxiMin": 21.2,
+   "obsStage": 867,
+   "carriers": [
+    "WN"
+   ],
+   "deps": 445322,
+   "flags": []
+  },
+  "B737MAX9": {
+   "gal": {
+    "cyc": 225.7,
+    "hr": 644.9
+   },
+   "crew": {
+    "cyc": 144.5,
+    "hr": 1445.0
+   },
+   "maint": {
+    "cyc": 66.3,
+    "hr": 221.1
+   },
+   "ownDay": 5511,
+   "seats": 178,
+   "taxiMin": 32.4,
+   "obsStage": 1589,
+   "carriers": [
+    "AS"
+   ],
+   "deps": 77671,
+   "flags": []
+  },
+  "B757-200": {
+   "gal": {
+    "cyc": 333.3,
+    "hr": 952.3
+   },
+   "crew": {
+    "cyc": 198.4,
+    "hr": 1984.4
+   },
+   "maint": {
+    "cyc": 220.4,
+    "hr": 734.6
+   },
+   "ownDay": 5058,
+   "seats": 194,
+   "taxiMin": 26.7,
+   "obsStage": 903,
+   "carriers": [
+    "DL"
+   ],
+   "deps": 82476,
+   "flags": [
+    "outside-peer-set"
+   ]
+  },
+  "B757-300": {
+   "gal": {
+    "cyc": 361.8,
+    "hr": 1033.7
+   },
+   "crew": {
+    "cyc": 190.4,
+    "hr": 1904.3
+   },
+   "maint": {
+    "cyc": 221.7,
+    "hr": 739.0
+   },
+   "ownDay": 5531,
+   "seats": 234,
+   "taxiMin": 28.3,
+   "obsStage": 1310,
+   "carriers": [
+    "DL"
+   ],
+   "deps": 16849,
+   "flags": [
+    "outside-peer-set"
+   ]
+  },
+  "B767-300": {
+   "gal": {
+    "cyc": 498.2,
+    "hr": 1423.3
+   },
+   "crew": {
+    "cyc": 210.2,
+    "hr": 2101.8
+   },
+   "maint": {
+    "cyc": 242.4,
+    "hr": 808.0
+   },
+   "ownDay": 7119,
+   "seats": 214,
+   "taxiMin": 32.2,
+   "obsStage": 2434,
+   "carriers": [
+    "DL"
+   ],
+   "deps": 17601,
+   "flags": [
+    "outside-peer-set"
+   ]
+  },
+  "B767-400": {
+   "gal": {
+    "cyc": 553.2,
+    "hr": 1580.5
+   },
+   "crew": {
+    "cyc": 196.8,
+    "hr": 1968.4
+   },
+   "maint": {
+    "cyc": 240.1,
+    "hr": 800.2
+   },
+   "ownDay": 7824,
+   "seats": 236,
+   "taxiMin": 36.3,
+   "obsStage": 2109,
+   "carriers": [
+    "DL"
+   ],
+   "deps": 3207,
+   "flags": [
+    "outside-peer-set",
+    "thin"
+   ]
+  },
+  "B777-200": {
+   "gal": {
+    "cyc": 1050.8,
+    "hr": 3002.3
+   },
+   "crew": {
+    "cyc": 321.2,
+    "hr": 3211.8
+   },
+   "maint": {
+    "cyc": 603.7,
+    "hr": 2012.4
+   },
+   "ownDay": 12850,
+   "seats": 273,
+   "taxiMin": 32.1,
+   "obsStage": 2188,
+   "carriers": [
+    "AA"
+   ],
+   "deps": 3255,
+   "flags": [
+    "outside-peer-set",
+    "thin"
+   ]
+  },
+  "B777-300": {
+   "gal": {
+    "cyc": 541.2,
+    "hr": 1546.4
+   },
+   "crew": {
+    "cyc": 219.9,
+    "hr": 2198.8
+   },
+   "maint": {
+    "cyc": 359.2,
+    "hr": 1197.5
+   },
+   "ownDay": 14873,
+   "seats": 340,
+   "taxiMin": 31.7,
+   "obsStage": 2565,
+   "carriers": [
+    "AA",
+    "UA"
+   ],
+   "deps": 2717,
+   "flags": [
+    "outside-peer-set",
+    "thin"
+   ]
+  },
+  "B787-8": {
+   "gal": {
+    "cyc": 502.4,
+    "hr": 1435.4
+   },
+   "crew": {
+    "cyc": 274.1,
+    "hr": 2740.5
+   },
+   "maint": {
+    "cyc": 506.2,
+    "hr": 1687.2
+   },
+   "ownDay": 11156,
+   "seats": 234,
+   "taxiMin": 32.4,
+   "obsStage": 2008,
+   "carriers": [
+    "AA"
+   ],
+   "deps": 3672,
+   "flags": [
+    "outside-peer-set",
+    "thin"
+   ]
+  },
+  "B787-9": {
+   "gal": {
+    "cyc": 569.6,
+    "hr": 1627.4
+   },
+   "crew": {
+    "cyc": 288.0,
+    "hr": 2880.4
+   },
+   "maint": {
+    "cyc": 529.5,
+    "hr": 1765.0
+   },
+   "ownDay": 13425,
+   "seats": 276,
+   "taxiMin": 35.2,
+   "obsStage": 1544,
+   "carriers": [
+    "AA"
+   ],
+   "deps": 1073,
+   "flags": [
+    "outside-peer-set",
+    "thin"
+   ]
+  },
+  "CRJ200": {
+   "gal": {
+    "cyc": 88.6,
+    "hr": 253.2
+   },
+   "crew": {
+    "cyc": 62.5,
+    "hr": 625.5
+   },
+   "maint": {
+    "cyc": 201.6,
+    "hr": 672.0
+   },
+   "ownDay": null,
+   "seats": 50,
+   "taxiMin": 33.4,
+   "obsStage": 320,
+   "carriers": [
+    "OO"
+   ],
+   "deps": 130727,
+   "flags": [
+    "no-ownership"
+   ]
+  },
+  "CRJ550": {
+   "gal": {
+    "cyc": 117.6,
+    "hr": 336.1
+   },
+   "crew": {
+    "cyc": 63.9,
+    "hr": 638.6
+   },
+   "maint": {
+    "cyc": 161.4,
+    "hr": 538.0
+   },
+   "ownDay": 3509,
+   "seats": 50,
+   "taxiMin": 33.8,
+   "obsStage": 343,
+   "carriers": [
+    "G7",
+    "OO"
+   ],
+   "deps": 121379,
+   "flags": [
+    "no-ownership"
+   ]
+  },
+  "CRJ700": {
+   "gal": {
+    "cyc": 141.0,
+    "hr": 402.9
+   },
+   "crew": {
+    "cyc": 77.9,
+    "hr": 779.4
+   },
+   "maint": {
+    "cyc": 267.6,
+    "hr": 892.1
+   },
+   "ownDay": 2128,
+   "seats": 66,
+   "taxiMin": 31.3,
+   "obsStage": 441,
+   "carriers": [
+    "9E",
+    "OH",
+    "OO"
+   ],
+   "deps": 276095,
+   "flags": [
+    "no-ownership"
+   ]
+  },
+  "CRJ900": {
+   "gal": {
+    "cyc": 140.4,
+    "hr": 401.2
+   },
+   "crew": {
+    "cyc": 96.8,
+    "hr": 968.0
+   },
+   "maint": {
+    "cyc": 233.1,
+    "hr": 777.0
+   },
+   "ownDay": 2778,
+   "seats": 75,
+   "taxiMin": 30.3,
+   "obsStage": 452,
+   "carriers": [
+    "9E",
+    "OH",
+    "OO"
+   ],
+   "deps": 420400,
+   "flags": [
+    "no-ownership"
+   ]
+  },
+  "E145": {
+   "gal": {
+    "cyc": 92.9,
+    "hr": 265.6
+   },
+   "crew": {
+    "cyc": 70.1,
+    "hr": 700.7
+   },
+   "maint": {
+    "cyc": 164.5,
+    "hr": 548.4
+   },
+   "ownDay": 2206,
+   "seats": 50,
+   "taxiMin": 32.1,
+   "obsStage": 313,
+   "carriers": [
+    "C5",
+    "PT"
+   ],
+   "deps": 227521,
+   "flags": [
+    "no-ownership"
+   ]
+  },
+  "E175": {
+   "gal": {
+    "cyc": 138.7,
+    "hr": 396.3
+   },
+   "crew": {
+    "cyc": 58.6,
+    "hr": 586.1
+   },
+   "maint": {
+    "cyc": 142.9,
+    "hr": 476.2
+   },
+   "ownDay": 3405,
+   "seats": 74,
+   "taxiMin": 28.0,
+   "obsStage": 523,
+   "carriers": [
+    "OO",
+    "QX",
+    "YV"
+   ],
+   "deps": 621458,
+   "flags": [
+    "no-ownership"
+   ]
+  },
+  "E190": {
+   "gal": {
+    "cyc": 196.5,
+    "hr": 561.5
+   },
+   "crew": {
+    "cyc": 343.3,
+    "hr": 3433.0
+   },
+   "maint": {
+    "cyc": 416.4,
+    "hr": 1387.9
+   },
+   "ownDay": 4630,
+   "seats": 100,
+   "taxiMin": 25.8,
+   "obsStage": 417,
+   "carriers": [
+    "B6"
+   ],
+   "deps": 13271,
+   "flags": []
+  }
+ },
+ "station": {
+  "landingPerDep": 666.85,
+  "foodPerPax": 1.67,
+  "note": "landingPerDep is at the peer average gauge; scale by seats for other types",
+  "observations": [
+   {
+    "carrier": "WN",
+    "landPerDep": 591,
+    "foodPerPax": 0.45,
+    "seatsPerDep": 161
+   },
+   {
+    "carrier": "NK",
+    "landPerDep": 673,
+    "foodPerPax": 0.7,
+    "seatsPerDep": 193
+   },
+   {
+    "carrier": "F9",
+    "landPerDep": 657,
+    "foodPerPax": 0.0,
+    "seatsPerDep": 209
+   },
+   {
+    "carrier": "G4",
+    "landPerDep": 728,
+    "foodPerPax": 0.61,
+    "seatsPerDep": 175
+   },
+   {
+    "carrier": "AS",
+    "landPerDep": 748,
+    "foodPerPax": 7.07,
+    "seatsPerDep": 169
+   },
+   {
+    "carrier": "B6",
+    "landPerDep": 1038,
+    "foodPerPax": 6.07,
+    "seatsPerDep": 155
+   },
+   {
+    "carrier": "SY",
+    "landPerDep": 1019,
+    "foodPerPax": 3.61,
+    "seatsPerDep": 186
+   },
+   {
+    "carrier": "XP",
+    "landPerDep": 744,
+    "foodPerPax": 0.15,
+    "seatsPerDep": 167
+   },
+   {
+    "carrier": "MX",
+    "landPerDep": 403,
+    "foodPerPax": 1.72,
+    "seatsPerDep": 135
+   }
+  ]
+ },
+ "observations": [
+  {
+   "carrier": "DL",
+   "type": "A220-100",
+   "deps": 50054,
+   "stage": 927.7,
+   "blkdep": 2.647,
+   "taxiMin": 29.1,
+   "seats": 109.0,
+   "util": 8.24,
+   "blkAirRatio": 1.22,
+   "galDep": 1481.9,
+   "crewDep": 5124.8,
+   "maintDep": 2032.1,
+   "ownDay": 4512.6,
+   "flags": []
+  },
+  {
+   "carrier": "B6",
+   "type": "A220-300",
+   "deps": 57188,
+   "stage": 820.8,
+   "blkdep": 2.455,
+   "taxiMin": 28.5,
+   "seats": 140.0,
+   "util": 8.59,
+   "blkAirRatio": 1.227,
+   "galDep": 1879.9,
+   "crewDep": 4625.5,
+   "maintDep": 2279.1,
+   "ownDay": 5523.6,
+   "flags": []
+  },
+  {
+   "carrier": "MX",
+   "type": "A220-300",
+   "deps": 55895,
+   "stage": 878.5,
+   "blkdep": 2.507,
+   "taxiMin": 26.7,
+   "seats": 137.0,
+   "util": 9.72,
+   "blkAirRatio": 1.187,
+   "galDep": 1501.7,
+   "crewDep": 1985.4,
+   "maintDep": 782.7,
+   "ownDay": 12388.2,
+   "flags": []
+  },
+  {
+   "carrier": "DL",
+   "type": "A220-300",
+   "deps": 39324,
+   "stage": 1100.5,
+   "blkdep": 2.972,
+   "taxiMin": 28.9,
+   "seats": 130.0,
+   "util": 9.81,
+   "blkAirRatio": 1.168,
+   "galDep": 1830.3,
+   "crewDep": 5900.8,
+   "maintDep": 2379.0,
+   "ownDay": 5608.1,
+   "flags": []
+  },
+  {
+   "carrier": "AA",
+   "type": "A319",
+   "deps": 171214,
+   "stage": 648.0,
+   "blkdep": 2.033,
+   "taxiMin": 27.8,
+   "seats": 128.0,
+   "util": 8.15,
+   "blkAirRatio": 1.259,
+   "galDep": 1589.6,
+   "crewDep": 2243.8,
+   "maintDep": 1463.1,
+   "ownDay": 3217.7,
+   "flags": []
+  },
+  {
+   "carrier": "UA",
+   "type": "A319",
+   "deps": 91569,
+   "stage": 750.0,
+   "blkdep": 2.279,
+   "taxiMin": 29.9,
+   "seats": 126.0,
+   "util": 7.5,
+   "blkAirRatio": 0.935,
+   "galDep": 1734.8,
+   "crewDep": 4198.5,
+   "maintDep": 1868.3,
+   "ownDay": 5310.5,
+   "flags": [
+    "hours-basis"
+   ]
+  },
+  {
+   "carrier": "DL",
+   "type": "A319",
+   "deps": 68090,
+   "stage": 769.7,
+   "blkdep": 2.219,
+   "taxiMin": 25.7,
+   "seats": 132.0,
+   "util": 8.07,
+   "blkAirRatio": 1.181,
+   "galDep": 1780.5,
+   "crewDep": 4470.0,
+   "maintDep": 1761.8,
+   "ownDay": 4567.3,
+   "flags": []
+  },
+  {
+   "carrier": "G4",
+   "type": "A319",
+   "deps": 32328,
+   "stage": 824.4,
+   "blkdep": 2.257,
+   "taxiMin": 21.5,
+   "seats": 156.0,
+   "util": 6.38,
+   "blkAirRatio": 1.153,
+   "galDep": 1765.9,
+   "crewDep": 2733.1,
+   "maintDep": 1768.4,
+   "ownDay": 4444.4,
+   "flags": []
+  },
+  {
+   "carrier": "B6",
+   "type": "A320",
+   "deps": 105898,
+   "stage": 1067.0,
+   "blkdep": 2.89,
+   "taxiMin": 27.0,
+   "seats": 161.1,
+   "util": 9.75,
+   "blkAirRatio": 1.183,
+   "galDep": 2294.6,
+   "crewDep": 4801.0,
+   "maintDep": 3825.9,
+   "ownDay": 7530.1,
+   "flags": []
+  },
+  {
+   "carrier": "G4",
+   "type": "A320",
+   "deps": 83095,
+   "stage": 942.7,
+   "blkdep": 2.497,
+   "taxiMin": 21.8,
+   "seats": 180.3,
+   "util": 6.79,
+   "blkAirRatio": 1.123,
+   "galDep": 2060.0,
+   "crewDep": 3062.0,
+   "maintDep": 1613.4,
+   "ownDay": 3963.3,
+   "flags": []
+  },
+  {
+   "carrier": "UA",
+   "type": "A320",
+   "deps": 72798,
+   "stage": 767.3,
+   "blkdep": 2.299,
+   "taxiMin": 30.1,
+   "seats": 150.0,
+   "util": 7.07,
+   "blkAirRatio": 0.934,
+   "galDep": 1845.8,
+   "crewDep": 4287.7,
+   "maintDep": 2550.2,
+   "ownDay": 2937.3,
+   "flags": [
+    "hours-basis"
+   ]
+  },
+  {
+   "carrier": "DL",
+   "type": "A320",
+   "deps": 72497,
+   "stage": 802.6,
+   "blkdep": 2.274,
+   "taxiMin": 25.5,
+   "seats": 157.0,
+   "util": 9.16,
+   "blkAirRatio": 1.18,
+   "galDep": 1961.2,
+   "crewDep": 4550.8,
+   "maintDep": 1813.8,
+   "ownDay": 5192.7,
+   "flags": []
+  },
+  {
+   "carrier": "NK",
+   "type": "A320",
+   "deps": 66037,
+   "stage": 876.0,
+   "blkdep": 2.435,
+   "taxiMin": 24.7,
+   "seats": 176.0,
+   "util": 7.67,
+   "blkAirRatio": 1.184,
+   "galDep": 1851.4,
+   "crewDep": 3386.3,
+   "maintDep": 1390.7,
+   "ownDay": 8720.6,
+   "flags": []
+  },
+  {
+   "carrier": "AA",
+   "type": "A320",
+   "deps": 65918,
+   "stage": 702.8,
+   "blkdep": 2.105,
+   "taxiMin": 26.7,
+   "seats": 150.0,
+   "util": 8.39,
+   "blkAirRatio": 1.249,
+   "galDep": 1723.1,
+   "crewDep": 2803.5,
+   "maintDep": 1827.2,
+   "ownDay": 4006.4,
+   "flags": []
+  },
+  {
+   "carrier": "F9",
+   "type": "A320",
+   "deps": 7452,
+   "stage": 863.8,
+   "blkdep": 2.52,
+   "taxiMin": 28.7,
+   "seats": 184.2,
+   "util": 8.69,
+   "blkAirRatio": 1.257,
+   "galDep": 1895.8,
+   "crewDep": 2376.0,
+   "maintDep": 736.1,
+   "ownDay": 10360.1,
+   "flags": [
+    "thin"
+   ]
+  },
+  {
+   "carrier": "F9",
+   "type": "A320neo",
+   "deps": 100417,
+   "stage": 865.9,
+   "blkdep": 2.526,
+   "taxiMin": 29.1,
+   "seats": 186.0,
+   "util": 8.73,
+   "blkAirRatio": 1.537,
+   "galDep": 1613.8,
+   "crewDep": 2403.4,
+   "maintDep": 745.8,
+   "ownDay": 10533.6,
+   "flags": []
+  },
+  {
+   "carrier": "NK",
+   "type": "A320neo",
+   "deps": 62520,
+   "stage": 950.0,
+   "blkdep": 2.575,
+   "taxiMin": 24.6,
+   "seats": 176.0,
+   "util": 7.69,
+   "blkAirRatio": 1.183,
+   "galDep": 1674.9,
+   "crewDep": 3500.6,
+   "maintDep": 1438.2,
+   "ownDay": 8721.0,
+   "flags": []
+  },
+  {
+   "carrier": "AA",
+   "type": "A321ceo",
+   "deps": 243564,
+   "stage": 1119.5,
+   "blkdep": 2.959,
+   "taxiMin": 29.1,
+   "seats": 185.8,
+   "util": 9.95,
+   "blkAirRatio": 1.182,
+   "galDep": 2795.6,
+   "crewDep": 5363.6,
+   "maintDep": 3500.3,
+   "ownDay": 6456.7,
+   "flags": []
+  },
+  {
+   "carrier": "DL",
+   "type": "A321ceo",
+   "deps": 169430,
+   "stage": 1014.7,
+   "blkdep": 2.735,
+   "taxiMin": 27.1,
+   "seats": 189.5,
+   "util": 10.72,
+   "blkAirRatio": 1.196,
+   "galDep": 2503.5,
+   "crewDep": 5308.1,
+   "maintDep": 2145.6,
+   "ownDay": 5987.4,
+   "flags": []
+  },
+  {
+   "carrier": "B6",
+   "type": "A321ceo",
+   "deps": 43134,
+   "stage": 2070.1,
+   "blkdep": 4.849,
+   "taxiMin": 29.0,
+   "seats": 172.9,
+   "util": 11.44,
+   "blkAirRatio": 1.086,
+   "galDep": 4193.8,
+   "crewDep": 8822.7,
+   "maintDep": 1489.7,
+   "ownDay": 2954.7,
+   "flags": []
+  },
+  {
+   "carrier": "NK",
+   "type": "A321ceo",
+   "deps": 26556,
+   "stage": 912.7,
+   "blkdep": 2.517,
+   "taxiMin": 25.4,
+   "seats": 222.0,
+   "util": 7.67,
+   "blkAirRatio": 1.187,
+   "galDep": 2178.1,
+   "crewDep": 3489.1,
+   "maintDep": 1433.3,
+   "ownDay": 8715.2,
+   "flags": []
+  },
+  {
+   "carrier": "F9",
+   "type": "A321ceo",
+   "deps": 21727,
+   "stage": 922.4,
+   "blkdep": 2.648,
+   "taxiMin": 29.5,
+   "seats": 230.0,
+   "util": 9.09,
+   "blkAirRatio": 0.8,
+   "galDep": 2289.7,
+   "crewDep": 3175.4,
+   "maintDep": 988.2,
+   "ownDay": 13851.8,
+   "flags": [
+    "hours-basis"
+   ]
+  },
+  {
+   "carrier": "AA",
+   "type": "A321neo",
+   "deps": 82798,
+   "stage": 1640.8,
+   "blkdep": 3.932,
+   "taxiMin": 29.0,
+   "seats": 195.3,
+   "util": 11.51,
+   "blkAirRatio": 1.135,
+   "galDep": 3261.2,
+   "crewDep": 8440.4,
+   "maintDep": 5512.6,
+   "ownDay": 8844.1,
+   "flags": []
+  },
+  {
+   "carrier": "DL",
+   "type": "A321neo",
+   "deps": 66318,
+   "stage": 1914.8,
+   "blkdep": 4.544,
+   "taxiMin": 30.8,
+   "seats": 193.9,
+   "util": 11.94,
+   "blkAirRatio": 1.127,
+   "galDep": 3639.3,
+   "crewDep": 9016.9,
+   "maintDep": 3766.6,
+   "ownDay": 7070.1,
+   "flags": []
+  },
+  {
+   "carrier": "F9",
+   "type": "A321neo",
+   "deps": 65229,
+   "stage": 966.8,
+   "blkdep": 2.728,
+   "taxiMin": 30.3,
+   "seats": 239.7,
+   "util": 9.44,
+   "blkAirRatio": 1.163,
+   "galDep": 1958.9,
+   "crewDep": 3442.5,
+   "maintDep": 1076.6,
+   "ownDay": 15226.1,
+   "flags": []
+  },
+  {
+   "carrier": "UA",
+   "type": "A321neo",
+   "deps": 44872,
+   "stage": 1222.0,
+   "blkdep": 3.272,
+   "taxiMin": 34.8,
+   "seats": 200.0,
+   "util": 10.65,
+   "blkAirRatio": 0.993,
+   "galDep": 2408.5,
+   "crewDep": 5910.5,
+   "maintDep": 1595.4,
+   "ownDay": 1200.9,
+   "flags": [
+    "hours-basis"
+   ]
+  },
+  {
+   "carrier": "NK",
+   "type": "A321neo",
+   "deps": 36964,
+   "stage": 1045.2,
+   "blkdep": 2.774,
+   "taxiMin": 25.8,
+   "seats": 229.0,
+   "util": 7.65,
+   "blkAirRatio": 1.185,
+   "galDep": 2033.3,
+   "crewDep": 3818.2,
+   "maintDep": 1565.4,
+   "ownDay": 8703.4,
+   "flags": []
+  },
+  {
+   "carrier": "HA",
+   "type": "A321neo",
+   "deps": 13070,
+   "stage": 2498.3,
+   "blkdep": 5.437,
+   "taxiMin": 22.1,
+   "seats": 189.0,
+   "util": 10.92,
+   "blkAirRatio": 1.071,
+   "galDep": 4626.9,
+   "crewDep": 9800.2,
+   "maintDep": 6657.6,
+   "ownDay": 7074.8,
+   "flags": []
+  },
+  {
+   "carrier": "B6",
+   "type": "A321neo",
+   "deps": 9000,
+   "stage": 2283.4,
+   "blkdep": 5.28,
+   "taxiMin": 30.8,
+   "seats": 163.3,
+   "util": 9.9,
+   "blkAirRatio": 1.1,
+   "galDep": 4488.9,
+   "crewDep": 9513.3,
+   "maintDep": 1611.8,
+   "ownDay": 2522.2,
+   "flags": [
+    "thin"
+   ]
+  },
+  {
+   "carrier": "HA",
+   "type": "A330-200",
+   "deps": 11689,
+   "stage": 2748.2,
+   "blkdep": 5.986,
+   "taxiMin": 30.1,
+   "seats": 278.0,
+   "util": 11.02,
+   "blkAirRatio": 1.117,
+   "galDep": 12859.2,
+   "crewDep": 11867.0,
+   "maintDep": 9007.2,
+   "ownDay": 10838.4,
+   "flags": []
+  },
+  {
+   "carrier": "DL",
+   "type": "A330-300",
+   "deps": 2567,
+   "stage": 3147.3,
+   "blkdep": 6.721,
+   "taxiMin": 30.6,
+   "seats": 281.9,
+   "util": 12.32,
+   "blkAirRatio": 1.061,
+   "galDep": 13178.2,
+   "crewDep": 17794.7,
+   "maintDep": 6026.1,
+   "ownDay": 7963.6,
+   "flags": [
+    "thin"
+   ]
+  },
+  {
+   "carrier": "DL",
+   "type": "A330-900",
+   "deps": 648,
+   "stage": 2115.4,
+   "blkdep": 4.987,
+   "taxiMin": 36.8,
+   "seats": 280.9,
+   "util": 15.39,
+   "blkAirRatio": 1.111,
+   "galDep": 8217.6,
+   "crewDep": 10459.9,
+   "maintDep": 4060.2,
+   "ownDay": 9138.1,
+   "flags": [
+    "thin"
+   ]
+  },
+  {
+   "carrier": "DL",
+   "type": "A350-900",
+   "deps": 1179,
+   "stage": 1267.1,
+   "blkdep": 3.153,
+   "taxiMin": 30.0,
+   "seats": 304.8,
+   "util": 13.28,
+   "blkAirRatio": 1.081,
+   "galDep": 6158.1,
+   "crewDep": 6946.6,
+   "maintDep": 2870.2,
+   "ownDay": 8553.6,
+   "flags": [
+    "thin"
+   ]
+  },
+  {
+   "carrier": "3M",
+   "type": "ATR-42",
+   "deps": 2842,
+   "stage": 154.4,
+   "blkdep": 0.95,
+   "taxiMin": 15.3,
+   "seats": 46.0,
+   "util": 7.5,
+   "blkAirRatio": 2.11,
+   "galDep": 138.4,
+   "crewDep": 449.8,
+   "maintDep": 336.4,
+   "ownDay": 0.0,
+   "flags": [
+    "thin",
+    "no-ownership"
+   ]
+  },
+  {
+   "carrier": "3M",
+   "type": "ATR-72",
+   "deps": 3158,
+   "stage": 262.4,
+   "blkdep": 1.454,
+   "taxiMin": 20.4,
+   "seats": 70.0,
+   "util": 10.2,
+   "blkAirRatio": 2.097,
+   "galDep": 162.0,
+   "crewDep": 722.8,
+   "maintDep": 609.0,
+   "ownDay": 0.0,
+   "flags": [
+    "thin",
+    "no-ownership"
+   ]
+  },
+  {
+   "carrier": "DL",
+   "type": "B717",
+   "deps": 137945,
+   "stage": 424.5,
+   "blkdep": 1.477,
+   "taxiMin": 22.5,
+   "seats": 110.0,
+   "util": 7.08,
+   "blkAirRatio": 1.338,
+   "galDep": 1020.0,
+   "crewDep": 2782.6,
+   "maintDep": 1033.6,
+   "ownDay": 3532.1,
+   "flags": []
+  },
+  {
+   "carrier": "HA",
+   "type": "B717",
+   "deps": 52769,
+   "stage": 139.3,
+   "blkdep": 0.766,
+   "taxiMin": 18.9,
+   "seats": 128.0,
+   "util": 5.89,
+   "blkAirRatio": 1.699,
+   "galDep": 479.9,
+   "crewDep": 1080.8,
+   "maintDep": 1272.7,
+   "ownDay": 1551.2,
+   "flags": []
+  },
+  {
+   "carrier": "WN",
+   "type": "B737-700",
+   "deps": 596505,
+   "stage": 670.9,
+   "blkdep": 1.912,
+   "taxiMin": 19.0,
+   "seats": 143.0,
+   "util": 9.71,
+   "blkAirRatio": 1.193,
+   "galDep": 1391.6,
+   "crewDep": 3260.1,
+   "maintDep": 1287.4,
+   "ownDay": 3568.7,
+   "flags": []
+  },
+  {
+   "carrier": "UA",
+   "type": "B737-700",
+   "deps": 41595,
+   "stage": 860.9,
+   "blkdep": 2.545,
+   "taxiMin": 32.0,
+   "seats": 126.0,
+   "util": 8.21,
+   "blkAirRatio": 0.967,
+   "galDep": 1804.0,
+   "crewDep": 4534.5,
+   "maintDep": 10890.1,
+   "ownDay": 4284.2,
+   "flags": [
+    "hours-basis"
+   ]
+  },
+  {
+   "carrier": "AS",
+   "type": "B737-700",
+   "deps": 16993,
+   "stage": 571.0,
+   "blkdep": 1.728,
+   "taxiMin": 21.8,
+   "seats": 124.0,
+   "util": 5.75,
+   "blkAirRatio": 1.021,
+   "galDep": 1459.4,
+   "crewDep": 2879.8,
+   "maintDep": 2271.9,
+   "ownDay": 1745.0,
+   "flags": []
+  },
+  {
+   "carrier": "XP",
+   "type": "B737-700",
+   "deps": 9854,
+   "stage": 663.7,
+   "blkdep": 2.013,
+   "taxiMin": 22.1,
+   "seats": 146.6,
+   "util": 8.9,
+   "blkAirRatio": 1.142,
+   "galDep": 1453.6,
+   "crewDep": 1853.9,
+   "maintDep": 2021.6,
+   "ownDay": 6060.9,
+   "flags": [
+    "thin"
+   ]
+  },
+  {
+   "carrier": "WN",
+   "type": "B737-800",
+   "deps": 342504,
+   "stage": 827.6,
+   "blkdep": 2.225,
+   "taxiMin": 19.7,
+   "seats": 175.0,
+   "util": 10.5,
+   "blkAirRatio": 1.17,
+   "galDep": 1705.9,
+   "crewDep": 3874.2,
+   "maintDep": 1944.4,
+   "ownDay": 5406.4,
+   "flags": []
+  },
+  {
+   "carrier": "AA",
+   "type": "B737-800",
+   "deps": 324661,
+   "stage": 914.4,
+   "blkdep": 2.59,
+   "taxiMin": 29.7,
+   "seats": 172.0,
+   "util": 9.35,
+   "blkAirRatio": 1.215,
+   "galDep": 2136.7,
+   "crewDep": 4201.4,
+   "maintDep": 2741.4,
+   "ownDay": 5429.6,
+   "flags": []
+  },
+  {
+   "carrier": "UA",
+   "type": "B737-800",
+   "deps": 129352,
+   "stage": 912.2,
+   "blkdep": 2.593,
+   "taxiMin": 30.8,
+   "seats": 166.0,
+   "util": 7.92,
+   "blkAirRatio": 0.936,
+   "galDep": 2130.6,
+   "crewDep": 5103.7,
+   "maintDep": 2892.0,
+   "ownDay": 3948.4,
+   "flags": [
+    "hours-basis"
+   ]
+  },
+  {
+   "carrier": "DL",
+   "type": "B737-800",
+   "deps": 81344,
+   "stage": 913.0,
+   "blkdep": 2.528,
+   "taxiMin": 27.1,
+   "seats": 160.0,
+   "util": 9.13,
+   "blkAirRatio": 1.198,
+   "galDep": 2048.9,
+   "crewDep": 4963.7,
+   "maintDep": 1977.0,
+   "ownDay": 5093.4,
+   "flags": []
+  },
+  {
+   "carrier": "AS",
+   "type": "B737-800",
+   "deps": 59729,
+   "stage": 1239.4,
+   "blkdep": 3.208,
+   "taxiMin": 28.7,
+   "seats": 159.2,
+   "util": 9.49,
+   "blkAirRatio": 1.128,
+   "galDep": 2554.5,
+   "crewDep": 4771.3,
+   "maintDep": 3878.0,
+   "ownDay": 4609.9,
+   "flags": []
+  },
+  {
+   "carrier": "SY",
+   "type": "B737-800",
+   "deps": 23314,
+   "stage": 1218.2,
+   "blkdep": 3.144,
+   "taxiMin": 27.7,
+   "seats": 186.0,
+   "util": 3.56,
+   "blkAirRatio": 0.603,
+   "galDep": 4711.2,
+   "crewDep": 8665.1,
+   "maintDep": 3515.7,
+   "ownDay": 2066.0,
+   "flags": [
+    "low-util",
+    "hours-basis",
+    "burn-outlier"
+   ]
+  },
+  {
+   "carrier": "XP",
+   "type": "B737-800",
+   "deps": 10300,
+   "stage": 911.2,
+   "blkdep": 2.531,
+   "taxiMin": 23.2,
+   "seats": 186.4,
+   "util": 7.05,
+   "blkAirRatio": 0.911,
+   "galDep": 2300.1,
+   "crewDep": 2829.7,
+   "maintDep": 3076.4,
+   "ownDay": 5813.5,
+   "flags": [
+    "hours-basis"
+   ]
+  },
+  {
+   "carrier": "UA",
+   "type": "B737-900",
+   "deps": 13617,
+   "stage": 982.8,
+   "blkdep": 2.7,
+   "taxiMin": 30.1,
+   "seats": 179.0,
+   "util": 8.49,
+   "blkAirRatio": 0.997,
+   "galDep": 2231.6,
+   "crewDep": 4811.7,
+   "maintDep": 2127.8,
+   "ownDay": 213.5,
+   "flags": [
+    "hours-basis",
+    "no-ownership"
+   ]
+  },
+  {
+   "carrier": "AS",
+   "type": "B737-900",
+   "deps": 3337,
+   "stage": 856.9,
+   "blkdep": 2.493,
+   "taxiMin": 30.6,
+   "seats": 178.0,
+   "util": 9.56,
+   "blkAirRatio": 1.249,
+   "galDep": 1941.9,
+   "crewDep": 3407.6,
+   "maintDep": -1710.2,
+   "ownDay": 8870.1,
+   "flags": [
+    "thin",
+    "negative-maint"
+   ]
+  },
+  {
+   "carrier": "DL",
+   "type": "B737-900ER",
+   "deps": 208565,
+   "stage": 890.4,
+   "blkdep": 2.423,
+   "taxiMin": 25.0,
+   "seats": 178.4,
+   "util": 9.86,
+   "blkAirRatio": 1.206,
+   "galDep": 2036.7,
+   "crewDep": 4694.7,
+   "maintDep": 1881.2,
+   "ownDay": 5454.6,
+   "flags": []
+  },
+  {
+   "carrier": "UA",
+   "type": "B737-900ER",
+   "deps": 135608,
+   "stage": 1069.0,
+   "blkdep": 2.922,
+   "taxiMin": 31.7,
+   "seats": 179.0,
+   "util": 9.22,
+   "blkAirRatio": 0.989,
+   "galDep": 2419.0,
+   "crewDep": 5257.2,
+   "maintDep": 2092.1,
+   "ownDay": 3979.1,
+   "flags": [
+    "hours-basis"
+   ]
+  },
+  {
+   "carrier": "AS",
+   "type": "B737-900ER",
+   "deps": 78908,
+   "stage": 1463.3,
+   "blkdep": 3.694,
+   "taxiMin": 31.9,
+   "seats": 178.0,
+   "util": 10.95,
+   "blkAirRatio": 1.154,
+   "galDep": 2984.8,
+   "crewDep": 5418.9,
+   "maintDep": 3359.9,
+   "ownDay": 4157.4,
+   "flags": []
+  },
+  {
+   "carrier": "WN",
+   "type": "B737MAX8",
+   "deps": 445322,
+   "stage": 867.3,
+   "blkdep": 2.314,
+   "taxiMin": 21.2,
+   "seats": 175.0,
+   "util": 10.77,
+   "blkAirRatio": 1.176,
+   "galDep": 1562.8,
+   "crewDep": 4016.9,
+   "maintDep": 403.0,
+   "ownDay": 4346.9,
+   "flags": []
+  },
+  {
+   "carrier": "UA",
+   "type": "B737MAX8",
+   "deps": 110236,
+   "stage": 1295.9,
+   "blkdep": 3.34,
+   "taxiMin": 30.5,
+   "seats": 166.0,
+   "util": 11.48,
+   "blkAirRatio": 0.951,
+   "galDep": 2332.9,
+   "crewDep": 6240.5,
+   "maintDep": 1142.0,
+   "ownDay": 5314.1,
+   "flags": [
+    "hours-basis"
+   ]
+  },
+  {
+   "carrier": "AA",
+   "type": "B737MAX8",
+   "deps": 62832,
+   "stage": 1160.9,
+   "blkdep": 3.066,
+   "taxiMin": 30.6,
+   "seats": 172.0,
+   "util": 10.67,
+   "blkAirRatio": 1.177,
+   "galDep": 2211.4,
+   "crewDep": 5338.7,
+   "maintDep": 3482.7,
+   "ownDay": 6629.6,
+   "flags": []
+  },
+  {
+   "carrier": "AS",
+   "type": "B737MAX8",
+   "deps": 6778,
+   "stage": 1343.9,
+   "blkdep": 3.41,
+   "taxiMin": 29.9,
+   "seats": 159.7,
+   "util": 11.91,
+   "blkAirRatio": 1.159,
+   "galDep": 2130.9,
+   "crewDep": 4996.8,
+   "maintDep": -254.1,
+   "ownDay": 6101.0,
+   "flags": [
+    "thin",
+    "negative-maint"
+   ]
+  },
+  {
+   "carrier": "G4",
+   "type": "B737MAX8",
+   "deps": 2208,
+   "stage": 816.9,
+   "blkdep": 2.271,
+   "taxiMin": 21.8,
+   "seats": 190.0,
+   "util": 1.41,
+   "blkAirRatio": 0.171,
+   "galDep": 10321.5,
+   "crewDep": 18228.3,
+   "maintDep": 3032.3,
+   "ownDay": 5351.3,
+   "flags": [
+    "thin",
+    "low-util",
+    "hours-basis",
+    "burn-outlier"
+   ]
+  },
+  {
+   "carrier": "UA",
+   "type": "B737MAX9",
+   "deps": 92278,
+   "stage": 1365.5,
+   "blkdep": 3.481,
+   "taxiMin": 31.4,
+   "seats": 179.0,
+   "util": 11.92,
+   "blkAirRatio": 0.985,
+   "galDep": 2447.7,
+   "crewDep": 6305.3,
+   "maintDep": 1532.4,
+   "ownDay": 6959.0,
+   "flags": [
+    "hours-basis"
+   ]
+  },
+  {
+   "carrier": "AS",
+   "type": "B737MAX9",
+   "deps": 77671,
+   "stage": 1588.7,
+   "blkdep": 3.932,
+   "taxiMin": 32.4,
+   "seats": 178.0,
+   "util": 11.95,
+   "blkAirRatio": 1.143,
+   "galDep": 2761.4,
+   "crewDep": 5826.2,
+   "maintDep": 935.6,
+   "ownDay": 5511.0,
+   "flags": []
+  },
+  {
+   "carrier": "DL",
+   "type": "B757-200",
+   "deps": 82476,
+   "stage": 902.6,
+   "blkdep": 2.464,
+   "taxiMin": 26.7,
+   "seats": 194.0,
+   "util": 8.64,
+   "blkAirRatio": 1.142,
+   "galDep": 2679.7,
+   "crewDep": 5088.0,
+   "maintDep": 2030.5,
+   "ownDay": 5057.5,
+   "flags": []
+  },
+  {
+   "carrier": "UA",
+   "type": "B757-200",
+   "deps": 20677,
+   "stage": 1946.8,
+   "blkdep": 4.663,
+   "taxiMin": 34.5,
+   "seats": 176.0,
+   "util": 10.12,
+   "blkAirRatio": 0.994,
+   "galDep": 5140.8,
+   "crewDep": 8479.6,
+   "maintDep": 8206.7,
+   "ownDay": 2398.4,
+   "flags": [
+    "hours-basis"
+   ]
+  },
+  {
+   "carrier": "DL",
+   "type": "B757-300",
+   "deps": 16849,
+   "stage": 1310.2,
+   "blkdep": 3.292,
+   "taxiMin": 28.3,
+   "seats": 234.0,
+   "util": 9.63,
+   "blkAirRatio": 1.163,
+   "galDep": 3764.7,
+   "crewDep": 6459.3,
+   "maintDep": 2654.4,
+   "ownDay": 5531.2,
+   "flags": []
+  },
+  {
+   "carrier": "UA",
+   "type": "B757-300",
+   "deps": 14258,
+   "stage": 1577.5,
+   "blkdep": 3.892,
+   "taxiMin": 34.1,
+   "seats": 234.0,
+   "util": 7.31,
+   "blkAirRatio": 0.979,
+   "galDep": 4817.8,
+   "crewDep": 7322.3,
+   "maintDep": 7806.7,
+   "ownDay": 3049.2,
+   "flags": [
+    "hours-basis"
+   ]
+  },
+  {
+   "carrier": "DL",
+   "type": "B767-300",
+   "deps": 17601,
+   "stage": 2433.5,
+   "blkdep": 5.497,
+   "taxiMin": 32.2,
+   "seats": 214.3,
+   "util": 11.68,
+   "blkAirRatio": 1.103,
+   "galDep": 8322.0,
+   "crewDep": 11763.9,
+   "maintDep": 4683.9,
+   "ownDay": 7119.2,
+   "flags": []
+  },
+  {
+   "carrier": "DL",
+   "type": "B767-400",
+   "deps": 3207,
+   "stage": 2108.9,
+   "blkdep": 4.953,
+   "taxiMin": 36.3,
+   "seats": 236.2,
+   "util": 13.13,
+   "blkAirRatio": 1.112,
+   "galDep": 8381.3,
+   "crewDep": 9946.1,
+   "maintDep": 4203.6,
+   "ownDay": 7824.0,
+   "flags": [
+    "thin"
+   ]
+  },
+  {
+   "carrier": "UA",
+   "type": "B767-400",
+   "deps": 1228,
+   "stage": 2951.4,
+   "blkdep": 6.495,
+   "taxiMin": 34.5,
+   "seats": 231.0,
+   "util": 10.93,
+   "blkAirRatio": 0.962,
+   "galDep": 10815.9,
+   "crewDep": 12727.5,
+   "maintDep": 12325.4,
+   "ownDay": 6025.0,
+   "flags": [
+    "thin",
+    "hours-basis"
+   ]
+  },
+  {
+   "carrier": "UA",
+   "type": "B777-200",
+   "deps": 15761,
+   "stage": 2279.2,
+   "blkdep": 5.017,
+   "taxiMin": 32.5,
+   "seats": 355.0,
+   "util": 8.54,
+   "blkAirRatio": 0.983,
+   "galDep": 10651.7,
+   "crewDep": 10234.0,
+   "maintDep": 7061.1,
+   "ownDay": 4935.8,
+   "flags": [
+    "hours-basis"
+   ]
+  },
+  {
+   "carrier": "AA",
+   "type": "B777-200",
+   "deps": 3255,
+   "stage": 2187.6,
+   "blkdep": 4.867,
+   "taxiMin": 32.1,
+   "seats": 272.6,
+   "util": 11.0,
+   "blkAirRatio": 1.063,
+   "galDep": 15663.1,
+   "crewDep": 15953.1,
+   "maintDep": 10398.1,
+   "ownDay": 12849.6,
+   "flags": [
+    "thin"
+   ]
+  },
+  {
+   "carrier": "UA",
+   "type": "B777-300",
+   "deps": 2128,
+   "stage": 2912.7,
+   "blkdep": 5.997,
+   "taxiMin": 30.8,
+   "seats": 350.0,
+   "util": 15.56,
+   "blkAirRatio": 1.192,
+   "galDep": 8980.1,
+   "crewDep": 12549.9,
+   "maintDep": 6820.5,
+   "ownDay": 15720.1,
+   "flags": [
+    "thin"
+   ]
+  },
+  {
+   "carrier": "AA",
+   "type": "B777-300",
+   "deps": 589,
+   "stage": 1309.9,
+   "blkdep": 3.357,
+   "taxiMin": 34.9,
+   "seats": 304.0,
+   "util": 10.41,
+   "blkAirRatio": 1.009,
+   "galDep": 8748.0,
+   "crewDep": 10693.7,
+   "maintDep": 6980.3,
+   "ownDay": 11811.2,
+   "flags": [
+    "thin"
+   ]
+  },
+  {
+   "carrier": "UA",
+   "type": "B787-10",
+   "deps": 1818,
+   "stage": 3390.3,
+   "blkdep": 7.004,
+   "taxiMin": 35.1,
+   "seats": 318.0,
+   "util": 12.61,
+   "blkAirRatio": 0.979,
+   "galDep": 12402.1,
+   "crewDep": 14341.2,
+   "maintDep": 7347.4,
+   "ownDay": 13854.8,
+   "flags": [
+    "thin",
+    "hours-basis"
+   ]
+  },
+  {
+   "carrier": "AA",
+   "type": "B787-8",
+   "deps": 3672,
+   "stage": 2008.0,
+   "blkdep": 4.525,
+   "taxiMin": 32.4,
+   "seats": 234.0,
+   "util": 11.23,
+   "blkAirRatio": 1.102,
+   "galDep": 6997.4,
+   "crewDep": 12674.9,
+   "maintDep": 8140.6,
+   "ownDay": 11156.5,
+   "flags": [
+    "thin"
+   ]
+  },
+  {
+   "carrier": "UA",
+   "type": "B787-9",
+   "deps": 3111,
+   "stage": 2325.2,
+   "blkdep": 5.235,
+   "taxiMin": 40.0,
+   "seats": 257.0,
+   "util": 14.04,
+   "blkAirRatio": 0.945,
+   "galDep": 9578.3,
+   "crewDep": 10445.2,
+   "maintDep": 2910.2,
+   "ownDay": 12555.9,
+   "flags": [
+    "thin",
+    "hours-basis"
+   ]
+  },
+  {
+   "carrier": "AA",
+   "type": "B787-9",
+   "deps": 1073,
+   "stage": 1543.8,
+   "blkdep": 3.772,
+   "taxiMin": 35.2,
+   "seats": 276.3,
+   "util": 12.65,
+   "blkAirRatio": 1.097,
+   "galDep": 6708.0,
+   "crewDep": 11153.1,
+   "maintDep": 7187.0,
+   "ownDay": 13425.2,
+   "flags": [
+    "thin"
+   ]
+  },
+  {
+   "carrier": "OO",
+   "type": "CRJ200",
+   "deps": 130727,
+   "stage": 320.0,
+   "blkdep": 1.481,
+   "taxiMin": 33.4,
+   "seats": 50.0,
+   "util": 4.11,
+   "blkAirRatio": 1.636,
+   "galDep": 463.6,
+   "crewDep": 988.9,
+   "maintDep": 1196.9,
+   "ownDay": 48.1,
+   "flags": [
+    "no-ownership"
+   ]
+  },
+  {
+   "carrier": "ZW",
+   "type": "CRJ200",
+   "deps": 10392,
+   "stage": 251.9,
+   "blkdep": 1.367,
+   "taxiMin": 33.8,
+   "seats": 50.0,
+   "util": 2.29,
+   "blkAirRatio": 1.412,
+   "galDep": 465.3,
+   "crewDep": 2254.6,
+   "maintDep": 1785.8,
+   "ownDay": 1564.7,
+   "flags": [
+    "low-util"
+   ]
+  },
+  {
+   "carrier": "G7",
+   "type": "CRJ550",
+   "deps": 72549,
+   "stage": 370.1,
+   "blkdep": 1.643,
+   "taxiMin": 35.3,
+   "seats": 50.0,
+   "util": 5.66,
+   "blkAirRatio": 1.465,
+   "galDep": 722.3,
+   "crewDep": 1149.3,
+   "maintDep": 1044.3,
+   "ownDay": 3508.6,
+   "flags": []
+  },
+  {
+   "carrier": "OO",
+   "type": "CRJ550",
+   "deps": 48830,
+   "stage": 303.7,
+   "blkdep": 1.389,
+   "taxiMin": 31.5,
+   "seats": 50.0,
+   "util": 5.26,
+   "blkAirRatio": 1.652,
+   "galDep": 506.5,
+   "crewDep": 896.9,
+   "maintDep": 910.4,
+   "ownDay": -2.1,
+   "flags": [
+    "no-ownership"
+   ]
+  },
+  {
+   "carrier": "OO",
+   "type": "CRJ700",
+   "deps": 156262,
+   "stage": 455.3,
+   "blkdep": 1.721,
+   "taxiMin": 32.1,
+   "seats": 65.7,
+   "util": 7.02,
+   "blkAirRatio": 1.478,
+   "galDep": 741.0,
+   "crewDep": 1241.7,
+   "maintDep": 1427.3,
+   "ownDay": 1564.6,
+   "flags": []
+  },
+  {
+   "carrier": "OH",
+   "type": "CRJ700",
+   "deps": 91589,
+   "stage": 453.1,
+   "blkdep": 1.737,
+   "taxiMin": 31.5,
+   "seats": 65.0,
+   "util": 7.27,
+   "blkAirRatio": 1.321,
+   "galDep": 1028.2,
+   "crewDep": 2050.2,
+   "maintDep": 2490.6,
+   "ownDay": 3090.5,
+   "flags": []
+  },
+  {
+   "carrier": "9E",
+   "type": "CRJ700",
+   "deps": 28244,
+   "stage": 321.2,
+   "blkdep": 1.346,
+   "taxiMin": 26.2,
+   "seats": 69.0,
+   "util": 7.23,
+   "blkAirRatio": 1.438,
+   "galDep": 591.7,
+   "crewDep": 104.7,
+   "maintDep": 1362.5,
+   "ownDay": 182.7,
+   "flags": [
+    "no-ownership"
+   ]
+  },
+  {
+   "carrier": "9E",
+   "type": "CRJ900",
+   "deps": 208161,
+   "stage": 468.2,
+   "blkdep": 1.737,
+   "taxiMin": 30.1,
+   "seats": 75.2,
+   "util": 9.1,
+   "blkAirRatio": 1.339,
+   "galDep": 897.3,
+   "crewDep": 1754.1,
+   "maintDep": 1208.6,
+   "ownDay": 301.5,
+   "flags": [
+    "no-ownership"
+   ]
+  },
+  {
+   "carrier": "OH",
+   "type": "CRJ900",
+   "deps": 146317,
+   "stage": 476.8,
+   "blkdep": 1.766,
+   "taxiMin": 31.5,
+   "seats": 76.0,
+   "util": 8.64,
+   "blkAirRatio": 1.336,
+   "galDep": 775.9,
+   "crewDep": 2044.1,
+   "maintDep": 2038.7,
+   "ownDay": 2777.5,
+   "flags": []
+  },
+  {
+   "carrier": "OO",
+   "type": "CRJ900",
+   "deps": 65922,
+   "stage": 346.3,
+   "blkdep": 1.418,
+   "taxiMin": 28.1,
+   "seats": 73.6,
+   "util": 5.48,
+   "blkAirRatio": 1.47,
+   "galDep": 681.4,
+   "crewDep": 1018.1,
+   "maintDep": 1554.6,
+   "ownDay": 321.0,
+   "flags": [
+    "no-ownership"
+   ]
+  },
+  {
+   "carrier": "PT",
+   "type": "E145",
+   "deps": 144968,
+   "stage": 283.1,
+   "blkdep": 1.433,
+   "taxiMin": 33.8,
+   "seats": 50.0,
+   "util": 8.16,
+   "blkAirRatio": 1.563,
+   "galDep": 479.1,
+   "crewDep": 1212.7,
+   "maintDep": 797.6,
+   "ownDay": 2205.6,
+   "flags": []
+  },
+  {
+   "carrier": "C5",
+   "type": "E145",
+   "deps": 82553,
+   "stage": 364.5,
+   "blkdep": 1.519,
+   "taxiMin": 29.2,
+   "seats": 50.0,
+   "util": 6.08,
+   "blkAirRatio": 1.309,
+   "galDep": 486.5,
+   "crewDep": 891.0,
+   "maintDep": 1265.6,
+   "ownDay": 0.0,
+   "flags": [
+    "no-ownership"
+   ]
+  },
+  {
+   "carrier": "MQ",
+   "type": "E170",
+   "deps": 78608,
+   "stage": 394.0,
+   "blkdep": 1.606,
+   "taxiMin": 31.5,
+   "seats": 65.0,
+   "util": 3.22,
+   "blkAirRatio": 1.4,
+   "galDep": 778.7,
+   "crewDep": 1314.0,
+   "maintDep": 726.7,
+   "ownDay": 1134.2,
+   "flags": [
+    "low-util"
+   ]
+  },
+  {
+   "carrier": "YX",
+   "type": "E170",
+   "deps": 14241,
+   "stage": 428.8,
+   "blkdep": 1.72,
+   "taxiMin": 32.5,
+   "seats": 70.0,
+   "util": 1.24,
+   "blkAirRatio": 0.784,
+   "galDep": 892.2,
+   "crewDep": 1353.2,
+   "maintDep": 1043.5,
+   "ownDay": 196.4,
+   "flags": [
+    "low-util",
+    "hours-basis",
+    "no-ownership"
+   ]
+  },
+  {
+   "carrier": "OO",
+   "type": "E175",
+   "deps": 446346,
+   "stage": 517.7,
+   "blkdep": 1.835,
+   "taxiMin": 29.6,
+   "seats": 73.8,
+   "util": 8.69,
+   "blkAirRatio": 1.332,
+   "galDep": 864.5,
+   "crewDep": 1158.9,
+   "maintDep": 932.0,
+   "ownDay": 101.1,
+   "flags": [
+    "no-ownership"
+   ]
+  },
+  {
+   "carrier": "YX",
+   "type": "E175",
+   "deps": 321912,
+   "stage": 497.6,
+   "blkdep": 1.886,
+   "taxiMin": 33.0,
+   "seats": 75.2,
+   "util": 9.03,
+   "blkAirRatio": 0.746,
+   "galDep": 960.2,
+   "crewDep": 1452.5,
+   "maintDep": 1110.9,
+   "ownDay": 1396.5,
+   "flags": [
+    "hours-basis"
+   ]
+  },
+  {
+   "carrier": "MQ",
+   "type": "E175",
+   "deps": 214819,
+   "stage": 546.3,
+   "blkdep": 1.843,
+   "taxiMin": 27.7,
+   "seats": 76.0,
+   "util": 2.99,
+   "blkAirRatio": 1.3,
+   "galDep": 962.4,
+   "crewDep": 1625.8,
+   "maintDep": 898.8,
+   "ownDay": 1134.3,
+   "flags": [
+    "low-util"
+   ]
+  },
+  {
+   "carrier": "QX",
+   "type": "E175",
+   "deps": 96582,
+   "stage": 472.8,
+   "blkdep": 1.594,
+   "taxiMin": 21.7,
+   "seats": 76.0,
+   "util": 9.23,
+   "blkAirRatio": 1.238,
+   "galDep": 778.8,
+   "crewDep": 1141.7,
+   "maintDep": 1188.8,
+   "ownDay": 3404.8,
+   "flags": []
+  },
+  {
+   "carrier": "YV",
+   "type": "E175",
+   "deps": 78530,
+   "stage": 616.5,
+   "blkdep": 1.989,
+   "taxiMin": 26.8,
+   "seats": 74.1,
+   "util": 10.23,
+   "blkAirRatio": 1.52,
+   "galDep": 925.1,
+   "crewDep": 899.9,
+   "maintDep": 1218.5,
+   "ownDay": 479.4,
+   "flags": [
+    "no-ownership"
+   ]
+  },
+  {
+   "carrier": "B6",
+   "type": "E190",
+   "deps": 13271,
+   "stage": 416.9,
+   "blkdep": 1.601,
+   "taxiMin": 25.8,
+   "seats": 100.0,
+   "util": 6.02,
+   "blkAirRatio": 1.364,
+   "galDep": 1095.4,
+   "crewDep": 5839.5,
+   "maintDep": 2638.4,
+   "ownDay": 4629.7,
+   "flags": []
+  },
+  {
+   "carrier": "MX",
+   "type": "E190",
+   "deps": 4647,
+   "stage": 618.3,
+   "blkdep": 1.871,
+   "taxiMin": 21.9,
+   "seats": 108.0,
+   "util": 2.56,
+   "blkAirRatio": 0.913,
+   "galDep": 1607.8,
+   "crewDep": 1918.0,
+   "maintDep": 757.0,
+   "ownDay": 4233.2,
+   "flags": [
+    "thin",
+    "low-util",
+    "hours-basis"
+   ]
+  },
+  {
+   "carrier": "MX",
+   "type": "E195",
+   "deps": 740,
+   "stage": 664.9,
+   "blkdep": 1.964,
+   "taxiMin": 21.1,
+   "seats": 124.0,
+   "util": 2.85,
+   "blkAirRatio": 1.144,
+   "galDep": 1393.5,
+   "crewDep": 1779.1,
+   "maintDep": 608.9,
+   "ownDay": 3533.6,
+   "flags": [
+    "thin",
+    "low-util"
+   ]
+  }
+ ]
+}

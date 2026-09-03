@@ -7,7 +7,8 @@ rebuild, or your change is silently reverted by the next build.
 src/manifest.json lists the parts in document order. Two entries are generated
 rather than copied:
   @net  the airport table, the demand data, the station list, and the route
-        seed taken from network.json — plus the config and fleet blocks
+        seed taken from network.json — plus the config, fleet and Form 41
+        economics blocks
   @geo  the coastline and border geometry
 Everything else is copied through verbatim.
 """
@@ -32,7 +33,9 @@ def gen_net():
            "stations": load("stations.json"),
            "demand":   load("dot_db1c.json")}
     return "\n".join([block("net", net), block("cfg", load("config.json")),
-                      block("fleet", load("fleet.json"))])
+                      block("fleet", load("fleet.json")),
+                      block("econ", load("economics.json")),
+                      block("intl", load("intl_demand.json"))])
 
 def gen_geo():
     return "</script>\n" + block("geo", load("geo.json"))

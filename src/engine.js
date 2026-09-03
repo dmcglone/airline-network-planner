@@ -258,6 +258,11 @@ function assemble(legs,lines,rebal,dowOf,FED,FEED_PAIR,merged){
       const kk=o+"|"+d+"|"+l.type; seen.set(kk,(seen.get(kk)||0)+1);
       flights.push({id: li*100+gi, fn: gi%2===0?fn:fn+500, line:id, base:l.base, t:l.type, o, d,
         depU: mod(Math.round(dep),1440), blkMin: b,
+        // Exact UTC departure, unrounded. Published times are rounded to the
+        // minute, and testing a 40-minute connection against a rounded time
+        // moves connections across the MCT boundary — the same trap that
+        // produced 324 phantom breaches in validate.js.
+        depX: dep,
         dep: mod(Math.round(dep+off(o)),1440), arr: mod(Math.round(arr+off(d)),1440),
         day: Math.floor((arr+off(d))/1440)-Math.floor((dep+off(o))/1440),
         blk: b/60, nm: dist(o,d), dow: dowOf.get(kk)||7, ron: l.ron||""});

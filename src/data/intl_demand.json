@@ -1,0 +1,44 @@
+{
+ "method": "gravity demand multiplied by a factor calibrated on DB1C-domestic Caribbean markets (Puerto Rico, USVI); fares from a curve fitted on the same markets",
+ "provenance": "estimated",
+ "calibration": {
+  "islands": {
+   "BQN": {
+    "markets": 16,
+    "ratio": 14.91
+   },
+   "SJU": {
+    "markets": 130,
+    "ratio": 8.23
+   },
+   "STT": {
+    "markets": 72,
+    "ratio": 6.66
+   },
+   "STX": {
+    "markets": 36,
+    "ratio": 7.49
+   }
+  },
+  "markets": 254,
+  "medianRatio": 7.56,
+  "meanRatio": 11.47,
+  "spread": [
+   4.91,
+   11.1
+  ]
+ },
+ "demandFactor": 7.56,
+ "fareCurve": {
+  "a": 10.72,
+  "b": 0.467,
+  "r2": 0.276,
+  "markets": 254
+ },
+ "caveats": [
+  "Calibrated on Caribbean leisure markets. Applying the same factor to Bogota, Lima, Mexico City or Panama City assumes they are biased the same way, and they are business and VFR markets rather than resort ones. Those are the least trustworthy estimates in the model.",
+  "The factor is a median over a wide spread; it corrects a systematic bias, it does not make any single market accurate.",
+  "Nothing here is measured international demand. Every market scored this way is tagged `estimated` downstream."
+ ],
+ "overrides": {}
+}
