@@ -36,6 +36,7 @@ document.addEventListener("input", e=>{
   if(t.dataset && t.dataset.feed){
     guard(()=>{ state.feed=state.feed||{}; state.feed[t.dataset.feed]=t.checked?1:0;
       M=build(); save(); draw(); }); return; }
+  if(typeof smEvent==="function" && smEvent(t)) return;
   if(t.dataset && t.dataset.f!==undefined && t.dataset.k){
     const f=state.fleet[+t.dataset.f]; if(!f) return;
     f[t.dataset.k]=Math.max(0,+t.value||0);
@@ -55,7 +56,28 @@ document.addEventListener("change", e=>{
   else if(["sStation","sType","sRon"].includes(id)) drawSched();
   else if(["rStation","rType"].includes(id)) drawRot();
 });
+$("#btnAirline").addEventListener("click", ()=>{
+  airlineOpen = !airlineOpen; drawAirline();
+  if(airlineOpen){ const f=$("#alName"); if(f) f.focus(); }
+});
+$("#btnModel").addEventListener("click", ()=>goTab("model"));
 document.addEventListener("click", e=>{
+  const k = e.target.closest && e.target.closest("[data-goto]");
+  if(k) goTab(k.dataset.goto);
+});
+$("#btnAddType").addEventListener("click", ()=>{
+  // The form lives on the seatmap, because designing the cabin is the next
+  // thing you do after creating a type.
+  smAdding = true; smErr = "";
+  if(typeof drawSeatmap==="function") drawSeatmap();
+  const p = $("#seatmapPanel"); if(p) p.scrollIntoView({behavior:"smooth", block:"start"});
+});
+document.addEventListener("click", e=>{
+  // Only buttons. Running smEvent on a <select> redraws the panel underneath an
+  // open dropdown, which closes it the instant you click — selects and inputs
+  // are handled by the input/change listeners instead.
+  if(typeof smEvent==="function" && !/^(SELECT|INPUT|TEXTAREA|OPTION)$/.test(e.target.tagName)
+     && smEvent(e.target.closest("button")||e.target)) return;
   const d=e.target.dataset && e.target.dataset.del;
   if(d!==undefined && d!==null && d!==""){
     const i=+d, r=state.routes[i];
@@ -148,7 +170,19 @@ $("#btnCopy").onclick=async()=>{
 
 /* ----- add route ----- */
 let addDest=null;
+/* Populate every station and gauge dropdown.
+
+   This ran once at boot, so a fleet type added later never appeared in the Add
+   route gauge list or in any of the four gauge filters — you could own the
+   aircraft and still not be able to put it on a route. It now runs on every
+   rebuild, and preserves whatever the user had selected so that refreshing the
+   options does not quietly reset their filters. */
 function fillSelects(){
+  const keep = {};
+  for(const id of ["nO","nT","fStation","sStation","rStation","fType",
+                   "mStation","mType","sType","rType"]){
+    const el = $("#"+id); if(el) keep[id] = el.value;
+  }
   const stOpts=STA.map(s=>`<option value="${s}">${s}</option>`).join("");
   const tyOpts=TYPES.map(t=>`<option value="${t}">${t}</option>`).join("");
   $("#nO").innerHTML=stOpts; $("#nT").innerHTML=tyOpts;
@@ -160,6 +194,12 @@ function fillSelects(){
   $("#mType").innerHTML='<option value="">All gauges</option>'+tyOpts;
   $("#sType").innerHTML='<option value="">All gauges</option>'+tyOpts;
   $("#rType").innerHTML='<option value="">All gauges</option>'+tyOpts;
+  for(const id in keep){
+    const el = $("#"+id); if(!el) continue;
+    // only restore a value the new option set still offers -- a deleted type
+    // must not linger as a filter nobody can clear
+    if([...el.options].some(o=>o.value===keep[id])) el.value = keep[id];
+  }
 }
 function addInfo(){
   const o=$("#nO").value, d=addDest;

@@ -6,7 +6,7 @@ function baseline(){
   if(rs.some(r=>r.red)) return {routes: rs,          // the published seed already carries flags
     fleet: FLEET_BASE.map(f=>Object.assign({},f)),
     feed: {SJC:1, PIT:1, MCO:1, RDU:0, DEN:0}, spacing:'balanced', redeye: 1,
-    roster: Object.assign({},FLEET_PINNED), spare: 0.08, v: 2};
+    roster: Object.assign({},FLEET_PINNED), spare: 0.08, v: 2, brand: BRAND.name, code: BRAND.code};
   for(const r of rs){
     if(!DEFAULT_RED.has(pairKey(r.o,r.d))) continue;
     const typ=TYPES.find(t=>+r.mix[t]>0)||"A319";
@@ -16,7 +16,38 @@ function baseline(){
   return {routes: rs,
                           fleet: FLEET_BASE.map(f=>Object.assign({},f)),
                           feed: {SJC:1, PIT:1, MCO:1, RDU:0, DEN:0}, spacing:'balanced', redeye: 1,
-                             roster: Object.assign({},FLEET_PINNED), spare: 0.08, v: 2}; }
+                             roster: Object.assign({},FLEET_PINNED), spare: 0.08, v: 2, brand: BRAND.name, code: BRAND.code}; }
+
+/* Reconcile a loaded fleet's cabin geometry against the shipped airframe.
+
+   Only `pitch` is editable, so only `pitch` is the user's to keep. Cabin
+   length, abreast, exits, monuments and the certified maximum are properties of
+   the aeroplane: a saved copy of them is not a decision anyone made, it is a
+   snapshot of whatever the data said the day they first touched the panel. Left
+   in place it shadows every later correction -- which is exactly what happened
+   when the E175's First cabin went from four abreast to three and no existing
+   session ever saw it.
+
+   Geometry also arrived after the first state files were written, so an older
+   export has no `geom` at all. Both cases fall out of the same rule.
+
+   `pitch` is merged rather than replaced, so a type gaining a cabin picks up a
+   sensible default for it without disturbing the two the user already set. */
+function reconcileGeom(fleet){
+  if(!Array.isArray(fleet)) return fleet;
+  for(const f of fleet){
+    // A type the user added has no shipped airframe behind it, so its geometry
+    // is its own and nothing here may touch it.
+    if(f.origin === "user") continue;
+    const base = FLEET_BASE.find(b=>b.t===f.t);
+    if(!base || !base.geom) continue;
+    const keptPitch = f.geom && f.geom.pitch;
+    f.geom = JSON.parse(JSON.stringify(base.geom));
+    if(keptPitch) f.geom.pitch = Object.assign({}, f.geom.pitch, keptPitch);
+  }
+  return fleet;
+}
+
 function load(){
   try{ const s = localStorage.getItem(KEY); if(s){ const p = JSON.parse(s); if(p&&p.routes&&p.fleet){ if(!p.feed) p.feed={SJC:1,PIT:1,MCO:1,RDU:0,DEN:0}; if(!p.spacing) p.spacing='balanced'; if(!p.roster) p.roster=Object.assign({},FLEET_PINNED); if(p.spare===undefined) p.spare=0.08; if(p.redeye===undefined) p.redeye=1;
         if(p.v!==2){                                     // one-time: seed the default red-eye markets
@@ -29,7 +60,7 @@ function load(){
             if(r.o===v.from || !keys.has(v.from+"|"+v.to)) r.red=1;
           }
         }
-        return p; }  } }catch(e){}
+        reconcileGeom(p.fleet); return p; }  } }catch(e){}
   return baseline();
 }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
@@ -84,6 +115,9 @@ function importState(obj){
   if(!st.routes || !st.fleet) throw new Error("no routes or fleet in that file");
   applyConfig(o.config);
   state = JSON.parse(JSON.stringify(st));
+  reconcileGeom(state.fleet);
+  if(!state.brand) state.brand = BRAND.name;
+  if(!state.code)  state.code  = BRAND.code;
   if(!state.feed) state.feed={SJC:1,PIT:1,MCO:1,RDU:0,DEN:0};
   if(!state.spacing) state.spacing="balanced";
   if(!state.roster) state.roster=Object.assign({},FLEET_PINNED);

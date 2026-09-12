@@ -195,7 +195,7 @@ function liveStart(){ clearInterval(LIVE.timer); LIVE.timer=setInterval(liveTick
     if(pl){
       const fn=+pl.dataset.fn, a=airborne(liveClock()).find(x=>x.f.fn===fn);
       if(a){ const f=a.f;
-        tip.innerHTML=`<b>FR ${f.fn}</b> ${f.o} → ${f.d} · ${f.t}<br>${esc(cityName(f.o))} to ${esc(cityName(f.d))}<br>`
+        tip.innerHTML=`<b>${esc(flightNo(f.fn))}</b> ${f.o} → ${f.d} · ${f.t}<br>${esc(cityName(f.o))} to ${esc(cityName(f.d))}<br>`
           +`${Math.round(a.fr*100)}% flown · ${a.mins} min to run · ${fmt(f.nm)} nm<br>`
           +`<span style="opacity:.75">rotation ${f.line}</span>`;
         tip.hidden=false;
@@ -231,7 +231,7 @@ function liveStart(){ clearInterval(LIVE.timer); LIVE.timer=setInterval(liveTick
       const f=M.flights.find(x=>x.fn===fn);
       if(f && LIVE.sel){ mapSel=null; drawMapSide();
         const rot=M.rots.find(r=>r.id===f.line);
-        $("#mapside").innerHTML=`<h3>FR ${f.fn}</h3>`
+        $("#mapside").innerHTML=`<h3>${esc(flightNo(f.fn))}</h3>`
           +`<p class="note" style="margin:0 0 8px">${f.o} → ${f.d} · ${f.t}<br>${esc(cityName(f.o))} to ${esc(cityName(f.d))}</p>`
           +(rot?`<div class="mkt"><span>Rotation</span><span class="m">${rot.id}</span></div>`
             +`<div class="mkt"><span>Block hours today</span><span class="m">${rot.block.toFixed(2)}</span></div>`

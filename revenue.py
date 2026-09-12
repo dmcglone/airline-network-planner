@@ -233,7 +233,28 @@ def cabin_shares():
            {c: seats[c] / tot for c in seats}
 
 
-def allocate(itins, competition):
+def cabin_premium(mult):
+    """What a seat on each aircraft type is worth against the fleet average.
+
+    The seat-weighted mean of the normalised multipliers, per type. An aircraft
+    carrying the fleet's own cabin mix scores exactly 1.0 and earns the observed
+    fare; a premium-heavy type earns more per passenger and an all-economy type
+    earns less. Because `mult` is normalised across the whole flown fleet, the
+    network total stays pinned to the measured DB1C fares -- only the
+    distribution across aircraft moves.
+
+    ASSUMPTION, and the reason this is step one rather than the finished job:
+    passengers are spread across cabins in proportion to seats, so a premium
+    cabin is credited whether or not anyone would have paid for it. That is
+    generous to premium-dense gauge. Cabin-level load factors and a cabin-level
+    spill would fix it, at the cost of making the spill loop cabin-aware.
+    """
+    return {t: sum(mult[c] * f[c] for c in ("F", "PE", "Y"))
+               / (f["F"] + f["PE"] + f["Y"])
+            for t, f in FLEET.items() if f["F"] + f["PE"] + f["Y"] > 0}
+
+
+def allocate(itins, competition, prem):
     """Split each market's demand across its itineraries, then spill.
 
     `competition` is the QSI attributed to every other airline in a market.
@@ -291,7 +312,13 @@ def allocate(itins, competition):
             stats["pax"] += flown
             if i["stops"]:
                 stats["conn"] += flown
-            rev = flown * fare
+            # Distance-weighted mean of the legs' cabin premiums. Weighting by
+            # distance and not by leg count is deliberate: the fare is prorated
+            # onto the legs by distance a few lines below, so using the same
+            # weight here keeps leg revenue summing to itinerary revenue exactly
+            # -- the invariant this whole file exists to hold.
+            im = sum(prem[f["t"]] * f["nm"] for f in i["legs"]) / i["nm"]
+            rev = flown * fare * im
             stats["rev"] += rev
             if src == "estimated":
                 stats["estPax"] += flown
@@ -312,13 +339,14 @@ def main():
     F = FLIGHTS
     itins = itineraries(F)
     mult, seatshare = cabin_shares()
+    prem = cabin_premium(mult)
     seats = sum(f["seats"] for f in F)
-    boarded, legrev, st, estrev = allocate(itins, COMPETITION)
+    boarded, legrev, st, estrev = allocate(itins, COMPETITION, prem)
 
     # The ceiling: what this schedule would fill if it took every passenger in
     # every market it touches. Anything below 100% is capacity the network
     # cannot fill even unopposed.
-    ceiling = sum(allocate(itins, 0.0)[0].values()) / seats
+    ceiling = sum(allocate(itins, 0.0, prem)[0].values()) / seats
 
     asm = sum(f["seats"] * f["nm"] for f in F) * 1.15078
     rpm = sum(boarded[f["id"]] * f["nm"] for f in F) * 1.15078

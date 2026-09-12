@@ -34,6 +34,7 @@ def gen_net():
            "demand":   load("dot_db1c.json")}
     return "\n".join([block("net", net), block("cfg", load("config.json")),
                       block("fleet", load("fleet.json")),
+                      block("frames", load("airframes.json")),
                       block("econ", load("economics.json")),
                       block("intl", load("intl_demand.json"))])
 

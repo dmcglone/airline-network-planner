@@ -2,9 +2,11 @@
 
 <header>
   <div class="bar">
-    <div class="mark"><b id="brandName">&nbsp;</b><span id="brandProduct"></span></div>
+    <div class="mark"><b id="brandName" contenteditable="plaintext-only" spellcheck="false" title="Click to rename your airline" aria-label="Airline name">&nbsp;</b><span id="brandProduct"></span></div>
     <span class="tag" id="designday"></span>
     <div class="spacer"></div>
+    <button class="btn" id="btnAirline">Airline</button>
+    <button class="btn" id="btnModel">Model</button>
     <button class="btn" id="btnTheme">Theme</button>
     <button class="btn" id="btnCopy">Copy routes CSV</button>
     <button class="btn" id="btnReset">Revert to baseline</button>
@@ -14,6 +16,7 @@
     <input type="file" id="fileImport" accept=".json,application/json" hidden>
     <button class="btn primary" id="btnSave" hidden>Save network</button>
   </div>
+  <div id="airlinePanel" hidden></div>
   <div class="kpis" id="kpis"></div>
   <div class="tabs" role="tablist" id="tabs"></div>
 </header>
@@ -111,6 +114,7 @@
           <input type="number" id="spareIn" min="0" max="50" step="1" style="width:58px"> %</label>
         <button class="btn sm" id="btnMatch">Match roster to requirement</button>
         <button class="btn sm" id="btnPinReset">Reset roster to baseline</button>
+        <button class="btn sm" id="btnAddType">Add a fleet type</button>
       </div>
       <div class="scroll"><table id="tRoster"></table></div>
       <div class="pad" id="rosterNote"></div>
@@ -140,7 +144,11 @@
       </div>
     </div>
     <div class="panel">
-      <h2>Assumptions <span class="sub">Every field is editable and drives the whole rebuild</span></h2>
+      <h2>Seatmap <span class="sub">Cabin layout, and the three things that constrain it</span></h2>
+      <div id="seatmapPanel"></div>
+    </div>
+    <div class="panel">
+      <h2>Assumptions <span class="sub">Performance and turn times. Seats are set on the seatmap above.</span></h2>
       <div class="scroll"><table id="tAssume"></table></div>
       <div class="pad"><p class="note">Block time = ground time (taxi plus climb and descent allowance) ÷ 60 + great-circle
         distance ÷ cruise speed. Calibrated so SJC&#8211;LAX blocks about 1h15 and SJC&#8211;EWR about 5h20. Range is a
@@ -283,5 +291,8 @@
       the ground periods in the rotations, so the gate count you see is the real requirement. Status is derived from the current
       clock at that airport. <b>Simulate irregular ops</b> layers a deterministic delay pattern on top; it is off by default and
       changes nothing in the underlying schedule.</p>
+  </section>
+  <section class="pane" id="pane-model" hidden>
+    <div id="modelPanel"></div>
   </section>
 </main>

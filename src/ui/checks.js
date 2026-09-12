@@ -99,10 +99,13 @@ function draw(){
   else if(tab==="map"){ drawMap(); requestAnimationFrame(()=>{restyle(); drawPlanes();}); }
   else if(tab==="suggest") drawSuggest();
   else if(tab==="board") drawBoard();
+  else if(tab==="model") drawModel();
   else drawChecks();
 }
 let pending=null;
 function rebuild(){
   clearTimeout(pending);
-  pending=setTimeout(()=>guard(()=>{ M=build(); save(); draw(); }), 120);
+  pending=setTimeout(()=>guard(()=>{ M=build(); save();
+    if(typeof fillSelects==="function") fillSelects();
+    draw(); }), 120);
 }

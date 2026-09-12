@@ -1,5 +1,6 @@
 /* ---------- engine ---------- */
 function build(){
+  syncTypes();
   SPEC = {}; state.fleet.forEach(f=>{ SPEC[f.t]=f; f.seats=f.F+f.PE+f.Y; });
   const legs = new Map(), addLeg=(o,d,t,n)=>{ const k=o+"|"+d+"|"+t; legs.set(k,(legs.get(k)||0)+n); };
   const dowOf = new Map();

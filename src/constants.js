@@ -32,14 +32,51 @@ const DAWN_STAGGER = CFG.dawnStagger != null ? CFG.dawnStagger : 7;
 // flights aim to cover; "cap" is the largest gap ever demanded; "gap" is the hard floor.
 const SPACING = CFG.spacing || {};
 const EPS = 1e-6;
-const FLEET_BASE = (FLEETDATA.types || []).map(f=>Object.assign({},f));
+/* A two-letter designator, suggested from the airline's name but never bound to
+   it. Real codes are mostly not initials -- Southwest is WN, JetBlue B6,
+   Frontier F9 -- so deriving one and keeping it in step would produce codes
+   that feel wrong and would overwrite a deliberate choice on the next rename.
+   The suggestion is used only while the code is still untouched. */
+function suggestCode(name){
+  const w = String(name||"").toUpperCase().replace(/[^A-Z0-9 ]/g,"").split(/\s+/).filter(Boolean);
+  if(!w.length) return "XX";
+  if(w.length >= 2) return (w[0][0] + w[1][0]);
+  return (w[0][0] + (w[0][1] || w[0][0]));
+}
+/* The designator in use right now, and a flight number wearing it. */
+const airlineCode = () => ((typeof state !== "undefined" && state && state.code) || BRAND.code || "XX");
+const flightNo = fn => airlineCode() + " " + fn;
+
+const validCode = s => /^[A-Z0-9]{2}$/.test(String(s||"").toUpperCase());
+
+const FRAMES = (()=>{ try { return JSON.parse(document.getElementById("frames").textContent).frames || []; }
+                      catch(e){ return []; } })();
+/* The airframes that ship with the planner. A type the user adds is not in
+   here, which is how reconcileGeom knows whose geometry is authoritative. */
+const FLEET_BASE = (FLEETDATA.types || []).map(f=>Object.assign({origin:"shipped"},f));
+/* The type codes currently in the fleet, in fleet order.
+
+   This used to be a snapshot of the shipped fleet taken once at load. Every
+   consumer reads it -- the network table's gauge columns, the Add route
+   dialog, the engine's leg builder, validate, suggest, the CSV export -- so a
+   type the user added existed in the roster and the seatmap and nowhere else.
+   You could buy the aircraft and then have no way to fly it.
+
+   It is mutated in place rather than reassigned so that nothing holding a
+   reference can go stale, and syncTypes() runs at the top of every build(). */
 const TYPES = FLEET_BASE.map(f=>f.t);
+function syncTypes(){
+  const want = (typeof state !== "undefined" && state && state.fleet)
+    ? state.fleet.map(f=>f.t) : FLEET_BASE.map(f=>f.t);
+  TYPES.length = 0;
+  for(const t of want) TYPES.push(t);
+}
 const SM = 1.15078;
 const KEY = CFG.storageKey || "frontier-planner-v1";
 // The fleet this schedule needed when the roster feature was added — the reference line.
 const FLEET_PINNED = Object.assign({}, FLEETDATA.pinned);
-// The airline's own name is config too — this app plans networks, and Frontier
-// is the example that ships with it, not the thing it is.
-const BRAND = Object.assign({name:"My Airline", product:"Network Planner",
+// The airline's own name is config too — this app plans networks, and the
+// example that ships with it is not the thing it is.
+const BRAND = Object.assign({name:"My Airline", code:"XX", product:"Network Planner",
                              possessive:"This airline", designDay:""}, CFG.brand);
 const pinTotal = () => TYPES.reduce((a,t)=>a+(FLEET_PINNED[t]||0),0);

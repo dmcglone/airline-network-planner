@@ -38,11 +38,33 @@ function pageSource(){
 }
 /* ---------- go ---------- */
 PRISTINE = pageSource();
-document.title = BRAND.name ? BRAND.name+" "+BRAND.product : BRAND.product;
-$("#brandName").textContent = BRAND.name;
+/* The airline's name belongs to whoever is planning it, not to the file that
+   shipped with the planner. It lives in state, so it exports, imports and
+   survives a reload like every other decision. */
+function applyBrand(){
+  const n = (state && state.brand) || BRAND.name;
+  document.title = n ? n+" "+BRAND.product : BRAND.product;
+  $("#brandName").textContent = n;
+}
+$("#brandName").addEventListener("blur", ()=>{
+  const n = $("#brandName").textContent.trim().slice(0,40) || BRAND.name;
+  state.brand = n; $("#brandName").textContent = n;
+  document.title = n+" "+BRAND.product;
+  save();
+});
+$("#brandName").addEventListener("keydown", e=>{
+  if(e.key === "Enter"){ e.preventDefault(); $("#brandName").blur(); }
+});
 $("#brandProduct").textContent = BRAND.product;
 $("#designday").textContent = BRAND.designDay ? "Design day · "+BRAND.designDay : "";
 state = load();
+applyBrand();          // reads state.brand, so it has to follow the load
+// The loaded fleet may carry types the shipped data has never heard of, and
+// fillSelects() below reads TYPES. build() syncs it, but build() runs after
+// this line, so without an explicit sync every gauge dropdown on a reloaded
+// page is built from the six shipped types and stays that way until something
+// triggers a rebuild.
+syncTypes();
 SPEC={}; state.fleet.forEach(f=>{SPEC[f.t]=f; f.seats=f.F+f.PE+f.Y;});
 fillSelects(); drawTabs(); M=build();
 $("#bAp").value = M.apStats["PHL"] ? "PHL — "+AP["PHL"][0] : "";

@@ -1,9 +1,10 @@
 {
  "brand": {
-  "name": "Frontier",
+  "name": "Meridian Air",
   "product": "Network Planner",
-  "possessive": "Frontier",
-  "designDay": "Mon 8 Jun 2026"
+  "possessive": "Meridian",
+  "designDay": "Mon 8 Jun 2026",
+  "code": "MA"
  },
  "roles": {
   "SJC": "Hub",

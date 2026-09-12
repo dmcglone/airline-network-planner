@@ -115,7 +115,32 @@ function buildItineraries(F){
    `competition` is the QSI attributed to every other airline in a market, so
    our share is Q/(Q+competition): a market we serve with three nonstops takes
    more than one we only reach over a hub. */
-function allocateDemand(F, itins, competition){
+/* What a seat on each aircraft type is worth against the fleet average. The
+   seat-weighted mean of the normalised multipliers, per type. An aircraft
+   carrying the fleet's own cabin mix scores exactly 1.0 and earns the observed
+   fare; a premium-heavy type earns more per passenger and an all-economy type
+   earns less. Because the multipliers are normalised across the whole flown
+   fleet, the network total stays pinned to the measured DB1C fares — only the
+   distribution across aircraft moves.
+
+   ASSUMPTION, and the reason this is step one rather than the finished job:
+   passengers are spread across cabins in proportion to seats, so a premium
+   cabin is credited whether or not anyone would have paid for it. That is
+   generous to premium-dense gauge. Cabin-level load factors and a cabin-level
+   spill would fix it, at the cost of making the spill loop cabin-aware.
+
+   Mirrors cabin_premium() in revenue.py. */
+function cabinPremium(mult){
+  const out = {};
+  for(const t in SPEC){
+    const s = SPEC[t], tot = (s.F||0)+(s.PE||0)+(s.Y||0);
+    if(!tot) continue;
+    out[t] = (mult.F*(s.F||0) + mult.PE*(s.PE||0) + mult.Y*(s.Y||0))/tot;
+  }
+  return out;
+}
+
+function allocateDemand(F, itins, competition, prem){
   const boarded=new Map(), legrev=new Map(), estrev=new Map(), perMarket=[];
   const st={pax:0, conn:0, rev:0, spilled:0, markets:0, real:0,
             estMarkets:0, estPax:0, estRev:0};
@@ -157,7 +182,15 @@ function allocateDemand(F, itins, competition){
     st.spilled += i.pax - flown;
     st.pax += flown;
     if(i.stops) st.conn += flown;
-    const rev = flown*m.fare;
+    // Distance-weighted mean of the legs' cabin premiums. Weighting by distance
+    // and not by leg count is deliberate: the fare is prorated onto the legs by
+    // distance a few lines below, so using the same weight here keeps leg
+    // revenue summing to itinerary revenue exactly — the invariant this whole
+    // file exists to hold.
+    let im = 0;
+    for(const f of i.legs) im += prem[f.t]*f.nm;
+    im /= i.nm;
+    const rev = flown*m.fare*im;
     st.rev += rev;
     if(m.src === "estimated"){ st.estPax += flown; st.estRev += rev; }
     for(const f of i.legs){
@@ -189,12 +222,14 @@ function revenueModel(M){
   const F = M.flights.map(f=>Object.assign({}, f,
     {seats: (SPEC[f.t] && SPEC[f.t].seats) || 0}));
   const itins = buildItineraries(F);
-  const r = allocateDemand(F, itins, REV_COMPETITION);
+  const cabins = cabinMultipliers(F);
+  const prem = cabinPremium(cabins.mult);
+  const r = allocateDemand(F, itins, REV_COMPETITION, prem);
   const seats = F.reduce((s,f)=>s+f.seats, 0);
   // The ceiling: what this schedule fills taking every passenger in every
   // market it touches. Below 100% is capacity that cannot fill unopposed.
   const ceiling = seats
-    ? [...allocateDemand(F, buildItineraries(F), 0).boarded.values()]
+    ? [...allocateDemand(F, buildItineraries(F), 0, prem).boarded.values()]
         .reduce((a,b)=>a+b,0)/seats : 0;
   const asm = F.reduce((s,f)=>s+f.seats*f.nm, 0)*SM;
   const rpm = F.reduce((s,f)=>s+(r.boarded.get(f.id)||0)*f.nm, 0)*SM;
@@ -205,6 +240,6 @@ function revenueModel(M){
     lf: seats ? [...r.boarded.values()].reduce((a,b)=>a+b,0)/seats : 0,
     rasm: asm ? r.stats.rev/asm*100 : 0,
     yield: rpm ? r.stats.rev/rpm*100 : 0,
-    cabins: cabinMultipliers(F), fareFit: FARE_FIT
+    cabins, fareFit: FARE_FIT
   });
 }

@@ -211,3 +211,24 @@ tfoot td{padding:8px 10px;border-top:1px solid var(--line);font-weight:600;backg
 .apsum div .v{font-family:var(--disp);font-size:23px;font-weight:600;font-variant-numeric:tabular-nums}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* seatmap designer */
+.btn.sm.on{ border-color:var(--accent); color:var(--accent); }
+#seatmapPanel svg{ background:transparent; }
+
+
+/* the airline name is editable in place */
+#brandName{ outline:none; border-bottom:1px dashed transparent; cursor:text; }
+#brandName:hover{ border-bottom-color:var(--line); }
+#brandName:focus{ border-bottom-color:var(--accent); }
+
+
+/* airline settings, folded out of the header bar */
+#airlinePanel{ border-top:1px solid var(--line-2); background:var(--surface-2); }
+#airlinePanel .row{ display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end; padding:12px 16px; }
+#airlinePanel label{ display:flex; flex-direction:column; gap:4px; font-size:11px;
+  font-family:var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); }
+#airlinePanel input{ font-size:14px; }
+.kpi.clickable{ cursor:pointer; }
+.kpi.clickable:hover .k{ color:var(--accent); }
+/* group the tabs by what they are for */
+.tabs .tabgap{ width:1px; align-self:center; height:18px; background:var(--line); margin:0 8px; }

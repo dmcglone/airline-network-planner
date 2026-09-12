@@ -58,7 +58,7 @@ function drawBoard(){
       const [cls,txt]=isDep?statusDep(t,now,del):statusArr(t,now,del);
       const other=isDep?f.d:f.o, oa=AP[other];
       return `<tr><td class="t">${hhmm(t)}${del?`<div class="sub" style="color:#FF7A6B">${hhmm(t+del)}</div>`:""}</td>`
-        +`<td class="t">FR ${f.fn}</td>`
+        +`<td class="t">${esc(flightNo(f.fn))}</td>`
         +`<td><span class="city">${esc(oa?cityName(other):other)}</span> <span class="sub">${other}</span>`
         +`<div class="sub">${esc(oa?oa[0]:"")}</div></td>`
         +`<td class="gate">${isDep?f.gDep:f.gArr||"—"}</td>`

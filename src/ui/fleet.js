@@ -55,6 +55,7 @@ function drawFeed(){
     +`<div style="font-family:var(--disp);font-size:23px;font-weight:600;font-variant-numeric:tabular-nums">${esc(v)}</div></div>`).join("");
 }
 function drawFleet(){
+  if(typeof drawSeatmap==='function') drawSeatmap();
   drawRoster();
   drawFeed();
   const t=$("#tFleet");
@@ -78,13 +79,13 @@ function drawFleet(){
     +`<td class="num">${fmt(tot.total)}</td><td class="num">${fmt(tot.asm/1e6,1)}m</td><td class="num">100.0%</td></tr>`));
 
   const a=$("#tAssume");
-  a.innerHTML="<thead><tr><th>Type</th><th class='r'>First</th><th class='r'>Prem econ</th><th class='r'>Economy</th>"
-    +"<th class='r'>Total seats</th><th class='r'>Range (nm)</th><th class='r'>Cruise (kt)</th>"
+  a.innerHTML="<thead><tr><th>Type</th>"
+    +"<th class='r'>Seats</th><th class='r'>Range (nm)</th><th class='r'>Cruise (kt)</th>"
     +"<th class='r'>Ground (min)</th><th class='r'>Turn (min)</th><th class='r'>Target block hrs</th></tr></thead>";
   const ab=el("tbody");
   ab.innerHTML=state.fleet.map((f,i)=>`<tr><td class="code">${f.t}</td>`
-    +["F","PE","Y"].map(k=>`<td class="num"><input type="number" min="0" max="300" data-f="${i}" data-k="${k}" value="${f[k]}"></td>`).join("")
-    +`<td class="num"><b>${f.F+f.PE+f.Y}</b></td>`
+    +`<td class="num"><b>${f.F+f.PE+f.Y}</b>`
+     +`<span class="dim" style="margin-left:6px;font-size:11px">${f.F+f.PE}J</span></td>`
     +["rng","kt","gnd","turn"].map(k=>`<td class="num"><input type="number" min="1" max="9000" data-f="${i}" data-k="${k}" value="${f[k]}"></td>`).join("")
     +`<td class="num"><input type="number" min="1" max="20" step="0.5" data-f="${i}" data-k="util" value="${f.util}"></td></tr>`).join("");
   a.appendChild(ab);

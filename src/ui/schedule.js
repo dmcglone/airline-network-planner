@@ -6,7 +6,7 @@ function drawSched(){
     if(ft&&f.t!==ft) return false;
     if(ro&&!f.ron) return false;
     if(!q) return true;
-    return (String(f.fn)+f.o+f.d+f.line).toUpperCase().includes(q);
+    return (flightNo(f.fn)+f.o+f.d+f.line).toUpperCase().replace(/\s+/g,"").includes(q.replace(/\s+/g,""));
   });
   $("#schedCount").textContent = fmt(rows.length)+" flights"+(rows.length>400?" · showing first 400":"");
   rows=rows.slice(0,400);
@@ -14,7 +14,7 @@ function drawSched(){
   t.innerHTML="<thead><tr><th>Flight</th><th>Rotation</th><th>Gauge</th><th>From</th><th>To</th><th>Destination</th>"
     +"<th class='r'>Dep</th><th class='r'>Arr</th><th></th><th class='r'>Block</th><th class='r'>Distance</th><th class='r'>Seats</th><th class='r'>Days/wk</th></tr></thead>";
   const tb=el("tbody");
-  tb.innerHTML = rows.map(f=>`<tr><td class="code">${f.fn}</td><td class="mono dim">${f.line}</td>`
+  tb.innerHTML = rows.map(f=>`<tr><td class="code">${esc(flightNo(f.fn))}</td><td class="mono dim">${f.line}</td>`
     +`<td>${f.t}</td><td class="code">${f.o}</td><td class="code">${f.d}</td>`
     +`<td class="dim">${esc(AP[f.d]?AP[f.d][0]:f.d)}</td>`
     +`<td class="num">${hhmm(f.dep)}</td><td class="num">${hhmm(f.arr)}</td>`

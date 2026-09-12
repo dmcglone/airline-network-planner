@@ -10,7 +10,54 @@
    "gnd": 35,
    "turn": 40,
    "util": 11.0,
-   "f41": "A319"
+   "f41": "A319",
+   "geom": {
+    "cabinLength": 936,
+    "abreast": {
+     "F": 4,
+     "PE": 6,
+     "Y": 6
+    },
+    "pitch": {
+     "F": 36,
+     "PE": 34,
+     "Y": 30
+    },
+    "exits": [
+     {
+      "type": "C",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.55
+     },
+     {
+      "type": "C",
+      "x": 1.0
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 60,
+      "lavs": 1
+     },
+     {
+      "kind": "lav",
+      "x": 0.902,
+      "len": 92,
+      "lavs": 2
+     }
+    ],
+    "certifiedMax": 156,
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   }
   },
   {
    "t": "A320",
@@ -22,7 +69,58 @@
    "gnd": 35,
    "turn": 45,
    "util": 11.0,
-   "f41": "A320"
+   "f41": "A320",
+   "geom": {
+    "cabinLength": 1083,
+    "abreast": {
+     "F": 4,
+     "PE": 6,
+     "Y": 6
+    },
+    "pitch": {
+     "F": 36,
+     "PE": 34,
+     "Y": 30
+    },
+    "exits": [
+     {
+      "type": "C",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.475
+     },
+     {
+      "type": "III",
+      "x": 0.5082
+     },
+     {
+      "type": "C",
+      "x": 1.0
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 60,
+      "lavs": 1
+     },
+     {
+      "kind": "lav",
+      "x": 0.911,
+      "len": 96,
+      "lavs": 2
+     }
+    ],
+    "certifiedMax": 180,
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   }
   },
   {
    "t": "A320E",
@@ -37,6 +135,57 @@
    "f41": "A320",
    "f41Adj": {
     "maint": 1.1
+   },
+   "geom": {
+    "cabinLength": 1083,
+    "abreast": {
+     "F": 4,
+     "PE": 6,
+     "Y": 6
+    },
+    "pitch": {
+     "F": 36,
+     "PE": 34,
+     "Y": 30
+    },
+    "exits": [
+     {
+      "type": "C",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.475
+     },
+     {
+      "type": "III",
+      "x": 0.5082
+     },
+     {
+      "type": "C",
+      "x": 1.0
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 66,
+      "lavs": 1
+     },
+     {
+      "kind": "lav",
+      "x": 0.911,
+      "len": 96,
+      "lavs": 2
+     }
+    ],
+    "certifiedMax": 180,
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
    }
   },
   {
@@ -49,7 +198,64 @@
    "gnd": 38,
    "turn": 50,
    "util": 11.0,
-   "f41": "A321ceo"
+   "f41": "A321ceo",
+   "geom": {
+    "cabinLength": 1356,
+    "abreast": {
+     "F": 4,
+     "PE": 6,
+     "Y": 6
+    },
+    "pitch": {
+     "F": 36,
+     "PE": 34,
+     "Y": 30
+    },
+    "exits": [
+     {
+      "type": "C",
+      "x": 0.0
+     },
+     {
+      "type": "C",
+      "x": 0.33
+     },
+     {
+      "type": "C",
+      "x": 0.66
+     },
+     {
+      "type": "C",
+      "x": 1.0
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 66,
+      "lavs": 1
+     },
+     {
+      "kind": "lav",
+      "x": 0.335,
+      "len": 42,
+      "lavs": 2
+     },
+     {
+      "kind": "lav",
+      "x": 0.92,
+      "len": 108,
+      "lavs": 2
+     }
+    ],
+    "certifiedMax": 220,
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   }
   },
   {
    "t": "E175",
@@ -61,7 +267,50 @@
    "gnd": 32,
    "turn": 35,
    "util": 9.5,
-   "f41": "E175"
+   "f41": "E175",
+   "geom": {
+    "cabinLength": 819,
+    "abreast": {
+     "F": 3,
+     "PE": 4,
+     "Y": 4
+    },
+    "pitch": {
+     "F": 36,
+     "PE": 34,
+     "Y": 30
+    },
+    "exits": [
+     {
+      "type": "C",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.55
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 48,
+      "lavs": 1
+     },
+     {
+      "kind": "lav",
+      "x": 0.912,
+      "len": 72,
+      "lavs": 1
+     }
+    ],
+    "certifiedMax": 88,
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   }
   },
   {
    "t": "E145",
@@ -73,7 +322,50 @@
    "gnd": 30,
    "turn": 30,
    "util": 9.0,
-   "f41": "E145"
+   "f41": "E145",
+   "geom": {
+    "cabinLength": 640,
+    "abreast": {
+     "F": 3,
+     "PE": 3,
+     "Y": 3
+    },
+    "pitch": {
+     "F": 36,
+     "PE": 34,
+     "Y": 30
+    },
+    "exits": [
+     {
+      "type": "I",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.5
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 36,
+      "lavs": 0
+     },
+     {
+      "kind": "lav",
+      "x": 0.906,
+      "len": 60,
+      "lavs": 1
+     }
+    ],
+    "certifiedMax": 50,
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   }
   }
  ],
  "pinned": {

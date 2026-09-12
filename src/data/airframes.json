@@ -1,0 +1,1022 @@
+{
+ "note": "Reference geometry for airframes a user might add to their fleet. This is the aeroplane, not the cabin: seat counts and pitch are the user's decision and are not held here. cabinLength and monument lengths are in inches; exit and monument x are fractions of cabin length. One entry in `exits` is one PAIR, both sides. certifiedMax is the type's published maximum passenger seating, not a sum of exit ratings \u2014 see the note in src/seatmap.js for why that distinction matters. Figures are close approximations for a planning model, not type certificate data.",
+ "frames": [
+  {
+   "id": "a319",
+   "name": "Airbus A319",
+   "kt": 447,
+   "rng": 2700,
+   "gnd": 35,
+   "turn": 40,
+   "util": 11.0,
+   "f41": "A319",
+   "geom": {
+    "cabinLength": 936,
+    "certifiedMax": 156,
+    "abreast": {
+     "F": 4,
+     "PE": 6,
+     "Y": 6
+    },
+    "exits": [
+     {
+      "type": "C",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.55
+     },
+     {
+      "type": "C",
+      "x": 1.0
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 60,
+      "lavs": 1
+     },
+     {
+      "kind": "lav",
+      "x": 0.902,
+      "len": 92,
+      "lavs": 2
+     }
+    ],
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   },
+   "code": "319"
+  },
+  {
+   "id": "a320",
+   "name": "Airbus A320",
+   "kt": 450,
+   "rng": 2900,
+   "gnd": 35,
+   "turn": 45,
+   "util": 11.0,
+   "f41": "A320",
+   "geom": {
+    "cabinLength": 1083,
+    "certifiedMax": 180,
+    "abreast": {
+     "F": 4,
+     "PE": 6,
+     "Y": 6
+    },
+    "exits": [
+     {
+      "type": "C",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.475
+     },
+     {
+      "type": "III",
+      "x": 0.5082
+     },
+     {
+      "type": "C",
+      "x": 1.0
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 60,
+      "lavs": 1
+     },
+     {
+      "kind": "lav",
+      "x": 0.911,
+      "len": 96,
+      "lavs": 2
+     }
+    ],
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   },
+   "code": "320"
+  },
+  {
+   "id": "a320neo",
+   "name": "Airbus A320neo",
+   "kt": 452,
+   "rng": 3400,
+   "gnd": 35,
+   "turn": 45,
+   "util": 11.5,
+   "f41": "A320neo",
+   "geom": {
+    "cabinLength": 1083,
+    "certifiedMax": 186,
+    "abreast": {
+     "F": 4,
+     "PE": 6,
+     "Y": 6
+    },
+    "exits": [
+     {
+      "type": "C",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.475
+     },
+     {
+      "type": "III",
+      "x": 0.5082
+     },
+     {
+      "type": "C",
+      "x": 1.0
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 60,
+      "lavs": 1
+     },
+     {
+      "kind": "lav",
+      "x": 0.925,
+      "len": 82,
+      "lavs": 2
+     }
+    ],
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   },
+   "code": "32N"
+  },
+  {
+   "id": "a321",
+   "name": "Airbus A321",
+   "kt": 452,
+   "rng": 2900,
+   "gnd": 38,
+   "turn": 50,
+   "util": 11.0,
+   "f41": "A321ceo",
+   "geom": {
+    "cabinLength": 1356,
+    "certifiedMax": 220,
+    "abreast": {
+     "F": 4,
+     "PE": 6,
+     "Y": 6
+    },
+    "exits": [
+     {
+      "type": "C",
+      "x": 0.0
+     },
+     {
+      "type": "C",
+      "x": 0.33
+     },
+     {
+      "type": "C",
+      "x": 0.66
+     },
+     {
+      "type": "C",
+      "x": 1.0
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 66,
+      "lavs": 1
+     },
+     {
+      "kind": "lav",
+      "x": 0.335,
+      "len": 42,
+      "lavs": 2
+     },
+     {
+      "kind": "lav",
+      "x": 0.92,
+      "len": 108,
+      "lavs": 2
+     }
+    ],
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   },
+   "code": "321"
+  },
+  {
+   "id": "a321neo",
+   "name": "Airbus A321neo",
+   "kt": 455,
+   "rng": 3500,
+   "gnd": 40,
+   "turn": 50,
+   "util": 11.5,
+   "f41": "A321neo",
+   "geom": {
+    "cabinLength": 1356,
+    "certifiedMax": 244,
+    "abreast": {
+     "F": 4,
+     "PE": 6,
+     "Y": 6
+    },
+    "exits": [
+     {
+      "type": "C",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.45
+     },
+     {
+      "type": "III",
+      "x": 0.4766
+     },
+     {
+      "type": "C",
+      "x": 0.7
+     },
+     {
+      "type": "C",
+      "x": 1.0
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 66,
+      "lavs": 1
+     },
+     {
+      "kind": "lav",
+      "x": 0.938,
+      "len": 84,
+      "lavs": 2
+     }
+    ],
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   },
+   "code": "21N"
+  },
+  {
+   "id": "a321xlr",
+   "name": "Airbus A321XLR",
+   "kt": 455,
+   "rng": 4700,
+   "gnd": 45,
+   "turn": 60,
+   "util": 11.5,
+   "f41": "A321neo",
+   "geom": {
+    "cabinLength": 1356,
+    "certifiedMax": 244,
+    "abreast": {
+     "F": 2,
+     "PE": 4,
+     "Y": 6
+    },
+    "exits": [
+     {
+      "type": "C",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.46
+     },
+     {
+      "type": "III",
+      "x": 0.4866
+     },
+     {
+      "type": "C",
+      "x": 0.6
+     },
+     {
+      "type": "C",
+      "x": 1.0
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 66,
+      "lavs": 1
+     },
+     {
+      "kind": "lav",
+      "x": 0.947,
+      "len": 72,
+      "lavs": 2
+     }
+    ],
+    "seat": {
+     "F": "lieflat",
+     "PE": "standard",
+     "Y": "standard"
+    },
+    "pitch": {
+     "F": 44,
+     "PE": 38,
+     "Y": 30
+    }
+   },
+   "code": "21X"
+  },
+  {
+   "id": "a220-100",
+   "name": "Airbus A220-100",
+   "kt": 447,
+   "rng": 3100,
+   "gnd": 32,
+   "turn": 40,
+   "util": 10.5,
+   "f41": "A220-100",
+   "geom": {
+    "cabinLength": 960,
+    "certifiedMax": 135,
+    "abreast": {
+     "F": 4,
+     "PE": 5,
+     "Y": 5
+    },
+    "exits": [
+     {
+      "type": "C",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.53
+     },
+     {
+      "type": "C",
+      "x": 1.0
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 54,
+      "lavs": 1
+     },
+     {
+      "kind": "lav",
+      "x": 0.915,
+      "len": 72,
+      "lavs": 2
+     }
+    ],
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   },
+   "code": "221"
+  },
+  {
+   "id": "a220-300",
+   "name": "Airbus A220-300",
+   "kt": 447,
+   "rng": 3350,
+   "gnd": 33,
+   "turn": 40,
+   "util": 10.5,
+   "f41": "A220-300",
+   "geom": {
+    "cabinLength": 1120,
+    "certifiedMax": 160,
+    "abreast": {
+     "F": 4,
+     "PE": 5,
+     "Y": 5
+    },
+    "exits": [
+     {
+      "type": "C",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.5
+     },
+     {
+      "type": "III",
+      "x": 0.535
+     },
+     {
+      "type": "C",
+      "x": 1.0
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 54,
+      "lavs": 1
+     },
+     {
+      "kind": "lav",
+      "x": 0.925,
+      "len": 74,
+      "lavs": 2
+     }
+    ],
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   },
+   "code": "223"
+  },
+  {
+   "id": "737-700",
+   "name": "Boeing 737-700",
+   "kt": 452,
+   "rng": 3000,
+   "gnd": 35,
+   "turn": 40,
+   "util": 11.0,
+   "f41": "B737-700",
+   "geom": {
+    "cabinLength": 941,
+    "certifiedMax": 149,
+    "abreast": {
+     "F": 4,
+     "PE": 6,
+     "Y": 6
+    },
+    "exits": [
+     {
+      "type": "C",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.5
+     },
+     {
+      "type": "III",
+      "x": 0.535
+     },
+     {
+      "type": "C",
+      "x": 1.0
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 56,
+      "lavs": 1
+     },
+     {
+      "kind": "lav",
+      "x": 0.912,
+      "len": 83,
+      "lavs": 2
+     }
+    ],
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   },
+   "code": "737"
+  },
+  {
+   "id": "737-800",
+   "name": "Boeing 737-800",
+   "kt": 453,
+   "rng": 2900,
+   "gnd": 38,
+   "turn": 45,
+   "util": 11.0,
+   "f41": "B737-800",
+   "geom": {
+    "cabinLength": 1180,
+    "certifiedMax": 189,
+    "abreast": {
+     "F": 4,
+     "PE": 6,
+     "Y": 6
+    },
+    "exits": [
+     {
+      "type": "C",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.485
+     },
+     {
+      "type": "III",
+      "x": 0.518
+     },
+     {
+      "type": "C",
+      "x": 1.0
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 60,
+      "lavs": 1
+     },
+     {
+      "kind": "lav",
+      "x": 0.913,
+      "len": 96,
+      "lavs": 2
+     }
+    ],
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   },
+   "code": "738"
+  },
+  {
+   "id": "737-900er",
+   "name": "Boeing 737-900ER",
+   "kt": 453,
+   "rng": 2950,
+   "gnd": 40,
+   "turn": 50,
+   "util": 11.0,
+   "f41": "B737-900ER",
+   "geom": {
+    "cabinLength": 1300,
+    "certifiedMax": 220,
+    "abreast": {
+     "F": 4,
+     "PE": 6,
+     "Y": 6
+    },
+    "exits": [
+     {
+      "type": "C",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.47
+     },
+     {
+      "type": "III",
+      "x": 0.503
+     },
+     {
+      "type": "C",
+      "x": 0.72
+     },
+     {
+      "type": "C",
+      "x": 1.0
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 62,
+      "lavs": 1
+     },
+     {
+      "kind": "lav",
+      "x": 0.915,
+      "len": 100,
+      "lavs": 2
+     }
+    ],
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   },
+   "code": "739"
+  },
+  {
+   "id": "737max8",
+   "name": "Boeing 737 MAX 8",
+   "kt": 453,
+   "rng": 3550,
+   "gnd": 38,
+   "turn": 45,
+   "util": 11.5,
+   "f41": "B737MAX8",
+   "geom": {
+    "cabinLength": 1180,
+    "certifiedMax": 210,
+    "abreast": {
+     "F": 4,
+     "PE": 6,
+     "Y": 6
+    },
+    "exits": [
+     {
+      "type": "C",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.485
+     },
+     {
+      "type": "III",
+      "x": 0.518
+     },
+     {
+      "type": "C",
+      "x": 1.0
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 60,
+      "lavs": 1
+     },
+     {
+      "kind": "lav",
+      "x": 0.925,
+      "len": 82,
+      "lavs": 2
+     }
+    ],
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   },
+   "code": "7M8"
+  },
+  {
+   "id": "737max9",
+   "name": "Boeing 737 MAX 9",
+   "kt": 453,
+   "rng": 3300,
+   "gnd": 40,
+   "turn": 50,
+   "util": 11.5,
+   "f41": "B737MAX9",
+   "geom": {
+    "cabinLength": 1300,
+    "certifiedMax": 220,
+    "abreast": {
+     "F": 4,
+     "PE": 6,
+     "Y": 6
+    },
+    "exits": [
+     {
+      "type": "C",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.47
+     },
+     {
+      "type": "III",
+      "x": 0.503
+     },
+     {
+      "type": "C",
+      "x": 0.72
+     },
+     {
+      "type": "C",
+      "x": 1.0
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 62,
+      "lavs": 1
+     },
+     {
+      "kind": "lav",
+      "x": 0.925,
+      "len": 88,
+      "lavs": 2
+     }
+    ],
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   },
+   "code": "7M9"
+  },
+  {
+   "id": "e175",
+   "name": "Embraer E175",
+   "kt": 420,
+   "rng": 1800,
+   "gnd": 32,
+   "turn": 35,
+   "util": 9.5,
+   "f41": "E175",
+   "geom": {
+    "cabinLength": 819,
+    "certifiedMax": 88,
+    "abreast": {
+     "F": 3,
+     "PE": 4,
+     "Y": 4
+    },
+    "exits": [
+     {
+      "type": "C",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.55
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 48,
+      "lavs": 1
+     },
+     {
+      "kind": "lav",
+      "x": 0.912,
+      "len": 72,
+      "lavs": 1
+     }
+    ],
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   },
+   "code": "E75"
+  },
+  {
+   "id": "e175-e2",
+   "name": "Embraer E175-E2",
+   "kt": 428,
+   "rng": 2060,
+   "gnd": 32,
+   "turn": 35,
+   "util": 9.5,
+   "f41": "E175",
+   "geom": {
+    "cabinLength": 862,
+    "certifiedMax": 90,
+    "abreast": {
+     "F": 3,
+     "PE": 4,
+     "Y": 4
+    },
+    "exits": [
+     {
+      "type": "C",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.55
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 48,
+      "lavs": 1
+     },
+     {
+      "kind": "lav",
+      "x": 0.918,
+      "len": 70,
+      "lavs": 1
+     }
+    ],
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   },
+   "code": "E7E"
+  },
+  {
+   "id": "e190-e2",
+   "name": "Embraer E190-E2",
+   "kt": 447,
+   "rng": 2850,
+   "gnd": 34,
+   "turn": 40,
+   "util": 10.0,
+   "f41": "E190",
+   "geom": {
+    "cabinLength": 1004,
+    "certifiedMax": 114,
+    "abreast": {
+     "F": 3,
+     "PE": 4,
+     "Y": 4
+    },
+    "exits": [
+     {
+      "type": "C",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.5
+     },
+     {
+      "type": "III",
+      "x": 0.535
+     },
+     {
+      "type": "C",
+      "x": 1.0
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 50,
+      "lavs": 1
+     },
+     {
+      "kind": "lav",
+      "x": 0.92,
+      "len": 76,
+      "lavs": 2
+     }
+    ],
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   },
+   "code": "E9E"
+  },
+  {
+   "id": "e145",
+   "name": "Embraer ERJ-145",
+   "kt": 390,
+   "rng": 1300,
+   "gnd": 30,
+   "turn": 30,
+   "util": 9.0,
+   "f41": "E145",
+   "geom": {
+    "cabinLength": 640,
+    "certifiedMax": 50,
+    "abreast": {
+     "F": 3,
+     "PE": 3,
+     "Y": 3
+    },
+    "exits": [
+     {
+      "type": "I",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.5
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 36,
+      "lavs": 0
+     },
+     {
+      "kind": "lav",
+      "x": 0.906,
+      "len": 60,
+      "lavs": 1
+     }
+    ],
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   },
+   "code": "E45"
+  },
+  {
+   "id": "crj900",
+   "name": "Bombardier CRJ900",
+   "kt": 447,
+   "rng": 1550,
+   "gnd": 32,
+   "turn": 35,
+   "util": 9.5,
+   "f41": "CRJ900",
+   "geom": {
+    "cabinLength": 830,
+    "certifiedMax": 90,
+    "abreast": {
+     "F": 3,
+     "PE": 4,
+     "Y": 4
+    },
+    "exits": [
+     {
+      "type": "I",
+      "x": 0.0
+     },
+     {
+      "type": "III",
+      "x": 0.47
+     },
+     {
+      "type": "III",
+      "x": 0.505
+     }
+    ],
+    "monuments": [
+     {
+      "kind": "galley",
+      "x": 0.0,
+      "len": 42,
+      "lavs": 0
+     },
+     {
+      "kind": "lav",
+      "x": 0.915,
+      "len": 62,
+      "lavs": 1
+     }
+    ],
+    "seat": {
+     "F": "recliner",
+     "PE": "standard",
+     "Y": "standard"
+    }
+   },
+   "code": "CR9"
+  }
+ ]
+}
