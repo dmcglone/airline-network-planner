@@ -619,7 +619,7 @@ function smEvent(t){
     const err = smCommitType();
     if(err){ smErr = err; drawSeatmap(); return true; }
     // A new type changes what the fleet can fly, so rebuild rather than redraw.
-    save(); rebuild();
+    save(); rebuild(`adding ${smType}`);
     return true;
   }
   if(t.dataset && t.dataset.nt){ return true; }   // other form fields: read on submit
@@ -639,7 +639,7 @@ function smEvent(t){
     if(state.feed) delete state.feed[f.t];
     smType = state.fleet[Math.min(i, state.fleet.length-1)].t;
     smRenaming = false;
-    save(); rebuild();
+    save(); rebuild(`removing ${f.t}`);
     toast(`${f.t} removed from the fleet`);
     return true;
   }
@@ -649,7 +649,7 @@ function smEvent(t){
     const f = smFleet(); if(!f) return true;
     const r = smCommitRename(f);
     if(typeof r === "string"){ smRenErr = r; drawSeatmap(); return true; }
-    save(); rebuild();
+    save(); rebuild("rename");
     toast(r.moved ? `Renamed. ${r.moved} route${r.moved===1?"":"s"} moved with it.` : "Renamed.");
     return true;
   }

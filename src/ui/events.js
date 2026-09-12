@@ -36,6 +36,7 @@ document.addEventListener("input", e=>{
   if(t.dataset && t.dataset.feed){
     guard(()=>{ state.feed=state.feed||{}; state.feed[t.dataset.feed]=t.checked?1:0;
       M=build(); save(); draw(); }); return; }
+  if(typeof stationEvent==="function" && stationEvent(t)) return;
   if(typeof smEvent==="function" && smEvent(t)) return;
   if(t.dataset && t.dataset.f!==undefined && t.dataset.k){
     const f=state.fleet[+t.dataset.f]; if(!f) return;
@@ -56,6 +57,8 @@ document.addEventListener("change", e=>{
   else if(["sStation","sType","sRon"].includes(id)) drawSched();
   else if(["rStation","rType"].includes(id)) drawRot();
 });
+$("#btnUndo").addEventListener("click", doUndo);
+$("#btnRedo").addEventListener("click", doRedo);
 $("#btnAirline").addEventListener("click", ()=>{
   airlineOpen = !airlineOpen; drawAirline();
   if(airlineOpen){ const f=$("#alName"); if(f) f.focus(); }
@@ -76,15 +79,25 @@ document.addEventListener("click", e=>{
   // Only buttons. Running smEvent on a <select> redraws the panel underneath an
   // open dropdown, which closes it the instant you click — selects and inputs
   // are handled by the input/change listeners instead.
-  if(typeof smEvent==="function" && !/^(SELECT|INPUT|TEXTAREA|OPTION)$/.test(e.target.tagName)
-     && smEvent(e.target.closest("button")||e.target)) return;
+  if(!/^(SELECT|INPUT|TEXTAREA|OPTION)$/.test(e.target.tagName)){
+    const b = e.target.closest("button")||e.target;
+    if(typeof stationEvent==="function" && stationEvent(b)) return;
+    if(typeof smEvent==="function" && smEvent(b)) return;
+  }
   const d=e.target.dataset && e.target.dataset.del;
   if(d!==undefined && d!==null && d!==""){
     const i=+d, r=state.routes[i];
     if(r && confirm("Remove "+r.o+"–"+r.d+" from the network?")){ state.routes.splice(i,1); M=build(); save(); draw(); }
   }
 });
-function toast(msg){ const t=el("div",{class:"toast"},esc(msg)); document.body.appendChild(t); setTimeout(()=>t.remove(),2600); }
+function toast(msg){
+  const t=el("div",{class:"toast"},esc(msg)); document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2600);
+  // Every confirmation in this app arrived only as a floating div, so a screen
+  // reader heard nothing at all. Mirror it into the live region.
+  const lr=$("#live");
+  if(lr){ lr.textContent=""; setTimeout(()=>{ lr.textContent=msg; }, 30); }
+}
 
 document.addEventListener("click",e=>{
   const ai=e.target.dataset && e.target.dataset.apply;
@@ -158,8 +171,12 @@ $("#btnTheme").onclick=()=>{
   const dark=cur ? cur==="dark" : matchMedia("(prefers-color-scheme: dark)").matches;
   document.documentElement.setAttribute("data-theme", dark?"light":"dark");
 };
-$("#btnReset").onclick=()=>{ if(confirm("Discard your edits and return to the baseline network?")){
-  state=baseline(); M=build(); save(); draw(); toast("Reverted to the baseline network"); } };
+$("#btnReset").onclick=()=>{
+  if(!confirm("Discard your edits and return to the baseline network?")) return;
+  pushUndo("revert to baseline");          // a full wipe is the thing you most want back
+  state=baseline(); applyStationConfig(state); applyBrand();
+  M=build(); save(); draw(); toast("Reverted to the baseline network");
+};
 $("#btnCopy").onclick=async()=>{
   const lines=["origin,dest,destination_name,days_per_week,"+TYPES.join(",")+",flights_per_day,distance_nm,red_eye"];
   for(const r of state.routes){ const n=TYPES.reduce((a,x)=>a+(+r.mix[x]||0),0);

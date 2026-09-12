@@ -2,9 +2,11 @@
 
 <header>
   <div class="bar">
-    <div class="mark"><b id="brandName" contenteditable="plaintext-only" spellcheck="false" title="Click to rename your airline" aria-label="Airline name">&nbsp;</b><span id="brandProduct"></span></div>
+    <h1 class="mark" style="all:unset;display:flex;align-items:baseline;gap:8px"><b id="brandName" contenteditable="plaintext-only" spellcheck="false" title="Click to rename your airline" aria-label="Airline name">&nbsp;</b><span id="brandProduct"></span></h1>
     <span class="tag" id="designday"></span>
     <div class="spacer"></div>
+    <button class="btn" id="btnUndo" disabled title="Nothing to undo" aria-label="Undo">Undo</button>
+    <button class="btn" id="btnRedo" disabled title="Nothing to redo" aria-label="Redo">Redo</button>
     <button class="btn" id="btnAirline">Airline</button>
     <button class="btn" id="btnModel">Model</button>
     <button class="btn" id="btnTheme">Theme</button>
@@ -17,9 +19,10 @@
     <button class="btn primary" id="btnSave" hidden>Save network</button>
   </div>
   <div id="airlinePanel" hidden></div>
-  <div class="kpis" id="kpis"></div>
+  <div class="kpis" id="kpis" aria-busy="false"></div>
   <div class="tabs" role="tablist" id="tabs"></div>
 </header>
+<div id="live" aria-live="polite" aria-atomic="true" class="sronly"></div>
 
 <main>
   <section class="pane" id="pane-network">
@@ -60,7 +63,7 @@
       auto-balanced for the build and reported on the Checks tab.</p>
   </section>
 
-  <section class="pane" id="pane-schedule" hidden>
+  <section class="pane" id="pane-schedule" role="tabpanel" aria-labelledby="tab-schedule" tabindex="0" hidden>
     <div class="panel">
       <h2>Flight schedule <span class="sub" id="schedCount"></span></h2>
       <div class="toolbar">
@@ -76,7 +79,7 @@
       Showing the first 400 matches; narrow the filter to see the rest.</p>
   </section>
 
-  <section class="pane" id="pane-rot" hidden>
+  <section class="pane" id="pane-rot" role="tabpanel" aria-labelledby="tab-rot" tabindex="0" hidden>
     <div class="panel">
       <h2>Aircraft rotations <span class="sub" id="rotCount"></span></h2>
       <div class="toolbar">
@@ -91,7 +94,11 @@
       departure — 06:00 departures from a spoke city are only possible because an aircraft slept there.</p>
   </section>
 
-  <section class="pane" id="pane-stations" hidden>
+  <section class="pane" id="pane-stations" role="tabpanel" aria-labelledby="tab-stations" tabindex="0" hidden>
+    <div class="panel">
+      <h2>Bases <span class="sub">Which airports you base aircraft at, and how each one builds its day</span></h2>
+      <div id="stnRoles"></div>
+    </div>
     <div class="panel">
       <h2>Stations <span class="sub">Departures and arrivals by local hour · peak aircraft on the ground is your gate requirement</span></h2>
       <div class="pad"><div class="stations" id="stnGrid"></div>
@@ -102,7 +109,7 @@
     </div>
   </section>
 
-  <section class="pane" id="pane-fleet" hidden>
+  <section class="pane" id="pane-fleet" role="tabpanel" aria-labelledby="tab-fleet" tabindex="0" hidden>
     <div class="panel">
       <h2>Fleet requirement <span class="sub">Tails counted from the rotations actually built</span></h2>
       <div class="scroll"><table id="tFleet"></table></div>
@@ -157,7 +164,7 @@
     </div>
   </section>
 
-  <section class="pane" id="pane-suggest" hidden>
+  <section class="pane" id="pane-suggest" role="tabpanel" aria-labelledby="tab-suggest" tabindex="0" hidden>
     <div class="panel">
       <h2>Demand source <span class="sub">What the growth suggestions are ranked on</span></h2>
       <div class="toolbar">
@@ -187,7 +194,7 @@
     <div class="panel"><h2>Grow <span class="sub">Unserved markets ranked by demand</span></h2>
       <div class="pad" id="sGrow"></div></div>
   </section>
-  <section class="pane" id="pane-checks" hidden>
+  <section class="pane" id="pane-checks" role="tabpanel" aria-labelledby="tab-checks" tabindex="0" hidden>
     <div class="panel">
       <h2>Schedule integrity <span class="sub">Run against the rotations on every rebuild</span></h2>
       <div class="pad" id="checks"></div>
@@ -198,7 +205,7 @@
     </div>
   </section>
 
-  <section class="pane" id="pane-econ" hidden>
+  <section class="pane" id="pane-econ" role="tabpanel" aria-labelledby="tab-econ" tabindex="0" hidden>
     <div class="panel">
       <h2>Unit economics <span class="sub">Derived from the finished schedule — nothing here feeds back into the engine</span></h2>
       <div class="pad"><div class="kpis" id="econKpis"></div></div>
@@ -230,7 +237,7 @@
     </div>
   </section>
 
-  <section class="pane" id="pane-map" hidden>
+  <section class="pane" id="pane-map" role="tabpanel" aria-labelledby="tab-map" tabindex="0" hidden>
     <div class="panel">
       <h2>Route map <span class="sub" id="mapCount"></span></h2>
       <div class="toolbar">
@@ -270,7 +277,7 @@
     </div>
   </section>
 
-  <section class="pane" id="pane-board" hidden>
+  <section class="pane" id="pane-board" role="tabpanel" aria-labelledby="tab-board" tabindex="0" hidden>
     <div class="panel">
       <h2>Airport board <span class="sub">Every movement at one airport, with gates assigned from the real aircraft rotations</span></h2>
       <div class="toolbar">
@@ -292,7 +299,7 @@
       clock at that airport. <b>Simulate irregular ops</b> layers a deterministic delay pattern on top; it is off by default and
       changes nothing in the underlying schedule.</p>
   </section>
-  <section class="pane" id="pane-model" hidden>
+  <section class="pane" id="pane-model" role="tabpanel" aria-labelledby="tab-model" tabindex="0" hidden>
     <div id="modelPanel"></div>
   </section>
 </main>

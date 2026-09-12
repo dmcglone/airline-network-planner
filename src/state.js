@@ -6,7 +6,8 @@ function baseline(){
   if(rs.some(r=>r.red)) return {routes: rs,          // the published seed already carries flags
     fleet: FLEET_BASE.map(f=>Object.assign({},f)),
     feed: {SJC:1, PIT:1, MCO:1, RDU:0, DEN:0}, spacing:'balanced', redeye: 1,
-    roster: Object.assign({},FLEET_PINNED), spare: 0.08, v: 2, brand: BRAND.name, code: BRAND.code};
+    roster: Object.assign({},FLEET_PINNED), spare: 0.08, v: 2, brand: BRAND.name, code: BRAND.code,
+    stations: STA.slice(), roles: Object.assign({}, ROLE)};
   for(const r of rs){
     if(!DEFAULT_RED.has(pairKey(r.o,r.d))) continue;
     const typ=TYPES.find(t=>+r.mix[t]>0)||"A319";
@@ -16,7 +17,8 @@ function baseline(){
   return {routes: rs,
                           fleet: FLEET_BASE.map(f=>Object.assign({},f)),
                           feed: {SJC:1, PIT:1, MCO:1, RDU:0, DEN:0}, spacing:'balanced', redeye: 1,
-                             roster: Object.assign({},FLEET_PINNED), spare: 0.08, v: 2, brand: BRAND.name, code: BRAND.code}; }
+                             roster: Object.assign({},FLEET_PINNED), spare: 0.08, v: 2, brand: BRAND.name, code: BRAND.code,
+    stations: STA.slice(), roles: Object.assign({}, ROLE)}; }
 
 /* Reconcile a loaded fleet's cabin geometry against the shipped airframe.
 
@@ -46,6 +48,18 @@ function reconcileGeom(fleet){
     if(keptPitch) f.geom.pitch = Object.assign({}, f.geom.pitch, keptPitch);
   }
   return fleet;
+}
+
+/* Stations and their roles used to live only in the config file, so promoting a
+   station to a hub could not survive a reload — STA and ROLE are module-level
+   and save() only writes `state`. They are decisions, so they belong in state
+   like everything else, with the shipped config as the fallback. */
+function applyStationConfig(st){
+  if(st && Array.isArray(st.stations) && st.stations.length) STA = st.stations.slice();
+  if(st && st.roles && typeof st.roles === "object") ROLE = Object.assign({}, st.roles);
+  // a station with no role is point-to-point; a role with no station is noise
+  for(const s of STA) if(!ROLE[s]) ROLE[s] = "P2P";
+  for(const k in ROLE) if(!STA.includes(k)) delete ROLE[k];
 }
 
 function load(){
@@ -118,6 +132,7 @@ function importState(obj){
   reconcileGeom(state.fleet);
   if(!state.brand) state.brand = BRAND.name;
   if(!state.code)  state.code  = BRAND.code;
+  applyStationConfig(state);
   if(!state.feed) state.feed={SJC:1,PIT:1,MCO:1,RDU:0,DEN:0};
   if(!state.spacing) state.spacing="balanced";
   if(!state.roster) state.roster=Object.assign({},FLEET_PINNED);

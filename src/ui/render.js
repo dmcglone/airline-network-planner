@@ -21,15 +21,36 @@ let tab="network";
 /* Somewhere to send people from outside the bar -- the Checks metric, a link. */
 function goTab(id){
   tab=id; drawTabs();
+  const t=$("#tab-"+id); if(t && document.activeElement && document.activeElement.classList
+     && document.activeElement.classList.contains("tab")) t.focus();
   ALL_PANES.forEach(x=>{ const p=$("#pane-"+x); if(p) p.hidden = x!==id; });
   draw();
 }
 const ALL_PANES=["network","map","board","schedule","rot","stations","fleet","econ","suggest","checks","model"];
+/* A tablist is a single tab stop: Tab moves past it, arrows move within it.
+   Without this the bar was nine separate tab stops and the roles promised a
+   pattern the keyboard did not deliver. */
+function tabKeys(e){
+  const ids=TABS.filter(([x])=>x!=="gap").map(([x])=>x);
+  const i=ids.indexOf(tab); if(i<0) return;
+  let j=null;
+  if(e.key==="ArrowRight") j=(i+1)%ids.length;
+  else if(e.key==="ArrowLeft") j=(i-1+ids.length)%ids.length;
+  else if(e.key==="Home") j=0;
+  else if(e.key==="End") j=ids.length-1;
+  if(j===null) return;
+  e.preventDefault(); goTab(ids[j]);
+}
+
 function drawTabs(){
   const c=$("#tabs"); c.innerHTML="";
+  c.onkeydown = tabKeys;
   TABS.forEach(([id,label])=>{
     if(id==="gap"){ c.appendChild(el("span",{class:"tabgap","aria-hidden":"true"})); return; }
-    const b=el("button",{class:"tab",role:"tab","aria-selected":String(tab===id)},esc(label));
+    const b=el("button",{class:"tab", role:"tab", id:"tab-"+id,
+                         "aria-selected":String(tab===id),
+                         "aria-controls":"pane-"+id,
+                         tabindex: tab===id ? "0" : "-1"}, esc(label));
     b.onclick=()=>goTab(id);
     c.appendChild(b);
   });

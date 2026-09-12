@@ -43,6 +43,11 @@ function drawFeed(){
       <span class="code">${k}</span>
       <span class="chip ${ROLE[k]==="Hub"?"hub":"focus"}">${ROLE_LABEL[ROLE[k]]}</span>
       <span class="dim">${FEEDMODE[k]==="dawn"?"dawn feed":"10:00 Caribbean bank"}</span></label>`).join("");
+  const p2p = STA.filter(s=>ROLE[s]!=="Hub" && ROLE[s]!=="Focus");
+  if(p2p.length)
+    $("#feedBoxes").innerHTML += `<span class="dim" style="font-size:12.5px;align-self:center">`
+      + `${esc(p2p.join(", "))} ${p2p.length===1?"is a point-to-point base":"are point-to-point bases"}`
+      + ` and ${p2p.length===1?"has":"have"} no connecting bank to feed.</span>`;
   $("#redeyeChk").checked=!!state.redeye;
   $("#spacingSel").innerHTML=Object.keys(SPACING).map(k=>
     `<option value="${k}"${state.spacing===k?" selected":""}>${esc(SPACING[k].label)}</option>`).join("");

@@ -58,6 +58,8 @@ $("#brandName").addEventListener("keydown", e=>{
 $("#brandProduct").textContent = BRAND.product;
 $("#designday").textContent = BRAND.designDay ? "Design day · "+BRAND.designDay : "";
 state = load();
+applyStationConfig(state);   // STA and ROLE come from state, not just the config file
+syncFeedModes();             // and the feed list follows the roles
 applyBrand();          // reads state.brand, so it has to follow the load
 // The loaded fleet may carry types the shipped data has never heard of, and
 // fillSelects() below reads TYPES. build() syncs it, but build() runs after
@@ -67,6 +69,7 @@ applyBrand();          // reads state.brand, so it has to follow the load
 syncTypes();
 SPEC={}; state.fleet.forEach(f=>{SPEC[f.t]=f; f.seats=f.F+f.PE+f.Y;});
 fillSelects(); drawTabs(); M=build();
+if(typeof markCommitted==="function") markCommitted();
 $("#bAp").value = M.apStats["PHL"] ? "PHL — "+AP["PHL"][0] : "";
 if(!M.apStats["PHL"]) boardAp="SJC";
 draw();

@@ -18,7 +18,35 @@ let BANKS = JSON.parse(JSON.stringify(CFG.banks || {}));
 let CURFEW = JSON.parse(JSON.stringify(CFG.curfew || {}));
 // Stations that pull a morning feed from their spokes. "dawn" = earliest bank the aircraft can
 // reach; a number = a named bank in local minutes (MCO's 10:00 Caribbean wave).
-const FEEDMODE = Object.assign({}, CFG.feedMode);
+/* Which stations want to be fed, and how.
+
+   This used to be a fixed map in the config file, so the Schedule strategy panel
+   listed exactly five stations for ever. Promote a station to a hub and it would
+   never appear — a hub with no feed target is a hub that does not connect.
+
+   It is now derived from the roles. A hub or a focus city has connecting intent
+   and therefore a feed; a point-to-point base does not, by definition, so it is
+   correctly absent rather than missing. Per-station overrides from the config
+   survive — MCO is an O&D and Caribbean station, so it takes a 10:00 bank rather
+   than a dawn feed. */
+const FEED_OVERRIDE = Object.assign({}, CFG.feedMode);
+let FEEDMODE = {};
+function syncFeedModes(){
+  const next = {};
+  for(const s of STA){
+    if(ROLE[s] !== "Hub" && ROLE[s] !== "Focus") continue;
+    next[s] = (FEED_OVERRIDE[s] !== undefined) ? FEED_OVERRIDE[s] : "dawn";
+  }
+  FEEDMODE = next;
+  // a station that has just become feedable needs a default: hubs feed, focus
+  // cities do not until somebody says so
+  if(typeof state !== "undefined" && state && state.feed){
+    for(const s in FEEDMODE)
+      if(state.feed[s] === undefined) state.feed[s] = ROLE[s] === "Hub" ? 1 : 0;
+    for(const s in state.feed)
+      if(FEEDMODE[s] === undefined) delete state.feed[s];
+  }
+}
 let MCT = CFG.mct != null ? CFG.mct : 40;      // minimum connect time, minutes
 // Markets flagged as red-eyes out of the box. A route's red-eye flag lives on the route itself;
 // the engine works out which direction flies overnight, because only one ever can.

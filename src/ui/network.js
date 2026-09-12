@@ -34,11 +34,17 @@ function drawRoutes(){
     tr.innerHTML = `<td><span class="code">${r.o}</span> <span class="chip ${ROLE[r.o]==="Hub"?"hub":ROLE[r.o]==="Focus"?"focus":""}">${ROLE_SHORT[ROLE[r.o]]}</span></td>`
       + `<td><span class="code apn" title="${esc((AP[r.d]?AP[r.d][0]:r.d)+" · "+cityOf(r.d))}">${r.d}</span>${STA.includes(r.d)?' <span class="chip">trunk</span>':""}</td>`
       + `<td class="num">${fmt(nm)} nm${over?' <span class="chip bad">range</span>':""}</td>`
-      + TYPES.map(x=>`<td class="num"><input type="number" min="0" max="30" data-i="${i}" data-t="${x}" value="${+r.mix[x]||""}"></td>`).join("")
+      // Without a label a screen reader reads this whole grid as "edit, blank".
+      // The column header and the row give sighted users the context; these give
+      // it to everyone else.
+      + TYPES.map(x=>`<td class="num"><input type="number" min="0" max="30" data-i="${i}" data-t="${x}"`
+          + ` aria-label="${esc(x+" flights per day, "+r.o+" to "+r.d)}"`
+          + ` value="${+r.mix[x]||""}"></td>`).join("")
       + `<td class="num"><b>${n}</b></td>`
       + `<td class="num">${dd.v>0?fmt(dd.v)+(dd.real?"":"*"):"—"}</td>`
       + `<td class="mono" style="font-size:13px" title="${sc?`Jul 2025 → May 2026 · peak ${sc.peak} ${sc.peakX.toFixed(1)}×, trough ${sc.trough} ${sc.troughX.toFixed(1)}×`:"no monthly data"}">${sc?sc.spark:""}</td>`
-      + `<td class="num"><input type="number" min="1" max="7" data-i="${i}" data-w="1" value="${r.dow||7}"></td>`
+      + `<td class="num"><input type="number" min="1" max="7" data-i="${i}" data-w="1"`
+      + ` aria-label="${esc("Days per week, "+r.o+" to "+r.d)}" value="${r.dow||7}"></td>`
       + `<td>${redCell(r,i)}</td>`
       + `<td><button class="iconbtn" data-del="${i}" title="Remove route">&times;</button></td>`;
     tb.appendChild(tr);
