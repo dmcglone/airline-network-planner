@@ -98,5 +98,6 @@ function welcomeEvent(t){
   const s = (typeof STARTERS !== "undefined" ? STARTERS : []).find(x => x.id === id);
   toast(s ? `Started from ${s.name.toLowerCase()} — rename it in the Airline panel`
           : "Network loaded");
+  if(typeof drawHint === "function") drawHint();
   return true;
 }

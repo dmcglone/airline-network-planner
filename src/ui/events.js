@@ -96,7 +96,25 @@ $("#btnAirline").addEventListener("click", ()=>{
   airlineOpen = !airlineOpen; drawAirline();
   if(airlineOpen){ const f=$("#alName"); if(f) f.focus(); }
 });
-$("#btnHelp").addEventListener("click", ()=>goTab("model"));
+$("#btnHelp").addEventListener("click", ()=>{ dismissHint(true); goTab("model"); });
+
+/* A single line pointing at Help, shown only to someone who has never opened it.
+   Not a tour and not a modal: the picker has already taken one full screen of
+   this person's attention, and spending another on chrome would be rude. It
+   disappears for good the moment they either read it or dismiss it. */
+function hintSeen(){ try{ return localStorage.getItem("anp-hint") === "1"; }catch(e){ return true; } }
+function dismissHint(seen){
+  try{ if(seen) localStorage.setItem("anp-hint","1"); }catch(e){}
+  const h = $("#firstHint"); if(h){ h.hidden = true; h.innerHTML = ""; }
+}
+function drawHint(){
+  const h = $("#firstHint"); if(!h || hintSeen()) return;
+  h.hidden = false;
+  h.innerHTML = `<div class="hintbar"><span>New here? <b>Getting started</b> has three things to `
+    + `try, and the Glossary explains the words.</span>`
+    + `<button class="btn sm" data-hint="open">Open Help</button>`
+    + `<button class="btn sm" data-hint="close" aria-label="Dismiss">Dismiss</button></div>`;
+}
 document.addEventListener("click", e=>{
   const k = e.target.closest && e.target.closest("[data-goto]");
   if(k) goTab(k.dataset.goto);
@@ -114,7 +132,10 @@ document.addEventListener("click", e=>{
   // are handled by the input/change listeners instead.
   if(!/^(SELECT|INPUT|TEXTAREA|OPTION)$/.test(e.target.tagName)){
     const b = e.target.closest("button")||e.target;
-    if(b && b.dataset && b.dataset.gloss){ showGlossTerm(b.dataset.gloss); return; }
+    if(b && b.dataset && b.dataset.hint){
+    dismissHint(true); if(b.dataset.hint === "open") goTab("model"); return;
+  }
+  if(b && b.dataset && b.dataset.gloss){ showGlossTerm(b.dataset.gloss); return; }
   if(b && b.dataset && b.dataset.help){ helpSection = b.dataset.help; drawModel(); return; }
   if(typeof welcomeEvent==="function" && welcomeEvent(b)) return;
     if(typeof stationEvent==="function" && stationEvent(b)) return;

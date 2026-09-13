@@ -98,6 +98,8 @@ if(typeof stateFromHash === "function"){
 /* Demand arrives after the schedule is already on screen. Nothing waits for it:
    the engine never needed it, and the panels that do simply show no demand until
    it lands and then redraw. */
+if(typeof drawHint === "function" && sawSavedState) drawHint();
+
 if(typeof loadDemand === "function")
   loadDemand().then(ok => { if(ok){ draw(); } });
 $("#bAp").value = M.apStats["PHL"] ? "PHL — "+AP["PHL"][0] : "";

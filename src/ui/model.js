@@ -1,3 +1,59 @@
+/* ----- getting started -----
+   Three things to do, not a tour. A step-through overlay teaches the chrome,
+   and the chrome is not what is hard here — the domain is. Each action below
+   names a real button and says what it will teach, so somebody can do it, see
+   something change, and understand why.
+
+   The order is deliberate. Change something first, because the thing that makes
+   this tool make sense is that the entire day rebuilds from one edit. Only then
+   is it worth looking at what was built. */
+
+const GETTING_STARTED = [
+ ["Add a flight and watch the whole day change",
+  "On the Network tab, find a route and type a number into one of the aircraft columns \u2014 "
+  + "say a second daily A320. Then look up at the metrics along the top. Aircraft, block hours, "
+  + "gates and routes all move, because the planner does not patch the old schedule: it rebuilds "
+  + "every rotation from scratch, every time. That is slower and it is the reason the answer "
+  + "stays consistent instead of drifting as you work."],
+ ["Follow one aircraft through its day",
+  "Open Rotations. Each line is one aircraft: where it starts, every leg it flies, and where it "
+  + "spends the night. Aircraft routinely finish somewhere other than where they began and turn "
+  + "back the next morning \u2014 that is normal airline practice, not a mistake. This is what the "
+  + "schedule actually is; everything else on these pages is a summary of it."],
+ ["Ask what to do next",
+  "Open Suggestions. It proposes routes that fix a problem, fill an idle aircraft, or open a "
+  + "market you do not serve \u2014 and it verifies the fixes by rebuilding the schedule before "
+  + "offering them. It will not plan your airline for you. Deciding is the interesting part and "
+  + "it is left to you."]
+];
+
+function gettingStartedHTML(){
+  return `<div class="panel"><h2>Getting started `
+    + `<span class="sub">Three things to try, in this order</span></h2>`
+    + `<div class="pad"><p class="note">You are planning an airline. You choose which markets to `
+    + `serve, how often, and with what aircraft; the planner works out every flight, which `
+    + `aircraft flies it, when it goes, and where each one spends the night \u2014 then checks its own `
+    + `work against ten rules.</p></div>`
+    + GETTING_STARTED.map(([h, d], i) =>
+        `<div class="pad" style="border-top:1px solid var(--line-2);display:grid;`
+        + `grid-template-columns:30px 1fr;gap:13px;align-items:start">`
+        + `<div class="mono" style="font-size:19px;color:var(--accent);line-height:1.2">${i+1}</div>`
+        + `<div><div style="font-family:var(--disp);font-size:15.5px;font-weight:600;`
+        + `margin-bottom:4px">${esc(h)}</div>`
+        + `<p class="note" style="margin:0">${esc(d)}</p></div></div>`).join("")
+    + `<div class="pad" style="border-top:1px solid var(--line-2)">`
+    + `<p class="note"><b>When a number turns red.</b> The metric marked Checks failing is the `
+    + `planner disagreeing with itself: a leg nobody flies, an aircraft in two places, a departure `
+    + `inside a curfew, a route beyond an aircraft's range. Click it to see which rule broke. `
+    + `Zero is the normal state, and you should be suspicious of a schedule that is not at zero.</p>`
+    + `<p class="note"><b>Keeping your airline.</b> Your work is saved in this browser, which is `
+    + `not permanent \u2014 Safari in particular discards it after about a week away. Share puts the `
+    + `whole airline in a link you can keep or send to somebody. Export saves it as a file. `
+    + `Undo goes back twenty-five steps.</p>`
+    + `<p class="note"><b>Words you do not recognise</b> are dotted in the notes on every page. `
+    + `Click one for its definition, or read the Glossary here.</p></div></div>`;
+}
+
 /* ----- the Model tab -----
    What this thing is, what it is not, and every place it is knowingly wrong.
 
@@ -114,9 +170,10 @@ const MODEL_SECTIONS = [
   }
 ];
 
-let helpSection = "glossary";
+let helpSection = "start";
 
 const HELP_SECTIONS = [
+  ["start",    "Getting started"],
   ["glossary", "Glossary"],
   ["model",    "How the model works"],
   ["wrong",    "Where it is wrong"],
@@ -129,6 +186,7 @@ function drawModel(){
     + HELP_SECTIONS.map(([id,label]) =>
         `<button class="btn sm${helpSection===id?" on":""}" data-help="${id}">${esc(label)}</button>`
       ).join("") + `</div>`;
+  if(helpSection === "start"){ host.innerHTML = nav + gettingStartedHTML(); return; }
   if(helpSection === "glossary"){
     host.innerHTML = nav + `<div class="panel"><h2>Glossary `
       + `<span class="sub">What the words on these pages mean</span></h2>`
