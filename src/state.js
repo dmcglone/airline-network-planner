@@ -10,7 +10,7 @@ function baseline(){
     stations: STA.slice(), roles: Object.assign({}, ROLE)};
   for(const r of rs){
     if(!DEFAULT_RED.has(pairKey(r.o,r.d))) continue;
-    const typ=TYPES.find(t=>+r.mix[t]>0)||"A319";
+    const typ=TYPES.find(t=>+r.mix[t]>0)||TYPES[0];
     const v=redeyeInfo(r.o,r.d,typ); if(!v.ok) continue;
     if(r.o===v.from || !keys.has(v.from+"|"+v.to)) r.red=1;   // the row that carries the control
   }
@@ -69,7 +69,7 @@ function load(){
           const keys=new Set(p.routes.map(r=>r.o+"|"+r.d));
           for(const r of p.routes){
             if(!DEFAULT_RED.has(pairKey(r.o,r.d))) continue;
-            const typ=TYPES.find(t=>+r.mix[t]>0)||"A319";
+            const typ=TYPES.find(t=>+r.mix[t]>0)||TYPES[0];
             const v=redeyeInfo(r.o,r.d,typ); if(!v.ok) continue;
             if(r.o===v.from || !keys.has(v.from+"|"+v.to)) r.red=1;
           }

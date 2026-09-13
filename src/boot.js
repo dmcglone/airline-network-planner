@@ -71,5 +71,12 @@ SPEC={}; state.fleet.forEach(f=>{SPEC[f.t]=f; f.seats=f.F+f.PE+f.Y;});
 fillSelects(); drawTabs(); M=build();
 if(typeof markCommitted==="function") markCommitted();
 $("#bAp").value = M.apStats["PHL"] ? "PHL — "+AP["PHL"][0] : "";
-if(!M.apStats["PHL"]) boardAp="SJC";
+// The board opened at PHL and fell back to SJC, both of which are just stations
+// this airline happened to have. Fall back to whatever the network actually
+// serves most.
+if(!M.apStats[boardAp]){
+  const busiest = Object.keys(M.apStats||{})
+    .sort((x,y)=>(M.apStats[y].deps||0)-(M.apStats[x].deps||0))[0];
+  boardAp = busiest || STA[0] || boardAp;
+}
 draw();

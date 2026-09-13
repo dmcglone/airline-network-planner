@@ -13,7 +13,13 @@ function drawChecks(){
     ["Overnight ground time sufficient to repeat daily",c.brkNight,"violations"],
     ["No rotation exceeds 24 hours",c.brkSpan,"violations"],
     ["Departures equal arrivals at every airport",c.imb,"imbalanced airports"],
-    ["SJC departure curfew 06:00–23:00 respected",c.curfew,"violations"],
+    // The label named SJC and its hours outright, so it would have lied about any
+// other curfew. Read it from the curfew table instead.
+[(()=>{const k=Object.keys(CURFEW||{});
+   if(!k.length) return "Departure curfews respected";
+   const hh=m=>String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
+   return k.map(s=>`${s} ${hh(CURFEW[s][0])}–${hh(CURFEW[s][1])}`).join(", ")+" curfew respected";
+ })(),c.curfew,"violations"],
     ["No leg exceeds its aircraft's range",c.rangeBad.length,"legs over range"]];
   let h=rows.map(([t,n,u])=>`<div class="checkrow"><span class="t">${esc(t)}</span>`
     +`<span class="mono dim">${n===0?"0 "+u:fmt(n)+" "+u}</span>`

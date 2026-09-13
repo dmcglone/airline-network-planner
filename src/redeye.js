@@ -27,7 +27,7 @@ function redeyeSets(){
   for(const r of state.routes){
     if(!r.red) continue;
     const k=pairKey(r.o,r.d); if(done.has(k)) continue;
-    const typ=TYPES.find(t=>+r.mix[t]>0)||"A319";
+    const typ=TYPES.find(t=>+r.mix[t]>0)||TYPES[0];
     const v=redeyeInfo(r.o,r.d,typ); if(!v.ok) continue;
     done.add(k);
     if(STA.includes(v.to)) IN.add(v.to+"|"+v.from); else OUT.add(v.from+"|"+v.to);

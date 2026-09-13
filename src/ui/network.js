@@ -1,6 +1,6 @@
 /* ----- network tab ----- */
 function redCell(r,i){
-  const typ=TYPES.find(t=>+r.mix[t]>0)||"A319";
+  const typ=TYPES.find(t=>+r.mix[t]>0)||TYPES[0];
   const v=redeyeInfo(r.o,r.d,typ);
   if(!v.ok) return `<span class="dim" title="${esc(v.why)}">—</span>`;
   const keys=new Set(state.routes.map(x=>x.o+"|"+x.d));
@@ -16,7 +16,7 @@ function drawRoutes(){
     if(fs&&r.o!==fs) return false;
     if(ft&&!(+r.mix[ft]>0)) return false;
     if(fr==="on" && !r.red) return false;
-    if(fr==="ok" && !redeyeInfo(r.o,r.d,TYPES.find(t=>+r.mix[t]>0)||"A319").ok) return false;
+    if(fr==="ok" && !redeyeInfo(r.o,r.d,TYPES.find(t=>+r.mix[t]>0)||TYPES[0]).ok) return false;
     if(!q) return true;
     return (r.o+r.d+(AP[r.d]?AP[r.d][0]+AP[r.d][1]+AP[r.d][5]:"")).toUpperCase().includes(q);
   });

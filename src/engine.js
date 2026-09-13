@@ -249,7 +249,26 @@ function build(){
 
 function assemble(legs,lines,rebal,dowOf,FED,FEED_PAIR,merged){
   lines.sort((a,b)=> a.base<b.base?-1:a.base>b.base?1:(a.type<b.type?-1:a.type>b.type?1:a.flights[0][2]-b.flights[0][2]));
-  const BLOCKS={SJC:100,MCO:900,PIT:1700,RDU:2400,AUS:3100,DEN:3800,LAS:4400,COS:4700};
+  /* Flight-number blocks, one range per base.
+
+     These used to be a fixed map of the eight stations the airline shipped with,
+     so a base added later got `undefined` and every flight out of it was
+     numbered NaN. The shipped allocations are kept — they are a real decision
+     about which range belongs to which base, and changing them would renumber
+     an existing schedule for no reason — and anything else is allotted the next
+     free block in station order. */
+  const BLOCKS = Object.assign({}, CFG.numberBlocks
+    || {SJC:100, MCO:900, PIT:1700, RDU:2400, AUS:3100, DEN:3800, LAS:4400, COS:4700});
+  {
+    const BLOCK_STEP = 700, BLOCK_CAP = 9000;
+    const used = new Set(Object.values(BLOCKS));
+    let next = BLOCK_STEP;
+    for(const s of STA.slice().sort()){
+      if(BLOCKS[s] !== undefined) continue;
+      while(used.has(next) && next < BLOCK_CAP) next += BLOCK_STEP;
+      BLOCKS[s] = next; used.add(next); next += BLOCK_STEP;
+    }
+  }
   const seq={}, flights=[], rots=[], seen=new Map(), periods=[];
   lines.forEach((l,li)=>{
     const id=l.base+"-"+l.type+"-"+String(li).padStart(3,"0");
