@@ -3,7 +3,7 @@ function guard(fn){                                   // never let one bad inter
   try { fn(); }
   catch(err){
     reportError(err, "guard");
-    toast("Something went wrong applying that change — it was rolled back. " +
+    toast("Something went wrong applying that change. It was rolled back. " +
           "Press the Model tab for what this tool does and does not do.");
     try { state=load(); M=build(); draw(); } catch(e2){ console.error(e2); }
   }
@@ -163,7 +163,7 @@ document.addEventListener("click",e=>{
       const oi=e.target.dataset.opt;
       const fn = (oi!==undefined && x.options) ? x.options[+oi].apply : x.apply;
       if(!fn) return;
-      fn(); M=build(); save(); draw(); toast("Applied — schedule rebuilt"); });
+      fn(); M=build(); save(); draw(); toast("Applied. Schedule rebuilt"); });
     return;
   }
   const si=e.target.dataset && e.target.dataset.search;
@@ -183,9 +183,9 @@ document.addEventListener("click",e=>{
         const after=m.fleet.reduce((a,g)=>a+g.short,0);
         if(after<now){ found={t,after,tails:m.totals.tails}; break; }
       }
-      if(!found){ out.textContent=`no single swap among ${Math.min(30,cands.length)} candidates clears it — you would need another ${f.t}`; return; }
+      if(!found){ out.textContent=`no single swap among ${Math.min(30,cands.length)} candidates clears it. You would need another ${f.t}`; return; }
       const {t,after,tails}=found;
-      out.innerHTML=`<b>${t.r.o}–${t.r.d}: ${f.t} → ${t.g.t}</b> — shortfall ${now} → ${after}, fleet ${fmt(M.totals.tails)} → ${fmt(tails)} `
+      out.innerHTML=`<b>${t.r.o}–${t.r.d}: ${f.t} → ${t.g.t}</b> · shortfall ${now} → ${after}, fleet ${fmt(M.totals.tails)} → ${fmt(tails)} `
         + `<button class="btn sm" data-apply="${SUGG.length}">Apply</button>`;
       SUGG.push({apply:()=>{ const r=state.routes.find(y=>y.o===t.r.o&&y.d===t.r.d);
         r.mix[f.t]=(+r.mix[f.t]||0)-1; if(!r.mix[f.t]) delete r.mix[f.t];
@@ -238,8 +238,8 @@ $("#btnCopy").onclick=async()=>{
   const lines=["origin,dest,destination_name,days_per_week,"+TYPES.join(",")+",flights_per_day,distance_nm,red_eye"];
   for(const r of state.routes){ const n=TYPES.reduce((a,x)=>a+(+r.mix[x]||0),0);
     lines.push([r.o,r.d,'"'+(AP[r.d]?AP[r.d][0]:r.d)+'"',r.dow||7,...TYPES.map(x=>+r.mix[x]||0),n,Math.round(dist(r.o,r.d)),r.red?1:0].join(",")); }
-  try{ await navigator.clipboard.writeText(lines.join("\n")); toast("Routes copied — paste them back into the chat to rebuild the workbook"); }
-  catch(err){ toast("Couldn't reach the clipboard — try again after clicking the page"); }
+  try{ await navigator.clipboard.writeText(lines.join("\n")); toast("Routes copied. Paste them back into the chat to rebuild the workbook"); }
+  catch(err){ toast("Couldn't reach the clipboard. Try again after clicking the page"); }
 };
 
 /* ----- add route ----- */
@@ -290,7 +290,7 @@ function addInfo(){
     +`(${fmt(nm*SM)} sm) · block on ${t} <b>${(blk(o,d,t)/60).toFixed(2)} h</b> · `
     +(ok.length?`in range for ${ok.join(", ")}`:`<span class="chip bad">no gauge in your fleet can make this</span>`)
     +(nm>SPEC[t].rng?` · <span class="chip bad">${t} is ${fmt(nm-SPEC[t].rng)} nm short</span>`:"")
-    +(exists?` · <span class="chip warn">this route already exists — adding will merge into it</span>`:"")
+    +(exists?` · <span class="chip warn">this route already exists, so adding will merge into it</span>`:"")
     +`<br>${redLine}`;
   const rb=$("#nRedWrap");
   if(rb){ rb.hidden=!rv.ok; $("#nRedLbl").textContent = rv.ok ? `${rv.from}→${rv.to}` : ""; }
@@ -341,7 +341,7 @@ $("#btnAddGo").onclick=()=>{
   // guard() runs its function immediately and is sync-only; these handlers are
   // async, so they need a wrapper that returns a function and catches rejections.
   const safe = fn => (...a) => Promise.resolve().then(()=>fn(...a)).catch(err=>{
-    console.error(err); toast("Something went wrong — "+((err&&err.message)||err)); });
+    console.error(err); toast("Something went wrong. "+((err&&err.message)||err)); });
   if(window.claude && claude.use){
     claude.use("downloads").then(d=>{DL=d;}).catch(()=>{});
     claude.use("db").then(d=>{ DB=d; if(d) $("#btnBackup").hidden=false; }).catch(()=>{});
@@ -390,7 +390,7 @@ $("#btnAddGo").onclick=()=>{
       + `<button class="btn sm" id="btnCloseExport">Close</button></div>`
       + `<div class="dim" id="exportStatus" style="font-size:12.5px;margin-top:6px">`
       + `Download saves a file. Copy puts the same JSON on the clipboard, which is `
-      + `what to use if downloads are blocked here — Import state takes a paste.</div></div>`;
+      + `what to use if downloads are blocked here. Import state takes a paste.</div></div>`;
     $("#btnCloseExport").onclick = ()=>{ h.hidden = true; };
     $("#btnDlState").onclick = safe(async ()=>{
       if(DL){
@@ -403,11 +403,11 @@ $("#btnAddGo").onclick=()=>{
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(()=>URL.revokeObjectURL(url), 4000);
       $("#exportStatus").textContent =
-        "If no file appeared, this view blocks downloads — use Copy to clipboard instead.";
+        "If no file appeared, this view blocks downloads. Use Copy to clipboard instead.";
     });
     $("#btnCopyState").onclick = safe(async ()=>{
       try{ await navigator.clipboard.writeText(json);
-           h.hidden = true; toast(`Copied ${kb} KB — paste it into Import state`); }
+           h.hidden = true; toast(`Copied ${kb} KB. Paste it into Import state`); }
       catch(err){ $("#exportStatus").textContent =
            "The clipboard is not available here. Use Download, or Share for a link."; }
     });
@@ -456,11 +456,11 @@ $("#btnImport").onclick = ()=>{
     const f = ev.target.files && ev.target.files[0]; if(!f) return;
     let r;
     try{ r = importState(await f.text()); }
-    catch(err){ toast("Import failed — "+(err.message||err)); ev.target.value=""; return; }
+    catch(err){ toast("Import failed. "+(err.message||err)); ev.target.value=""; return; }
     ev.target.value="";
     toast(r.want && r.diff.length
       ? "Imported, but "+r.diff.length+" metric"+(r.diff.length>1?"s":"")+" differ: "+r.diff.join(", ")
-      : "Imported — "+fmt(r.got.routes)+" routes, "+fmt(r.got.tails)+" rotations");
+      : "Imported "+fmt(r.got.routes)+" routes, "+fmt(r.got.tails)+" rotations");
   });
 
   $("#btnBackup").onclick = safe(async ()=>{
@@ -470,8 +470,8 @@ $("#btnImport").onclick = ()=>{
       const snap = exportState();
       await DB.doc("state/current").set(snap);
       await DB.doc("state/"+Date.now()).set(snap);
-      toast("Backed up — this state can now be recovered from outside the page");
-    }catch(e){ toast("Backup failed — "+((e&&e.message)||e)); }
+      toast("Backed up. This state can now be recovered from outside the page");
+    }catch(e){ toast("Backup failed. "+((e&&e.message)||e)); }
     b.disabled=false; b.textContent="Back up";
   });
 })();
@@ -485,19 +485,19 @@ $("#btnImport").onclick = ()=>{
     b.disabled=true; b.textContent="Saving…";
     try{
       const payload=JSON.stringify({airports:AP,routes:state.routes,stations:STA,demand:RAW.demand}).replace(/<\//g,"<\\/");
-      if(RAW.demand && payload.indexOf('"demand"')<0) throw new Error("payload lost demand data — refusing to save");
+      if(RAW.demand && payload.indexOf('"demand"')<0) throw new Error("payload lost demand data, so refusing to save");
       const src = PRISTINE || pageSource();
       // A truncated self-publish once shipped a dead artifact, and a save that
       // dropped the demand block once emptied the Grow tab. Check for every
       // block the page cannot run without, not just the ones that broke before.
       for(const need of ['id="geo"', 'id="cfg"', 'id="fleet"', "function drawMap", "function build("])
         if(src.indexOf(need)<0)
-          throw new Error("page source is missing "+need+" — refusing to publish a broken document");
+          throw new Error("page source is missing "+need+", so refusing to publish a broken document");
       const next=src.replace(/(<script type="application\/json" id="net">)[\s\S]*?(<\/script>)/, (m,a,c)=>a+payload+c);
       await art.publish(next);
-      toast("Network saved — this is now the version everyone opens");
+      toast("Network saved. This is now the version everyone opens");
     }catch(err){
-      toast(err && err.code==="conflict" ? "Someone else saved first — reload to see their version" : "Couldn't save this version");
+      toast(err && err.code==="conflict" ? "Someone else saved first. Reload to see their version" : "Couldn't save this version");
     }
     b.disabled=false; b.textContent="Save network";
   };

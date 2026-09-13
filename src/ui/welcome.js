@@ -9,9 +9,9 @@
    empty network teaches only that the planner does nothing.
 
    So the opening choice is a small complete airline you can take in at a glance
-   and immediately change — with the full example available for anyone who wants
-   to see what it looks like at size, and an empty network for anyone who would
-   rather start cold. */
+   and immediately change. The full example is there for anyone who wants to see
+   what it looks like at size, and an empty network for anyone who would rather
+   start cold. */
 
 let welcomeOpen = false;
 
@@ -26,7 +26,7 @@ function welcomeCards(){
     id: "__example", name: "The full example network",
     blurb: "The airline this planner was built around: three hubs, two focus cities, "
          + "three point-to-point bases. Far too big to take in at once, which is why it "
-         + "is not the default — but it is what the tool looks like at scale.",
+         + "is not the default. It is, though, what the tool looks like at scale.",
     facts: "404 routes · 366 aircraft · 213 gates"
   });
   cards.push({
@@ -48,7 +48,7 @@ function drawWelcome(){
     + `<h2 id="welcomeH">${esc(SITE.name)}</h2>`
     + `<p class="note">Build and schedule an airline network. Pick one to start from. Give it your own name and code, add and `
     + `cut routes, move the gauges around, and the planner rebuilds the whole day every time `
-    + `— then checks its own work against ten rules and tells you when it has broken one. `
+    + `It then checks its own work against ten rules and tells you when it has broken one. `
     + `Nothing here is a forecast of any real airline.</p>`
     + `<div class="welcome-grid">`
     + welcomeCards().map(c =>
@@ -60,7 +60,7 @@ function drawWelcome(){
     + `<div class="toolbar" style="padding-left:0">`
     + `<button class="btn sm" data-welclose="1">Keep what I have</button>`
     + `<span class="dim" style="font-size:12.5px">You can start over from the Airline panel. `
-    + `Switching replaces the whole airline — routes, bases and aircraft types — though Undo `
+    + `Switching replaces the whole airline: routes, bases and aircraft types. Undo `
     + `brings the old one back.</span>`
     + `</div></div>`;
   const first = host.querySelector(".welcome-card"); if(first) first.focus();
@@ -96,7 +96,7 @@ function welcomeEvent(t){
   if(typeof fillSelects === "function") fillSelects();
   draw(); markCommitted(); paintUndo();
   const s = (typeof STARTERS !== "undefined" ? STARTERS : []).find(x => x.id === id);
-  toast(s ? `Started from ${s.name.toLowerCase()} — rename it in the Airline panel`
+  toast(s ? `Started from ${s.name.toLowerCase()}. Rename it in the Airline panel`
           : "Network loaded");
   if(typeof drawHint === "function") drawHint();
   return true;

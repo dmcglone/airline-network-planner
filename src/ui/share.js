@@ -90,7 +90,7 @@ async function doShare(){
   const kb = (url.length/1024).toFixed(1);
   try{
     await navigator.clipboard.writeText(url);
-    toast(`Link copied — ${kb} KB, the whole airline is in it`);
+    toast(`Link copied. ${kb} KB, with the whole airline in it`);
   }catch(e){
     // clipboard needs a permission this context may not have; show it instead
     prompt("Copy this link to share or keep your airline:", url);

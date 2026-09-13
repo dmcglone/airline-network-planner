@@ -24,12 +24,12 @@ function drawRoster(){
   const short=F.filter(f=>f.short>0);
   if(!short.length){
     $("#rosterNote").innerHTML=`<p class="note">Your roster covers the schedule. <b>Baseline</b> is the ${fmt(T.pinned)} aircraft this
-      network needed when the roster was pinned — the column is there so you can see how far any change has moved the requirement.
+      network needed when the roster was pinned. The column is there so you can see how far any change has moved the requirement.
       Spares are carried on top of the rotations at the ratio above; they are not assigned to any flying.</p>`;
     return;
   }
   $("#rosterNote").innerHTML=`<p class="note"><b>${fmt(T.shortRots)} rotation${T.shortRots===1?"":"s"} cannot be flown</b> with this roster,
-    covering ${fmt(T.shortFlights)} flights a day. The least productive rotations of each short type are the ones that fall out first —
+    covering ${fmt(T.shortFlights)} flights a day. The least productive rotations of each short type are the ones that fall out first:
     they are listed below with the flying they carry, so you can see what you would actually be cancelling.</p>`
     + short.map(f=>`<div style="margin-top:10px"><div class="k mono" style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--bad)">${f.t} — short ${f.short}</div>`
       + f.uncovered.map(r=>`<div class="mkt"><span class="m">${r.id}</span><span class="dim">${r.path}</span><span>${r.block.toFixed(2)} h · ${r.legs} legs</span></div>`).join("")

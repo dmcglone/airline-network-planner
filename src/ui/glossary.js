@@ -45,7 +45,7 @@ const GLOSSARY = [
          + "crew, as distinct from rotations, which is what the schedule asks for."],
   ["Turn time", "The minimum ground time between an arrival and the next departure of the same "
               + "aircraft. A planning minimum, not a target."],
-  ["Block time", "Gate to gate, including taxi — not time in the air. What crews are paid "
+  ["Block time", "Gate to gate, including taxi. Not the time in the air. What crews are paid "
                 + "for and what utilisation is measured in."],
   ["Utilisation", "Block hours per aircraft per day. Raise it and you need fewer aircraft; "
                 + "raise it too far and a single delay has nowhere to go."],
@@ -59,9 +59,9 @@ const GLOSSARY = [
          + "bank problem rather than a flying problem."]
  ]},
  {group:"Demand and money", terms:[
-  ["O&D", "Origin and destination: where a passenger actually starts and ends, not which legs "
-        + "they sit on. A New York to Los Angeles passenger connecting through Denver is one "
-        + "O&D and two legs."],
+  ["O&D", "Origin and destination: where a passenger actually starts and ends, rather than the "
+        + "legs they sit on. A New York to Los Angeles passenger connecting through Denver is "
+        + "one O&D and two legs."],
   ["ASM", "Available seat mile. One seat flown one mile. The standard measure of how much "
         + "airline you are operating."],
   ["CASM", "Cost per available seat mile. What it costs to fly one seat one mile, whether or "
@@ -72,8 +72,8 @@ const GLOSSARY = [
                 + "can fill an aircraft at fares that do not cover it."],
   ["Spill", "Passengers who wanted a flight that was full. This planner counts them and drops "
           + "them; a fuller model would recapture some onto other flights."],
-  ["QSI", "Quality of service index. A score for how attractive an itinerary is — here, "
-        + "mostly how much longer it takes than the best possible way of making the journey."],
+  ["QSI", "Quality of service index. A score for how attractive an itinerary is. Here that is "
+        + "mostly a question of how much longer it takes than the best way of making the journey."],
   ["Gravity model", "Estimating demand between two places from their sizes and the distance "
                   + "between them. Used where real data does not reach. It is weak: see "
                   + "Where it is wrong."],
@@ -85,8 +85,8 @@ const GLOSSARY = [
  {group:"The cabin", terms:[
   ["Pitch", "The distance between one seat row and the next, front to front. Not legroom, "
           + "though it mostly determines it."],
-  ["Abreast", "Seats across a row. Set by the fuselage and the kind of seat, not chosen "
-            + "directly — picking a lie-flat suite IS picking 1-1."],
+  ["Abreast", "Seats across a row. The fuselage and the kind of seat decide it, rather than you "
+            + "directly: picking a lie-flat suite is picking 1-1."],
   ["Exit limit", "The most passengers a type may carry, set by its exits. Published per type "
                 + "rather than computed here; see Where it is wrong."],
   ["Monument", "A galley, lavatory or closet. It occupies cabin length that seats cannot."],

@@ -70,7 +70,7 @@ function drawStationRoles(){
       + `point-to-point base runs a rolling schedule with no connecting intent. Bank times come from the `
       + `role, so a new hub picks up the hub structure without you defining one.</p>`
     + `<p class="note">Changing a role rebuilds the whole schedule, so the aircraft count, the gate `
-      + `requirement and the ten checks will all move. That is the point — it is the cheapest way to ask `
+      + `requirement and the ten checks will all move. That is the point: it is the cheapest way to ask `
       + `whether a station is earning its bank structure.</p></div>`;
 }
 

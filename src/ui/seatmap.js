@@ -395,7 +395,7 @@ function smAddForm(){
     + `<div class="mkt" style="gap:10px;flex-wrap:wrap;align-items:center">`
       + `<span class="dim" style="min-width:96px">Start from</span>`
       + `<select data-nt="frame" style="min-width:230px">`
-        + `<option value="">Blank — I will enter the geometry</option>`
+        + `<option value="">Blank: I will enter the geometry</option>`
         + FRAMES.map(x=>`<option value="${esc(x.id)}"${x.id===smFrame?" selected":""}>${esc(x.name)}</option>`).join("")
       + `</select>`
       + (fr ? `<span class="dim" style="font-size:12.5px">${fmt(g.cabinLength)} in cabin · `
@@ -586,9 +586,9 @@ function drawSeatmap(){
     + `<div class="scroll">${smControls(L, f, idx)}</div>`
     + bad
     + `<div class="pad"><p class="note"><b>What constrains a cabin.</b> Length is rows times pitch `
-      + `plus the monuments. The seat limit is the type's published maximum — 180 on an A320, 220 on an `
-      + `A321 — rather than a sum of exit ratings, because that sum does not reproduce the published `
-      + `figures and forcing it to would mean putting the exits somewhere they are not. Crew is `
+      + `plus the monuments. The seat limit is the type's published maximum, 180 on an A320 and 220 `
+      + `on an A321, rather than a sum of exit ratings: that sum does not reproduce the published `
+      + `figures, and forcing it to would mean putting the exits somewhere they are not. Crew is `
       + `14 CFR 121.391, one attendant per fifty seats, which is why cost steps rather than slopes.</p>`
       + `<p class="note"><b>Exits are geometry here.</b> A floor-level door needs a clear passageway, so `
       + `the seating breaks at it. An overwing Type III sits beside a seat row instead, and rows are `
@@ -596,7 +596,7 @@ function drawSeatmap(){
       + `a section is too short for a row and is lost, which is why seats do not move smoothly as pitch `
       + `changes.</p>`
     + `<p class="note">Adding economy seats always lowers cost per seat-mile, because the cost of a departure `
-      + `does not change when you add a seat. The fare index beside it is the other half — it is the `
+      + `does not change when you add a seat. The fare index beside it is the other half. It is the `
       + `seat-weighted cabin premium from the revenue model, and it falls as the cabin gets denser. Watch `
       + `both or the answer is always "more seats".</p></div>`;
 }
@@ -631,7 +631,7 @@ function smEvent(t){
   if(t.dataset && t.dataset.smdel){
     const f = smFleet(); if(!f) return true;
     const used = (state.routes || []).filter(r=>r.mix && r.mix[f.t]).length;
-    if(used){ toast(`${f.t} is flown by ${used} route${used===1?"":"s"} — move them first`); return true; }
+    if(used){ toast(`${f.t} is flown by ${used} route${used===1?"":"s"}. Move them first`); return true; }
     const i = state.fleet.findIndex(x=>x.t===f.t);
     if(i < 0 || state.fleet.length <= 1) return true;
     state.fleet.splice(i, 1);

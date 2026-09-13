@@ -1,6 +1,6 @@
 /* ----- getting started -----
    Three things to do, not a tour. A step-through overlay teaches the chrome,
-   and the chrome is not what is hard here — the domain is. Each action below
+   and the chrome is the easy part here. The domain is the hard part. Each action below
    names a real button and says what it will teach, so somebody can do it, see
    something change, and understand why.
 
@@ -12,19 +12,19 @@ const GETTING_STARTED = [
  ["Add a flight and watch the whole day change",
   "On the Network tab, find a route and type a number into one of the aircraft columns \u2014 "
   + "say a second daily A320. Then look up at the metrics along the top. Aircraft, block hours, "
-  + "gates and routes all move, because the planner does not patch the old schedule: it rebuilds "
-  + "every rotation from scratch, every time. That is slower and it is the reason the answer "
-  + "stays consistent instead of drifting as you work."],
+  + "gates and routes all move, because the planner rebuilds every rotation from scratch "
+  + "rather than patching the old schedule. That is slower, and it is why the answer stays "
+  + "consistent instead of drifting as you work."],
  ["Follow one aircraft through its day",
   "Open Rotations. Each line is one aircraft: where it starts, every leg it flies, and where it "
   + "spends the night. Aircraft routinely finish somewhere other than where they began and turn "
-  + "back the next morning \u2014 that is normal airline practice, not a mistake. This is what the "
-  + "schedule actually is; everything else on these pages is a summary of it."],
+  + "back the next morning. That is normal airline practice. This is what the schedule actually "
+  + "is; everything else on these pages is a summary of it."],
  ["Ask what to do next",
   "Open Suggestions. It proposes routes that fix a problem, fill an idle aircraft, or open a "
-  + "market you do not serve \u2014 and it verifies the fixes by rebuilding the schedule before "
-  + "offering them. It will not plan your airline for you. Deciding is the interesting part and "
-  + "it is left to you."]
+  + "market you do not serve. It verifies the fixes by rebuilding the schedule before offering "
+  + "them. It will not plan your airline for you: deciding is the interesting part, and it is "
+  + "left to you."]
 ];
 
 function gettingStartedHTML(){
@@ -47,7 +47,7 @@ function gettingStartedHTML(){
     + `inside a curfew, a route beyond an aircraft's range. Click it to see which rule broke. `
     + `Zero is the normal state, and you should be suspicious of a schedule that is not at zero.</p>`
     + `<p class="note"><b>Keeping your airline.</b> Your work is saved in this browser, which is `
-    + `not permanent \u2014 Safari in particular discards it after about a week away. Share puts the `
+    + `not permanent. Safari in particular discards it after about a week away. Share puts the `
     + `whole airline in a link you can keep or send to somebody. Export saves it as a file. `
     + `Undo goes back twenty-five steps.</p>`
     + `<p class="note"><b>Words you do not recognise</b> are dotted in the notes on every page. `
@@ -68,10 +68,10 @@ const MODEL_SECTIONS = [
     h: "What it does",
     p: [`Given a set of routes and a fleet, it builds a full day of flying: every
          leg, which aircraft flies it, when, and where each tail spends the night.
-         Then it checks its own work against ten rules — legs flown against legs
+         Then it checks its own work against ten rules: legs flown against legs
          required, spatial continuity, turn times, rotation closure, overnight
          ground, the 24-hour span, station balance, curfews, range and gauge
-         match — and tells you when it has broken one.`,
+         match. It tells you when it has broken one.`,
         `Every edit rebuilds the whole schedule rather than patching the previous
          one. That is slower, and it is the reason the model stays provably
          consistent instead of drifting as changes accumulate.`]
@@ -89,7 +89,7 @@ const MODEL_SECTIONS = [
   },
   {
     h: "Where the demand numbers come from",
-    p: [`United States markets use DOT DB1C Market data — the origin and
+    p: [`United States markets use DOT DB1C Market data, the origin and
          destination product that replaced DB1B in July 2025, built from a 40%
          ticket sample. Eleven months, July 2025 to May 2026, processed into
          12,241 markets with passengers per day, average fare and a monthly
@@ -105,7 +105,7 @@ const MODEL_SECTIONS = [
        `Scored against real DB1C, it gets r² = 0.52, ranks market pairs correctly
         74.6% of the time, and is typically off by about seven times. It is fine
         for ordering candidates and useless for sizing them. An early AUC of
-        0.966 was oversold — market size alone scored 0.939, so most of it was
+        0.966 was oversold: market size alone scored 0.939, so most of it was
         circular.`],
       [`Competition is a single constant`,
        `Every market is modelled as having one equally attractive rival,
@@ -119,7 +119,7 @@ const MODEL_SECTIONS = [
         carries an average fare per market with no cabin split, so nothing in the
         data can separate a first-class fare from an economy one. They are
         normalised so the fleet mean is 1.0, which means a wrong multiplier never
-        shows up as an implausible total — it shows up as the wrong aircraft
+        shows up as an implausible total. It shows up as the wrong aircraft
         looking good on the wrong route.`],
       [`Cabin mix is priced, occupancy is not`,
        `Passengers are spread across cabins in proportion to seats, so a premium
@@ -132,9 +132,9 @@ const MODEL_SECTIONS = [
       [`Airframe geometry is approximate`,
        `Cabin lengths, exit positions and monument placement are a careful
         reading rather than type certificate data. Where they can be checked they
-        land close — the A319 arrangement computes to a real 145-seat
-        configuration and the A321's to a real 220 — but an exit sitting a few
-        inches off will move a seat count.`],
+        land close: the A319 arrangement computes to a real 145-seat configuration and
+        the A321's to a real 220. An exit sitting a few inches off will still move
+        a seat count.`],
       [`Regional costs come from one carrier each`,
        `The E175 is costed from Horizon and the E145 from Piedmont, both
         wholly-owned subsidiaries that hold their own aircraft. That makes the
@@ -153,7 +153,7 @@ const MODEL_SECTIONS = [
   {
     h: "How to read a number",
     p: [`Anything drawn from DB1C or Form 41 is measured. Anything else is
-         estimated, and the planner marks it where it can — the Economics tab
+         estimated, and the planner marks it where it can. The Economics tab
          names the aircraft types it cannot cost, and route-level findings
          separate the measured ones from the estimate-dependent ones.`,
         `When a figure looks too precise for its inputs, it probably is. The

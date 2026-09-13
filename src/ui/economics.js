@@ -144,7 +144,7 @@ function drawEcon(){
     + `<td class="num mono"${r.contrib<0?' style="color:var(--bad)"':""}>`
     + `${money(r.contrib)}</td>`
     + `<td class="dim">${[...r.types].join(", ")}`
-    + (r.estimated?` <span class="chip bad" title="More than a quarter of this route's revenue comes from markets with no measured demand — the number is an estimate, not a measurement.">est</span>`:"")
+    + (r.estimated?` <span class="chip bad" title="More than a quarter of this route's revenue comes from markets with no measured demand, so this number is an estimate.">est</span>`:"")
     + `</td></tr>`).join("");
   const head = `<table><thead><tr><th>Route</th><th class="num">Deps</th>`
     + `<th class="num">nm</th><th class="num">LF</th><th class="num">Rev/dep</th>`
@@ -169,8 +169,8 @@ function drawEcon(){
     + `P-5.2 and P-6 joined to T-100, calendar 2025, domestic entities only, `
     + `peer set <span class="mono">${esc((ECON.meta||{}).peerSet||"?")}</span>. `
     + `Each element is a per-cycle plus a per-hour rate, which is why unit cost `
-    + `falls with stage length. Form 41 cannot measure that split — the `
-    + `cross-carrier regression returns negative cycle fuel — so the level is `
+    + `falls with stage length. Form 41 cannot measure that split, because the `
+    + `cross-carrier regression returns negative cycle fuel, so the level is `
     + `measured and only the shape is assumed, through `
     + `<span class="mono">cycleEquivHours</span>.<br><br>`
     + `<b>Demand.</b> ${fmt(R.stats.real)} markets carry measured DB1C `

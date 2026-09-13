@@ -35,13 +35,13 @@ function drawChecks(){
   h+=`<p class="note" style="margin-top:12px"><b>Bank feed:</b> ${F.fed} of ${F.planned} planned spokes got an overnight aircraft; `
    + `${F.early} of ${F.spokes} spoke cities now depart before 07:00. `
    + (F.late ? `${F.late} still have no departure before 09:00: ` + F.lateList.join(", ")
-             + `. Most are once-daily long-haul or Caribbean turns where the aircraft flies out and back the same day — switching on RDU and DEN under Bank feed strategy picks up several of the rest.`
+             + `. Most are once-daily long-haul or Caribbean turns where the aircraft flies out and back the same day. Switching on RDU and DEN under Bank feed strategy picks up several of the rest.`
              : `Every spoke has a morning departure.`) + `</p>`;
   if(M.rebal.length) h+=`<p class="note" style="margin-top:12px"><b>Auto-balanced ${M.rebal.length} station-pair direction${M.rebal.length===1?"":"s"}:</b> `
     + M.rebal.slice(0,10).map(r=>`${r.a}–${r.b} ${r.t} (${r.na} vs ${r.nb} → ${r.n})`).join("; ")
     + (M.rebal.length>10?` and ${M.rebal.length-10} more`:"")
     + `. A turn is flown by one aircraft, so both directions of a station pair must carry the same gauge and frequency. The larger side wins.</p>`;
-  $("#checks").innerHTML=(parity.length ? `<div class="note" style="border-left:3px solid var(--bad);padding:8px 12px;margin-bottom:10px"><b>Validator disagrees with the engine</b> — these results are not trustworthy until this is resolved: ${esc(parity.join("; "))}</div>` : "") + h;
+  $("#checks").innerHTML=(parity.length ? `<div class="note" style="border-left:3px solid var(--bad);padding:8px 12px;margin-bottom:10px"><b>Validator disagrees with the engine.</b> These results are not trustworthy until this is resolved: ${esc(parity.join("; "))}</div>` : "") + h;
   const shape=[["Flights on the design day",fmt(T.deps),"Monday 8 June 2026"],
     ["Aircraft rotations",fmt(T.tails),"Each is one tail's full day"],
     ["Average legs per aircraft",(T.deps/(T.tails||1)).toFixed(1),"Narrowbody productivity"],
@@ -78,11 +78,11 @@ function drawSuggest(){
   const fix=suggestFix(), fill=suggestFill(), grow=suggestGrow();
   [...fix,...fill].forEach(x=>{ x._i=SUGG.length; SUGG.push(x); });
   $("#sFix").innerHTML=fix.length?fix.map(sgCard).join("")
-    :`<p class="note">Nothing to fix — every gauge is covered, no leg is out of range, and no rotation is stranded.</p>`;
+    :`<p class="note">Nothing to fix. Every gauge is covered, no leg is out of range, and no rotation is stranded.</p>`;
   $("#sFill").innerHTML=fill.length?fill.map(sgCard).join("")
     :`<p class="note">No under-used rotations with a route that fits their idle window.</p>`;
   if(!grow.length && !Object.keys(DEM.size||{}).length){
-    $("#sGrow").innerHTML=`<p class="note"><b>No demand data in this version of the page.</b> Grow ranks unserved markets by passenger demand, and this build's data block has no demand table — so it has nothing to rank. Reload the latest published version, or paste your own market data in the box above.</p>`;
+    $("#sGrow").innerHTML=`<p class="note"><b>No demand data in this version of the page.</b> Grow ranks unserved markets by passenger demand, and this build's data block has no demand table, so it has nothing to rank. Reload the latest published version, or paste your own market data in the box above.</p>`;
     return;
   }
   $("#sGrow").innerHTML=`<p class="note">Ranked by ${src==="gravity"?"modelled":"imported"} demand (${demandUnit()}), ranked on market revenue where real fares exist, within range of a gauge you fly, at least ${MIN_SUGG_NM} nm so the route competes with airlines rather than with driving. Cities already served from that station are excluded. <b>US destinations only</b> — the demand model is calibrated on US scheduled service, so it has nothing reliable to say about international markets.</p><div class="growgrid">`
