@@ -1,10 +1,9 @@
 {
  "brand": {
   "name": "Meridian Air",
-  "product": "Network Planner",
+  "code": "MA",
   "possessive": "Meridian",
-  "designDay": "Mon 8 Jun 2026",
-  "code": "MA"
+  "designDay": "Mon 8 Jun 2026"
  },
  "roles": {
   "SJC": "Hub",
@@ -110,5 +109,9 @@
    "label": "Wide \u2014 spread across the day"
   }
  },
- "storageKey": "frontier-planner-v1"
+ "storageKey": "frontier-planner-v1",
+ "site": {
+  "name": "Airline Network Planner",
+  "short": "Planner"
+ }
 }

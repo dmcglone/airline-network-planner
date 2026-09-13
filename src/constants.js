@@ -107,6 +107,17 @@ const KEY = CFG.storageKey || "frontier-planner-v1";
 const FLEET_PINNED = Object.assign({}, FLEETDATA.pinned);
 // The airline's own name is config too — this app plans networks, and the
 // example that ships with it is not the thing it is.
-const BRAND = Object.assign({name:"My Airline", code:"XX", product:"Network Planner",
+/* Two identities, and they are not the same thing.
+
+   SITE is the product: fixed, the same for everybody, the thing the domain
+   points at. BRAND is the airline the user happens to be planning: theirs,
+   editable, and stored in their state.
+
+   These used to be one line in the header — the airline's name set in the h1
+   with the product's name as a subtitle — which told a first-time visitor that
+   the site was called Meridian Air. It reads like a document editor now: the
+   application is chrome, the airline is the document. */
+const SITE = Object.assign({name:"Airline Network Planner", short:"Planner"}, CFG.site || {});
+const BRAND = Object.assign({name:"My Airline", code:"XX",
                              possessive:"This airline", designDay:""}, CFG.brand);
 const pinTotal = () => TYPES.reduce((a,t)=>a+(FLEET_PINNED[t]||0),0);

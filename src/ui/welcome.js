@@ -44,8 +44,8 @@ function drawWelcome(){
   if(!welcomeOpen){ host.innerHTML = ""; return; }
   host.innerHTML =
       `<div class="welcome-inner" role="dialog" aria-modal="true" aria-labelledby="welcomeH">`
-    + `<h2 id="welcomeH">Plan an airline</h2>`
-    + `<p class="note">Pick a network to start from. Give it your own name and code, add and `
+    + `<h2 id="welcomeH">${esc(SITE.name)}</h2>`
+    + `<p class="note">Build and schedule an airline network. Pick one to start from. Give it your own name and code, add and `
     + `cut routes, move the gauges around, and the planner rebuilds the whole day every time `
     + `— then checks its own work against ten rules and tells you when it has broken one. `
     + `Nothing here is a forecast of any real airline.</p>`

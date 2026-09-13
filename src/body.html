@@ -2,7 +2,12 @@
 
 <header>
   <div class="bar">
-    <h1 class="mark" style="all:unset;display:flex;align-items:baseline;gap:8px"><b id="brandName" contenteditable="plaintext-only" spellcheck="false" title="Click to rename your airline" aria-label="Airline name">&nbsp;</b><span id="brandProduct"></span></h1>
+    <h1 class="mark"><span id="siteName"></span></h1>
+    <span class="planning-sep" aria-hidden="true">/</span>
+    <span class="planning"><span class="planning-label">planning</span><b id="brandName"
+      contenteditable="plaintext-only" spellcheck="false"
+      title="Click to rename your airline" aria-label="Airline name">&nbsp;</b><span
+      class="planning-code" id="brandCode"></span></span>
     <span class="tag" id="designday"></span>
     <div class="spacer"></div>
     <button class="btn" id="btnUndo" disabled title="Nothing to undo" aria-label="Undo">Undo</button>

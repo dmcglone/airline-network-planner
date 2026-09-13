@@ -43,19 +43,23 @@ PRISTINE = pageSource();
    survives a reload like every other decision. */
 function applyBrand(){
   const n = (state && state.brand) || BRAND.name;
-  document.title = n ? n+" "+BRAND.product : BRAND.product;
+  const c = (state && state.code)  || BRAND.code;
+  // The site owns the title; the airline is what you are currently planning, so
+  // it qualifies the title rather than being it.
+  document.title = n ? `${n} — ${SITE.name}` : SITE.name;
   $("#brandName").textContent = n;
+  const cc = $("#brandCode"); if(cc) cc.textContent = c || "";
 }
 $("#brandName").addEventListener("blur", ()=>{
   const n = $("#brandName").textContent.trim().slice(0,40) || BRAND.name;
-  state.brand = n; $("#brandName").textContent = n;
-  document.title = n+" "+BRAND.product;
-  save();
+  state.brand = n;
+  if(!state.codeSetByUser) state.code = suggestCode(n);
+  applyBrand(); save();
 });
 $("#brandName").addEventListener("keydown", e=>{
   if(e.key === "Enter"){ e.preventDefault(); $("#brandName").blur(); }
 });
-$("#brandProduct").textContent = BRAND.product;
+$("#siteName").textContent = SITE.name;
 $("#designday").textContent = BRAND.designDay ? "Design day · "+BRAND.designDay : "";
 state = load();
 applyStationConfig(state);   // STA and ROLE come from state, not just the config file
