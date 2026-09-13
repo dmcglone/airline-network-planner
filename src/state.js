@@ -88,8 +88,9 @@ function loadStarter(id){
   return true;
 }
 
+let sawSavedState = false;
 function load(){
-  try{ const s = localStorage.getItem(KEY); if(s){ const p = JSON.parse(s); if(p&&p.routes&&p.fleet){ if(!p.feed) p.feed={SJC:1,PIT:1,MCO:1,RDU:0,DEN:0}; if(!p.spacing) p.spacing='balanced'; if(!p.roster) p.roster=Object.assign({},FLEET_PINNED); if(p.spare===undefined) p.spare=0.08; if(p.redeye===undefined) p.redeye=1;
+  try{ const s = localStorage.getItem(KEY); if(s){ sawSavedState = true; const p = JSON.parse(s); if(p&&p.routes&&p.fleet){ if(!p.feed) p.feed={SJC:1,PIT:1,MCO:1,RDU:0,DEN:0}; if(!p.spacing) p.spacing='balanced'; if(!p.roster) p.roster=Object.assign({},FLEET_PINNED); if(p.spare===undefined) p.spare=0.08; if(p.redeye===undefined) p.redeye=1;
         if(p.v!==2){                                     // one-time: seed the default red-eye markets
           p.v=2;
           const keys=new Set(p.routes.map(r=>r.o+"|"+r.d));

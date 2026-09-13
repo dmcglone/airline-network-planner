@@ -70,6 +70,9 @@ syncTypes();
 SPEC={}; state.fleet.forEach(f=>{SPEC[f.t]=f; f.seats=f.F+f.PE+f.Y;});
 fillSelects(); drawTabs(); M=build();
 if(typeof markCommitted==="function") markCommitted();
+// Nobody has been here before: offer a network to start from rather than
+// opening on somebody else's 404-route airline with no explanation.
+if(!sawSavedState){ welcomeOpen = true; drawWelcome(); }
 $("#bAp").value = M.apStats["PHL"] ? "PHL — "+AP["PHL"][0] : "";
 // The board opened at PHL and fell back to SJC, both of which are just stations
 // this airline happened to have. Fall back to whatever the network actually

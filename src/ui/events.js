@@ -59,6 +59,7 @@ document.addEventListener("change", e=>{
 });
 $("#btnUndo").addEventListener("click", doUndo);
 $("#btnRedo").addEventListener("click", doRedo);
+$("#btnStartOver") && $("#btnStartOver").addEventListener("click", ()=>{ welcomeOpen=true; drawWelcome(); });
 $("#btnAirline").addEventListener("click", ()=>{
   airlineOpen = !airlineOpen; drawAirline();
   if(airlineOpen){ const f=$("#alName"); if(f) f.focus(); }
@@ -81,6 +82,7 @@ document.addEventListener("click", e=>{
   // are handled by the input/change listeners instead.
   if(!/^(SELECT|INPUT|TEXTAREA|OPTION)$/.test(e.target.tagName)){
     const b = e.target.closest("button")||e.target;
+    if(typeof welcomeEvent==="function" && welcomeEvent(b)) return;
     if(typeof stationEvent==="function" && stationEvent(b)) return;
     if(typeof smEvent==="function" && smEvent(b)) return;
   }
