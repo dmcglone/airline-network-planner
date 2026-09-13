@@ -361,3 +361,9 @@ tfoot td{padding:8px 10px;border-top:1px solid var(--line);font-weight:600;backg
   box-shadow:0 10px 30px rgba(0,0,0,.18); }
 .moremenu-list .btn{ justify-content:flex-start; text-align:left; }
 @media (max-width: 760px){ .barsep{ display:none } .moremenu-list{ right:auto; left:0 } }
+
+
+/* the "is this worth flying" line under the Add route facts */
+.verdict{ margin-top:7px; padding-top:7px; border-top:1px solid var(--line-2);
+  font-size:12.5px; line-height:1.85; color:var(--ink-2); }
+.verdict b{ color:var(--ink); }

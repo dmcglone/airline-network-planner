@@ -275,6 +275,91 @@ function fillSelects(){
     if([...el.options].some(o=>o.value===keep[id])) el.value = keep[id];
   }
 }
+/* Is this route worth flying?
+
+   The form answered "can this aircraft physically reach it" and stopped. That
+   is the easy half. Everything needed for the other half is already here:
+   demandOf() gives passengers and an average fare with provenance, and
+   econFlightCost() gives the direct cost of a departure. The Grow tab does this
+   arithmetic for markets you do NOT serve; the one place you are actually
+   deciding had none of it.
+
+   It informs and does not block. Flying a thin route on purpose is a real
+   strategy — feed, presence, a base you are building toward — so the job is to
+   say what you are choosing, not to argue.
+
+   A measured number and an estimate are marked differently on purpose. A
+   confident-looking contribution built on the gravity model is exactly the
+   quiet substitution this project keeps refusing to make. */
+function routeVerdict(o, d, t, freq){
+  if(!SPEC[t] || !AP[o] || !AP[d]) return "";
+  const dem = demandOf(o, d);
+  const nm = dist(o, d), seats = SPEC[t].seats || 0;
+  const offered = seats * (freq || 1);
+
+  // Demand is a market total in both directions; a departure carries one way.
+  const each = dem.v / 2;
+  const fare = dem.fare || (typeof FARE_A !== "undefined"
+                            ? FARE_A * Math.pow(nm, FARE_B) : null);
+  const cost = econFlightCost(t, blk(o, d, t) / 60);
+
+  const bits = [], flags = [];
+  bits.push(`<b>${fmt(offered)}</b> seat${offered === 1 ? "" : "s"} a day each way`);
+
+  if(!dem.v){
+    flags.push(`<span class="chip warn">no demand estimate</span> nothing in the data `
+      + `reaches this market, so the planner cannot say whether anyone wants it`);
+    return `${bits.join(" · ")}<br>${flags.join(" ")}`;
+  }
+
+  const lf = offered ? Math.min(1, each / offered) : 0;
+  bits.push(`demand <b>${fmt(Math.round(each))}</b> a day`
+    + (dem.real ? ` <span class="chip ok">measured</span>`
+                : ` <span class="chip warn">estimated</span>`));
+  bits.push(`fills <b>${(lf * 100).toFixed(0)}%</b>`);
+  // "fills 100%" on its own hides the more interesting half: how many people
+  // wanted the flight and could not have it.
+  const spilled = Math.max(0, each - offered);
+  if(spilled >= 1)
+    bits.push(`turns away <b>${fmt(Math.round(spilled))}</b> a day`);
+
+  if(fare && cost){
+    // Carried passengers, not demand: a full aircraft turns the rest away.
+    const carried = Math.min(each, offered);
+    const rev = carried * fare * (freq ? 1 : 1) * 2;      // both directions
+    const dayCost = cost.direct * 2 * (freq || 1);
+    const contrib = rev - dayCost;
+    bits.push(`≈ <b>${money(Math.round(rev))}</b> revenue vs `
+      + `${money(Math.round(dayCost))} direct cost`);
+    // Direct cost only: no ownership, no overhead. Saying "profit" here would
+    // overstate it by roughly the share the Economics tab allocates on top.
+    flags.push(contrib >= 0
+      ? `<span class="chip ok">covers its direct cost</span> about `
+        + `${money(Math.round(contrib))} a day of contribution, before ownership `
+        + `and overhead`
+      : `<span class="chip bad">below direct cost</span> about `
+        + `${money(Math.round(-contrib))} a day short before ownership is even counted`);
+  }
+
+  if(lf < 0.5 && offered)
+    flags.push(`<span class="chip warn">thin</span> you would fly it `
+      + `${(lf * 100).toFixed(0)}% full at this gauge`);
+
+  // Which of your fleet fits the demand best, in range, nearest without spilling
+  const fits = TYPES.filter(x => SPEC[x] && nm <= SPEC[x].rng && SPEC[x].seats)
+    .map(x => ({t:x, seats:SPEC[x].seats, gap:Math.abs(SPEC[x].seats - each)}))
+    .sort((a, b) => a.gap - b.gap);
+  if(fits.length && fits[0].t !== t && Math.abs(fits[0].seats - each) < Math.abs(seats - each) * 0.7)
+    flags.push(`<span class="chip">${esc(fits[0].t)} fits closer</span> `
+      + `${fmt(fits[0].seats)} seats against demand of ${fmt(Math.round(each))}`);
+
+  if(!dem.real)
+    flags.push(`<span class="dim">The gravity model is typically off by about seven times, `
+      + `so read this as an ordering rather than a number.</span>`);
+
+  return `${bits.join(" · ")}<br>${flags.join(" &nbsp; ")}`;
+}
+
 function addInfo(){
   const o=$("#nO").value, d=addDest;
   const box=$("#addInfo");
@@ -291,13 +376,16 @@ function addInfo(){
     +(ok.length?`in range for ${ok.join(", ")}`:`<span class="chip bad">no gauge in your fleet can make this</span>`)
     +(nm>SPEC[t].rng?` · <span class="chip bad">${t} is ${fmt(nm-SPEC[t].rng)} nm short</span>`:"")
     +(exists?` · <span class="chip warn">this route already exists, so adding will merge into it</span>`:"")
-    +`<br>${redLine}`;
+    +`<br>${redLine}`
+    +(()=>{ const v = routeVerdict(o, d, t, +($("#nN")||{}).value || 1);
+            return v ? `<div class="verdict">${v}</div>` : ""; })();
   const rb=$("#nRedWrap");
   if(rb){ rb.hidden=!rv.ok; $("#nRedLbl").textContent = rv.ok ? `${rv.from}→${rv.to}` : ""; }
 }
 $("#btnAdd").onclick=()=>{ $("#addRow").hidden=false; $("#nD").focus(); addInfo(); };
 $("#btnAddCancel").onclick=()=>{ $("#addRow").hidden=true; addDest=null; $("#nD").value=""; };
 $("#nO").onchange=addInfo; $("#nT").onchange=addInfo;
+if($("#nN")) $("#nN").addEventListener("input", addInfo);   // seats offered move with frequency
 /* Airport typeahead, shared.
 
    This was written once for the Add route destination and nowhere else, so the
