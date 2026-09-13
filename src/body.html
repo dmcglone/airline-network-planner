@@ -12,15 +12,21 @@
     <div class="spacer"></div>
     <button class="btn" id="btnUndo" disabled title="Nothing to undo" aria-label="Undo">Undo</button>
     <button class="btn" id="btnRedo" disabled title="Nothing to redo" aria-label="Redo">Redo</button>
+    <span class="barsep" aria-hidden="true"></span>
     <button class="btn" id="btnShare">Share</button>
-    <button class="btn" id="btnAirline">Airline</button>
-    <button class="btn" id="btnHelp">Help</button>
-    <button class="btn" id="btnTheme">Theme</button>
-    <button class="btn" id="btnCopy">Copy routes CSV</button>
-    <button class="btn" id="btnReset">Revert to baseline</button>
     <button class="btn" id="btnExport">Export state</button>
     <button class="btn" id="btnImport">Import state</button>
-    <button class="btn" id="btnBackup" hidden>Back up</button>
+    <span class="barsep" aria-hidden="true"></span>
+    <button class="btn" id="btnAirline">Airline</button>
+    <button class="btn" id="btnHelp">Help</button>
+    <button class="btn" id="btnTheme" title="Light or dark">Theme</button>
+    <details class="moremenu"><summary class="btn" title="Less common actions">More</summary>
+      <div class="moremenu-list">
+        <button class="btn sm" id="btnCopy">Copy routes CSV</button>
+        <button class="btn sm" id="btnReset">Revert to baseline</button>
+        <button class="btn sm" id="btnBackup" hidden>Back up outside the page</button>
+      </div>
+    </details>
     <input type="file" id="fileImport" accept=".json,application/json" hidden>
     <div id="stateExport" hidden></div>
     <div id="stateImport" hidden></div>

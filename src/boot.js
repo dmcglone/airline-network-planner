@@ -63,6 +63,7 @@ $("#siteName").textContent = SITE.name;
 $("#designday").textContent = BRAND.designDay ? "Design day · "+BRAND.designDay : "";
 state = load();
 applyStationConfig(state);   // STA and ROLE come from state, not just the config file
+syncPinned();                // and the baseline roster is the one this network was pinned at
 syncFeedModes();             // and the feed list follows the roles
 applyBrand();          // reads state.brand, so it has to follow the load
 // The loaded fleet may carry types the shipped data has never heard of, and

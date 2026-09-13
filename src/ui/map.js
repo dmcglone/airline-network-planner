@@ -40,13 +40,27 @@ function ringPath(r){ return "M"+r.map(p=>{const q=merc(p[0],p[1]);return q[0].t
 
 function fitView(all){
   let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
-  // default frame is the eight stations, generously padded: that is where the network lives.
-  // "Fit all" widens to every airport served, Hawaii and South America included.
-  const codes = all ? Object.keys(M.apStats) : STA;
+  // Default frame is the stations, generously padded: that is where the network
+  // lives. "Fit all" widens to every airport served, Hawaii and South America
+  // included.
+  //
+  // With ONE station the station box has no width at all, and everything
+  // downstream divides by it: restyle() computes k = VIEW.w / pixels, every dot
+  // gets radius zero, and the map renders blank. A single-base airline is not a
+  // corner case either. Both starter networks are one base, so this was every
+  // new user's first look at the map. Frame on what the airline actually serves
+  // when there is only one base, then clamp the span so a degenerate box cannot
+  // reach the arithmetic.
+  const codes = (all || STA.length < 2) ? Object.keys(M.apStats || {}) : STA;
   for(const c of codes){ const A=AP[c]; if(!A) continue;
     const p=merc(A[3],A[2]); x0=Math.min(x0,p[0]); x1=Math.max(x1,p[0]); y0=Math.min(y0,p[1]); y1=Math.max(y1,p[1]); }
-  const pad = all ? 0.07 : 0.42;
-  const px=(x1-x0)*pad, py=(y1-y0)*(all?0.10:0.55);
+  if(x0>x1){ x0=-125; x1=-68; y0=-55; y1=-30; }         // nothing served yet: show the US
+  const MIN_W = 12, MIN_H = 6;                           // mercator units
+  if(x1-x0 < MIN_W){ const c=(x0+x1)/2; x0=c-MIN_W/2; x1=c+MIN_W/2; }
+  if(y1-y0 < MIN_H){ const c=(y0+y1)/2; y0=c-MIN_H/2; y1=c+MIN_H/2; }
+  const wide = all || STA.length < 2;
+  const pad = wide ? 0.07 : 0.42;
+  const px=(x1-x0)*pad, py=(y1-y0)*(wide?0.10:0.55);
   VIEW={x:x0-px, y:y0-py, w:(x1-x0)+px*2, h:(y1-y0)+py*2};
 }
 function applyView(){ const svg=$("#map"); if(LIVE && LIVE.on) requestAnimationFrame(drawPlanes);

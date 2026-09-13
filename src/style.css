@@ -347,3 +347,17 @@ tfoot td{padding:8px 10px;border-top:1px solid var(--line);font-weight:600;backg
   border-top:1px solid var(--line-2); border-bottom:1px solid var(--line-2); }
 .hintbar b{ color:var(--ink) }
 @media (max-width: 760px){ .hintbar{ padding:8px 10px; font-size:12.5px } }
+
+
+/* the header bar, grouped rather than eleven equal buttons over two rows */
+.barsep{ width:1px; height:17px; background:var(--line); margin:0 3px; align-self:center; }
+.moremenu{ position:relative; display:inline-block; }
+.moremenu > summary{ list-style:none; cursor:pointer; display:inline-flex; }
+.moremenu > summary::-webkit-details-marker{ display:none; }
+.moremenu[open] > summary{ border-color:var(--accent); color:var(--accent); }
+.moremenu-list{ position:absolute; right:0; top:calc(100% + 6px); z-index:40;
+  background:var(--surface); border:1px solid var(--line); border-radius:8px;
+  padding:7px; display:flex; flex-direction:column; gap:6px; min-width:180px;
+  box-shadow:0 10px 30px rgba(0,0,0,.18); }
+.moremenu-list .btn{ justify-content:flex-start; text-align:left; }
+@media (max-width: 760px){ .barsep{ display:none } .moremenu-list{ right:auto; left:0 } }

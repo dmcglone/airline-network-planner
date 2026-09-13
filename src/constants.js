@@ -10,7 +10,12 @@ const CFG = (()=>{ try { return JSON.parse(document.getElementById("cfg").textCo
 const FLEETDATA = (()=>{ try { return JSON.parse(document.getElementById("fleet").textContent); }
                    catch(e){ console.error("fleet data unreadable", e); return {types:[],pinned:{}}; } })();
 
-const AP = RAW.airports; let STA = RAW.stations;
+const AP = RAW.airports;
+/* SHIPPED_* never change. STA and ROLE follow whatever network is loaded, so
+   baseline() has to read the shipped values rather than the live ones. */
+const SHIPPED_STATIONS = (RAW.stations || []).slice();
+let STA = SHIPPED_STATIONS.slice();
+const SHIPPED_ROLES = Object.assign({}, CFG.roles);
 let ROLE = Object.assign({}, CFG.roles);
 const ROLE_LABEL = {Hub:"Hub",Focus:"Focus city",P2P:"Point-to-point"};
 const ROLE_SHORT = {Hub:"Hub",Focus:"Focus",P2P:"P2P"};
@@ -104,7 +109,19 @@ function syncTypes(){
 const SM = 1.15078;
 const KEY = CFG.storageKey || "frontier-planner-v1";
 // The fleet this schedule needed when the roster feature was added — the reference line.
-const FLEET_PINNED = Object.assign({}, FLEETDATA.pinned);
+/* The roster the current network was pinned at. It is the reference the Fleet
+   tab's Baseline column and the "vs baseline" delta are measured against.
+
+   It used to be the shipped example's 400 aircraft, always. Pick a 41-aircraft
+   starter and the header read "-199 vs baseline", comparing against an airline
+   the user never had. A starter carries its own roster, so that is its baseline;
+   syncPinned() picks it up the way syncTypes() picks up the fleet. */
+let FLEET_PINNED = Object.assign({}, FLEETDATA.pinned);
+function syncPinned(){
+  const base = (typeof state !== "undefined" && state && state.pinned)
+    ? state.pinned : FLEETDATA.pinned;
+  FLEET_PINNED = Object.assign({}, base);
+}
 // The airline's own name is config too — this app plans networks, and the
 // example that ships with it is not the thing it is.
 /* Two identities, and they are not the same thing.

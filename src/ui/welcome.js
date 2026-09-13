@@ -77,7 +77,7 @@ function welcomeEvent(t){
     state = baseline();
     state.routes = [];
     state.stations = [STA[0]]; state.roles = {[STA[0]]: "P2P"};
-    state.roster = {}; state.feed = {};
+    state.roster = {}; state.feed = {}; state.pinned = {};
     // One aircraft type to begin with, not the six this planner happens to ship
     // with. Starting from nothing should mean nothing, and the airframe library
     // makes adding more a few clicks.

@@ -370,7 +370,7 @@ $("#btnAddGo").onclick=()=>{
     console.error(err); toast("Something went wrong. "+((err&&err.message)||err)); });
   if(window.claude && claude.use){
     claude.use("downloads").then(d=>{DL=d;}).catch(()=>{});
-    claude.use("db").then(d=>{ DB=d; if(d) $("#btnBackup").hidden=false; }).catch(()=>{});
+    claude.use("db").then(d=>{ DB=d; const bb=$("#btnBackup"); if(d && bb) bb.hidden=false; }).catch(()=>{});
   }
   const stamp = () => new Date().toISOString().slice(0,10);
 
@@ -489,7 +489,9 @@ $("#btnImport").onclick = ()=>{
       : "Imported "+fmt(r.got.routes)+" routes, "+fmt(r.got.tails)+" rotations");
   });
 
-  $("#btnBackup").onclick = safe(async ()=>{
+  // The header is rearranged from time to time; a control that is not in this
+// build should not stop the page booting.
+if($("#btnBackup")) $("#btnBackup").onclick = safe(async ()=>{
     if(!DB) return;
     const b=$("#btnBackup"); b.disabled=true; b.textContent="Backing up…";
     try{

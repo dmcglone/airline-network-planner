@@ -1,13 +1,22 @@
 /* ---------- state ---------- */
 let state;   // assigned at bootstrap, after the geo helpers exist
+/* The shipped network, as shipped.
+
+   This read the live STA, ROLE and FLEET_PINNED globals, which are mutated by
+   whatever network is currently loaded. Load a one-station starter and then ask
+   for the full example, and you got the example's 404 routes with the starter's
+   single station: most routes flew from a base that no longer existed, and the
+   404-route airline reported needing 29 aircraft. A function called baseline()
+   has to mean the same thing every time it is called. */
 function baseline(){
   const keys=new Set(RAW.routes.map(r=>r.o+"|"+r.d));
   const rs=RAW.routes.map(r=>Object.assign({o:r.o,d:r.d,dow:r.dow,mix:Object.assign({},r.mix)}, r.red?{red:1}:{}));
   if(rs.some(r=>r.red)) return {routes: rs,          // the published seed already carries flags
     fleet: FLEET_BASE.map(f=>Object.assign({},f)),
     feed: {SJC:1, PIT:1, MCO:1, RDU:0, DEN:0}, spacing:'balanced', redeye: 1,
-    roster: Object.assign({},FLEET_PINNED), spare: 0.08, v: 2, brand: BRAND.name, code: BRAND.code,
-    stations: STA.slice(), roles: Object.assign({}, ROLE)};
+    roster: Object.assign({}, FLEETDATA.pinned), spare: 0.08, v: 2, brand: BRAND.name, code: BRAND.code,
+    stations: SHIPPED_STATIONS.slice(), roles: Object.assign({}, SHIPPED_ROLES),
+    pinned: Object.assign({}, FLEETDATA.pinned)};
   for(const r of rs){
     if(!DEFAULT_RED.has(pairKey(r.o,r.d))) continue;
     const typ=TYPES.find(t=>+r.mix[t]>0)||TYPES[0];
@@ -17,8 +26,9 @@ function baseline(){
   return {routes: rs,
                           fleet: FLEET_BASE.map(f=>Object.assign({},f)),
                           feed: {SJC:1, PIT:1, MCO:1, RDU:0, DEN:0}, spacing:'balanced', redeye: 1,
-                             roster: Object.assign({},FLEET_PINNED), spare: 0.08, v: 2, brand: BRAND.name, code: BRAND.code,
-    stations: STA.slice(), roles: Object.assign({}, ROLE)}; }
+                             roster: Object.assign({}, FLEETDATA.pinned), spare: 0.08, v: 2, brand: BRAND.name, code: BRAND.code,
+    stations: SHIPPED_STATIONS.slice(), roles: Object.assign({}, SHIPPED_ROLES),
+    pinned: Object.assign({}, FLEETDATA.pinned)}; }
 
 /* Reconcile a loaded fleet's cabin geometry against the shipped airframe.
 
