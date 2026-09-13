@@ -40,6 +40,22 @@ async function gunzipBytes(bytes){
   return new TextDecoder().decode(await new Response(ds.readable).arrayBuffer());
 }
 
+/* Where a shared link should point.
+
+   NOT necessarily where this page happens to be running. A preview frame, a
+   published artifact and a downloaded file all have origins that mean nothing
+   to anybody else — `about:srcdoc` most obviously — so a link built from
+   location would be unopenable. The canonical site address is configuration, so
+   use that when it exists and fall back to the current location only when it
+   is a real http(s) page. */
+function shareBase(){
+  const cfg = (typeof SITE !== "undefined" && SITE.url) ? SITE.url.replace(/\/+$/,"") + "/" : "";
+  if(cfg) return cfg;
+  return /^https?:$/.test(location.protocol)
+    ? location.origin + location.pathname
+    : "";
+}
+
 /* The link for the network as it stands. */
 async function shareLink(){
   const json = JSON.stringify(state);
@@ -48,7 +64,7 @@ async function shareLink(){
   // CompressionStream can still produce a link the others can read.
   const body = gz ? "z" + b64urlEncode(gz)
                   : "r" + b64urlEncode(new TextEncoder().encode(json));
-  return location.origin + location.pathname + SHARE_PREFIX + body;
+  return shareBase() + SHARE_PREFIX + body;
 }
 
 /* Read a network out of the current URL, if there is one. Returns the state or
@@ -80,6 +96,11 @@ async function doShare(){
     prompt("Copy this link to share or keep your airline:", url);
   }
   // Put it in the address bar too, so a bookmark saves the network rather than
-  // the site. Replace rather than push: this is the same document.
-  history.replaceState(null, "", url.slice(location.origin.length));
+  // the site. Replace rather than push: this is the same document. A sandboxed
+  // frame refuses this outright — an opaque origin cannot rewrite its own
+  // history — and that is fine: the link is already copied.
+  try{
+    if(/^https?:$/.test(location.protocol) && url.startsWith(location.origin))
+      history.replaceState(null, "", url.slice(location.origin.length));
+  }catch(e){ /* sandboxed: nothing to do, and nothing wrong */ }
 }

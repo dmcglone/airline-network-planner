@@ -74,6 +74,14 @@ def main():
     if not BUILT.exists():
         print(f"{BUILT} does not exist — run without --no-build", file=sys.stderr)
         return 1
+    # build.py's default target is web+artifact, so a standalone left over from
+    # an earlier run is easy to stage by accident and very hard to spot: it is a
+    # working page, just an old one. Refuse anything older than the sources.
+    newest = max((f.stat().st_mtime for f in (ROOT/"src").rglob("*") if f.is_file()),
+                 default=0)
+    if not args.no_build and BUILT.stat().st_mtime < newest:
+        print(f"{BUILT} is older than src/ — the build did not refresh it", file=sys.stderr)
+        return 1
 
     dest = destination(args.out)
     dest.parent.mkdir(parents=True, exist_ok=True)
