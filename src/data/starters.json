@@ -1,5 +1,5 @@
 {
- "note": "Starting networks offered on first run. A starter is a small, complete, legal airline: something a stranger can read in one screen and immediately change. The shipped example network is deliberately NOT one of these — it is too large to see your own fingerprints in.",
+ "note": "Starting networks offered on first run. A starter is a small, complete, legal airline: something a stranger can read in one screen and immediately change. The shipped example network is deliberately NOT one of these \u2014 it is too large to see your own fingerprints in.",
  "schema": {
   "id": "short slug, used by loadStarter()",
   "name": "what the picker calls it",
@@ -9,5 +9,514 @@
   "state": "partial state overlaid on baseline(): stations, roles, routes, roster, feed, spacing, redeye, spare",
   "expect": "metrics this starter must produce. verify.py asserts these and that all ten checks pass. A starter with no expect block is a starter that can rot silently."
  },
- "starters": []
+ "starters": [
+  {
+   "id": "ptp",
+   "name": "Point-to-point base",
+   "blurb": "One base, fifteen markets, a single gauge. No banks and no connecting intent: every aircraft goes out and comes back. The simplest complete airline.",
+   "brand": "Silver State Air",
+   "code": "7S",
+   "state": {
+    "stations": [
+     "LAS"
+    ],
+    "roles": {
+     "LAS": "P2P"
+    },
+    "routes": [
+     {
+      "o": "LAS",
+      "d": "LAX",
+      "dow": 7,
+      "mix": {
+       "A320": 3
+      }
+     },
+     {
+      "o": "LAS",
+      "d": "SFO",
+      "dow": 7,
+      "mix": {
+       "A320": 3
+      }
+     },
+     {
+      "o": "LAS",
+      "d": "DEN",
+      "dow": 7,
+      "mix": {
+       "A320": 3
+      }
+     },
+     {
+      "o": "LAS",
+      "d": "SEA",
+      "dow": 7,
+      "mix": {
+       "A320": 3
+      }
+     },
+     {
+      "o": "LAS",
+      "d": "ORD",
+      "dow": 7,
+      "mix": {
+       "A320": 3
+      }
+     },
+     {
+      "o": "LAS",
+      "d": "JFK",
+      "dow": 7,
+      "mix": {
+       "A320": 3
+      }
+     },
+     {
+      "o": "LAS",
+      "d": "DFW",
+      "dow": 7,
+      "mix": {
+       "A320": 3
+      }
+     },
+     {
+      "o": "LAS",
+      "d": "SAN",
+      "dow": 7,
+      "mix": {
+       "A320": 3
+      }
+     },
+     {
+      "o": "LAS",
+      "d": "PHX",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     },
+     {
+      "o": "LAS",
+      "d": "ATL",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     },
+     {
+      "o": "LAS",
+      "d": "EWR",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     },
+     {
+      "o": "LAS",
+      "d": "MSP",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     },
+     {
+      "o": "LAS",
+      "d": "SMF",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     },
+     {
+      "o": "LAS",
+      "d": "SJC",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     },
+     {
+      "o": "LAS",
+      "d": "DTW",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     }
+    ],
+    "feed": {},
+    "roster": {
+     "A320": 19
+    },
+    "spacing": "balanced",
+    "redeye": 0,
+    "spare": 0.08
+   },
+   "expect": {
+    "routes": 15,
+    "deps": 76,
+    "tails": 17,
+    "roster": 19,
+    "gates": 8,
+    "checksFailing": 0
+   }
+  },
+  {
+   "id": "hub",
+   "name": "Connecting hub",
+   "blurb": "One hub running banked complexes so connections work, with forty markets and three gauges. Bank times, gate contention and feed all start to matter.",
+   "brand": "Front Range Airways",
+   "code": "6F",
+   "state": {
+    "stations": [
+     "DEN"
+    ],
+    "roles": {
+     "DEN": "Hub"
+    },
+    "routes": [
+     {
+      "o": "DEN",
+      "d": "PHX",
+      "dow": 7,
+      "mix": {
+       "A321": 3
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "LAS",
+      "dow": 7,
+      "mix": {
+       "A321": 3
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "ORD",
+      "dow": 7,
+      "mix": {
+       "A321": 3
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "LAX",
+      "dow": 7,
+      "mix": {
+       "A321": 3
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "DFW",
+      "dow": 7,
+      "mix": {
+       "A321": 3
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "MSP",
+      "dow": 7,
+      "mix": {
+       "A321": 3
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "MCO",
+      "dow": 7,
+      "mix": {
+       "A321": 3
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "SAN",
+      "dow": 7,
+      "mix": {
+       "A321": 3
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "SEA",
+      "dow": 7,
+      "mix": {
+       "A320": 3
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "ATL",
+      "dow": 7,
+      "mix": {
+       "A320": 3
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "LGA",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "SFO",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "BOS",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "AUS",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "SLC",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "IAH",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "TPA",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "PHL",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "SNA",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "IAD",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "PDX",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "EWR",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "BNA",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "MIA",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "DTW",
+      "dow": 7,
+      "mix": {
+       "A320": 2
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "DAL",
+      "dow": 7,
+      "mix": {
+       "A320": 1
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "STL",
+      "dow": 7,
+      "mix": {
+       "A320": 1
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "MCI",
+      "dow": 7,
+      "mix": {
+       "A320": 1
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "CLT",
+      "dow": 7,
+      "mix": {
+       "E175": 1
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "MDW",
+      "dow": 7,
+      "mix": {
+       "E175": 1
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "DCA",
+      "dow": 7,
+      "mix": {
+       "E175": 1
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "IND",
+      "dow": 7,
+      "mix": {
+       "E175": 1
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "SAT",
+      "dow": 7,
+      "mix": {
+       "E175": 1
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "HOU",
+      "dow": 7,
+      "mix": {
+       "E175": 1
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "BWI",
+      "dow": 7,
+      "mix": {
+       "E175": 1
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "SMF",
+      "dow": 7,
+      "mix": {
+       "E175": 1
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "RDU",
+      "dow": 7,
+      "mix": {
+       "E175": 1
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "ONT",
+      "dow": 7,
+      "mix": {
+       "E175": 1
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "MSY",
+      "dow": 7,
+      "mix": {
+       "E175": 1
+      }
+     },
+     {
+      "o": "DEN",
+      "d": "JFK",
+      "dow": 7,
+      "mix": {
+       "E175": 1
+      }
+     }
+    ],
+    "feed": {
+     "DEN": 1
+    },
+    "roster": {
+     "A320": 21,
+     "A321": 11,
+     "E175": 9
+    },
+    "spacing": "balanced",
+    "redeye": 0,
+    "spare": 0.08
+   },
+   "expect": {
+    "routes": 40,
+    "deps": 150,
+    "tails": 37,
+    "roster": 41,
+    "gates": 22,
+    "checksFailing": 0
+   }
+  }
+ ]
 }
