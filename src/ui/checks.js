@@ -107,6 +107,7 @@ function draw(){
   else if(tab==="board") drawBoard();
   else if(tab==="model") drawModel();
   else drawChecks();
+  if(typeof linkGlossary === "function") linkGlossary();
 }
 let pending=null;
 /* `label` names the action for the undo button. Callers that pass nothing get

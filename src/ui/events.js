@@ -114,7 +114,8 @@ document.addEventListener("click", e=>{
   // are handled by the input/change listeners instead.
   if(!/^(SELECT|INPUT|TEXTAREA|OPTION)$/.test(e.target.tagName)){
     const b = e.target.closest("button")||e.target;
-    if(b && b.dataset && b.dataset.help){ helpSection = b.dataset.help; drawModel(); return; }
+    if(b && b.dataset && b.dataset.gloss){ showGlossTerm(b.dataset.gloss); return; }
+  if(b && b.dataset && b.dataset.help){ helpSection = b.dataset.help; drawModel(); return; }
   if(typeof welcomeEvent==="function" && welcomeEvent(b)) return;
     if(typeof stationEvent==="function" && stationEvent(b)) return;
     if(typeof smEvent==="function" && smEvent(b)) return;

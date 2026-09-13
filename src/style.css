@@ -331,3 +331,10 @@ tfoot td{padding:8px 10px;border-top:1px solid var(--line);font-weight:600;backg
 .gloss-row b{ font-family:var(--disp); font-size:14px; letter-spacing:.01em }
 .gloss-row span{ color:var(--ink-2) }
 @media (max-width: 760px){ .gloss-row{ grid-template-columns:1fr; gap:2px } }
+
+
+/* a term you can look up, without turning the prose into a link farm */
+.gterm{ all:unset; cursor:help; border-bottom:1px dotted var(--ink-3); }
+.gterm:hover{ color:var(--accent); border-bottom-color:var(--accent); }
+.gterm:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+.gloss-row.gloss-hit{ background:color-mix(in srgb, var(--accent) 12%, transparent); }

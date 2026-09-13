@@ -119,3 +119,83 @@ function glossaryHTML(){
         + `</div>`).join("")
       : `<div class="pad"><p class="note">Nothing matches \u201c${esc(glossQuery)}\u201d.</p></div>`);
 }
+
+
+/* ----- linking the vocabulary into the prose -----
+   The panels already explain what each control does; what they assume is that
+   you know the words. Rather than rewrite thirty-nine notes, this walks the
+   rendered prose and turns the FIRST occurrence of each glossary term into a
+   link to its definition.
+
+   First occurrence only, and only inside .note and .sub. A page where every
+   instance of "gauge" is underlined is a page nobody can read, and linking
+   inside table cells or form labels would turn working surfaces into a
+   reference book. */
+
+const GLOSS_TERMS = (() => {
+  const out = [];
+  for(const g of GLOSSARY)
+    for(const [t] of g.terms)
+      out.push({term: t, id: t.toLowerCase().replace(/[^a-z0-9]+/g, "-")});
+  // longest first, so "Point-to-point base" wins over "base"
+  return out.sort((a, b) => b.term.length - a.term.length);
+})();
+
+// plurals the prose actually uses; a general stemmer would do more harm than good
+const GLOSS_PLURAL = {rotation:"rotations", leg:"legs", bank:"banks", spoke:"spokes",
+                      gate:"gates", tail:"tails", station:"stations", route:"routes",
+                      monument:"monuments", hub:"hubs"};
+
+function glossPattern(term){
+  const base = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const plural = GLOSS_PLURAL[term.toLowerCase()];
+  const alt = plural ? `${base}|${plural.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}` : base;
+  return new RegExp(`\\b(${alt})\\b`, "i");
+}
+
+function linkGlossary(root){
+  const scope = root || document;
+  const blocks = scope.querySelectorAll(".note, .sub");
+  for(const block of blocks){
+    if(block.dataset.glossed) continue;
+    block.dataset.glossed = "1";
+    const used = new Set();
+    const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT, {
+      acceptNode: n => n.parentElement.closest("a,button,code,.gterm")
+        ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT
+    });
+    const texts = []; let n;
+    while((n = walker.nextNode())) texts.push(n);
+    for(const node of texts){
+      for(const {term, id} of GLOSS_TERMS){
+        if(used.has(id)) continue;
+        const m = glossPattern(term).exec(node.nodeValue);
+        if(!m) continue;
+        used.add(id);
+        const after = node.splitText(m.index);
+        after.nodeValue = after.nodeValue.slice(m[0].length);
+        const btn = document.createElement("button");
+        btn.className = "gterm"; btn.type = "button";
+        btn.dataset.gloss = id;
+        btn.title = `What "${term}" means`;
+        btn.textContent = m[0];
+        after.parentNode.insertBefore(btn, after);
+        break;                       // one link per text node keeps prose readable
+      }
+    }
+  }
+}
+
+/* Open the glossary at a term. */
+function showGlossTerm(id){
+  helpSection = "glossary"; glossQuery = "";
+  goTab("model");
+  setTimeout(() => {
+    const el = document.getElementById("gloss-" + id);
+    if(el){
+      el.scrollIntoView({block:"center", behavior:"smooth"});
+      el.classList.add("gloss-hit");
+      setTimeout(() => el.classList.remove("gloss-hit"), 1800);
+    }
+  }, 60);
+}
