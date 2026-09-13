@@ -298,24 +298,50 @@ function addInfo(){
 $("#btnAdd").onclick=()=>{ $("#addRow").hidden=false; $("#nD").focus(); addInfo(); };
 $("#btnAddCancel").onclick=()=>{ $("#addRow").hidden=true; addDest=null; $("#nD").value=""; };
 $("#nO").onchange=addInfo; $("#nT").onchange=addInfo;
-const acBox=el("div",{class:"aclist"}); acBox.hidden=true; $("#nD").parentElement.appendChild(acBox);
-$("#nD").addEventListener("input",()=>{
-  const q=$("#nD").value.trim().toUpperCase(); addDest=null; addInfo();
-  if(q.length<2){ acBox.hidden=true; return; }
-  const hits=[];
-  for(const c in AP){ const a=AP[c];
-    if(c===q){ hits.unshift([c,a]); continue; }
-    if(hits.length<60 && (c.startsWith(q)||a[1].toUpperCase().startsWith(q)||a[0].toUpperCase().includes(q))) hits.push([c,a]); }
-  acBox.innerHTML=hits.slice(0,9).map(([c,a])=>
-    `<div data-code="${c}"><span class="c">${c}</span>${esc(a[0])} <span class="dim">· ${esc(tc(a[1]))}, ${esc(a[5]==="United States"?"US":a[5])}</span></div>`).join("");
-  acBox.hidden=!hits.length;
+/* Airport typeahead, shared.
+
+   This was written once for the Add route destination and nowhere else, so the
+   Add a station field was a bare text box that expected you to know the code.
+   Two fields asking for the same thing should behave the same way.
+
+   `onPick` receives the code. `exclude` hides airports that would be pointless
+   to offer, such as stations you already have. */
+function attachAirportAC(input, onPick, exclude){
+  if(!input || input.dataset.acWired) return;
+  input.dataset.acWired = "1";
+  const box = el("div", {class:"aclist"}); box.hidden = true;
+  (input.parentElement || input).appendChild(box);
+  const skip = exclude || (() => false);
+  input.addEventListener("input", () => {
+    const q = input.value.trim().toUpperCase();
+    if(q.length < 2){ box.hidden = true; return; }
+    const hits = [];
+    for(const c in AP){
+      if(skip(c)) continue;
+      const a = AP[c];
+      if(c === q){ hits.unshift([c, a]); continue; }
+      if(hits.length < 60 && (c.startsWith(q) || a[1].toUpperCase().startsWith(q)
+                              || a[0].toUpperCase().includes(q))) hits.push([c, a]);
+    }
+    box.innerHTML = hits.slice(0, 9).map(([c, a]) =>
+      `<div data-code="${c}"><span class="c">${c}</span>${esc(a[0])} `
+      + `<span class="dim">· ${esc(tc(a[1]))}, ${esc(a[5] === "United States" ? "US" : a[5])}</span></div>`
+    ).join("");
+    box.hidden = !hits.length;
+  });
+  box.addEventListener("mousedown", ev => {
+    const div = ev.target.closest("[data-code]"); if(!div) return;
+    box.hidden = true;
+    onPick(div.dataset.code, input);
+  });
+  input.addEventListener("blur", () => setTimeout(() => { box.hidden = true; }, 150));
+  return box;
+}
+
+attachAirportAC($("#nD"), (code, input) => {
+  addDest = code; input.value = code + " — " + AP[code][0]; addInfo();
 });
-acBox.addEventListener("mousedown",e=>{
-  const div=e.target.closest("[data-code]"); if(!div) return;
-  addDest=div.dataset.code; $("#nD").value=addDest+" — "+AP[addDest][0];
-  acBox.hidden=true; addInfo();
-});
-$("#nD").addEventListener("blur",()=>setTimeout(()=>{acBox.hidden=true;},150));
+$("#nD").addEventListener("input", () => { addDest = null; addInfo(); });
 $("#btnAddGo").onclick=()=>{
   const o=$("#nO").value, d=addDest, t=$("#nT").value;
   const n=Math.max(1,Math.round(+$("#nN").value||1)), w=Math.max(1,Math.min(7,Math.round(+$("#nW").value||7)));

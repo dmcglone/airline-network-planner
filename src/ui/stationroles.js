@@ -51,13 +51,15 @@ function drawStationRoles(){
   }).join("");
 
   const cands = stationCandidates();
+  // rebuilt on every draw, so the typeahead has to be re-attached each time
   host.innerHTML =
       `<div class="scroll"><table><thead><tr><th>Code</th><th>Airport</th><th>Role</th>`
     + `<th class="r">Schedule</th><th class="r">Based here</th><th></th></tr></thead>`
     + `<tbody>${rows}</tbody></table></div>`
     + `<div class="toolbar" style="flex-wrap:wrap">`
       + `<span class="dim" style="font-size:12.5px">Add a station</span>`
-      + `<input id="stnAdd" placeholder="Airport code" maxlength="4" class="code" style="width:96px">`
+      + `<span class="ac"><input id="stnAdd" placeholder="Type a code or city" autocomplete="off"`
+      + ` maxlength="28" style="min-width:210px"></span>`
       + `<button class="btn sm" data-stradd="1">Add</button>`
       + (cands.length
           ? `<span class="dim" style="font-size:12.5px">Most-served airports you do not base at:</span>`
@@ -74,6 +76,17 @@ function drawStationRoles(){
       + `whether a station is earning its bank structure.</p></div>`;
 }
 
+/* Wire the typeahead after each render, skipping airports that are already
+   bases: offering one would only produce "already a station". */
+function wireStationAC(){
+  const input = $("#stnAdd"); if(!input) return;
+  attachAirportAC(input, (code, el2) => {
+    el2.value = code + " — " + AP[code][0];
+    el2.dataset.code = code;
+  }, c => STA.includes(c));
+  input.addEventListener("input", () => { delete input.dataset.code; });
+}
+
 function stationEvent(t){
   if(!t || !t.dataset) return false;
   if(t.dataset.strole){
@@ -85,8 +98,12 @@ function stationEvent(t){
     return true;
   }
   if(t.dataset.stradd){
-    const typed = t.dataset.stradd === "1" ? (($("#stnAdd")||{}).value || "") : t.dataset.stradd;
-    const code = typed.trim().toUpperCase();
+    // either a suggestion button, a picked airport, or something typed by hand
+    const box = $("#stnAdd");
+    const typed = t.dataset.stradd === "1"
+      ? ((box && box.dataset.code) || (box && box.value) || "")
+      : t.dataset.stradd;
+    const code = typed.trim().toUpperCase().split(/[\s—]/)[0];
     if(!code) return true;
     if(!AP[code]){ toast(`${code} is not an airport this planner knows`); return true; }
     if(STA.includes(code)){ toast(`${code} is already a station`); return true; }

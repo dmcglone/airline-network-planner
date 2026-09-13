@@ -1,6 +1,7 @@
 /* ----- stations ----- */
 function drawStations(){
   if(typeof drawStationRoles==="function") drawStationRoles();
+  if(typeof wireStationAC==="function") wireStationAC();
   const g=$("#stnGrid"); g.innerHTML="";
   for(const s of M.stations){
     const mx=Math.max(1,...s.D,...s.A);
