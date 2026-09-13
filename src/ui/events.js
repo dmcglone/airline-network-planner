@@ -170,7 +170,7 @@ document.addEventListener("click",e=>{
     });
     return;
   }
-  if(e.target.id==="btnImport"){ const b=$("#importBox"); b.hidden=!b.hidden; }
+  if(e.target.id==="btnImportDemand"){ const b=$("#importBox"); b.hidden=!b.hidden; }
   if(e.target.id==="btnClearDem"){ guard(()=>{ state.demand={source:"gravity"}; M=build(); save(); draw(); toast("Back to the gravity model"); }); }
   if(e.target.id==="btnDoImport"){
     guard(()=>{
@@ -338,7 +338,45 @@ $("#btnAddGo").onclick=()=>{
     catch(e){ toast("Couldn't export — no download or clipboard access in this view"); }
   });
 
-  $("#btnImport").onclick = ()=> $("#fileImport").click();
+/* Import used to be a file picker and nothing else, while Export falls back to
+   the clipboard whenever there is no download surface — a published artifact, a
+   preview frame. So in exactly the view where Export gives you JSON on the
+   clipboard, Import could not read it. Offer both, always. */
+function drawStateImport(){
+  const host = $("#stateImport"); if(!host) return;
+  host.innerHTML =
+      `<div class="pad" style="border-top:1px solid var(--line-2)">`
+    + `<div class="mkt" style="gap:9px;flex-wrap:wrap;align-items:center">`
+    + `<button class="btn sm" id="btnPickFile">Choose a file…</button>`
+    + `<span class="dim" style="font-size:12.5px">or paste the JSON you exported:</span>`
+    + `<button class="btn sm" id="btnPasteState">Load pasted state</button>`
+    + `<button class="btn sm" id="btnCancelImport">Cancel</button></div>`
+    + `<textarea id="stateJson" rows="4" spellcheck="false" placeholder='{"state":{...}}'`
+    + ` style="width:100%;margin-top:9px;font-family:var(--mono);font-size:12px"></textarea>`
+    + `<div class="dim" id="importStatus" style="font-size:12.5px;margin-top:6px"></div></div>`;
+  $("#btnPickFile").onclick = ()=> $("#fileImport").click();
+  $("#btnCancelImport").onclick = ()=>{ $("#stateImport").hidden = true; };
+  $("#btnPasteState").onclick = safe(()=>{
+    const txt = ($("#stateJson").value || "").trim();
+    if(!txt){ $("#importStatus").textContent = "Nothing pasted."; return; }
+    let parsed; try{ parsed = JSON.parse(txt); }
+    catch(err){ $("#importStatus").textContent = "That is not valid JSON."; return; }
+    try{
+      pushUndo("import");
+      importState(parsed);
+      M = build(); save();
+      if(typeof fillSelects === "function") fillSelects();
+      draw(); markCommitted(); paintUndo();
+      $("#stateImport").hidden = true;
+      toast(`Imported ${state.routes.length} routes`);
+    }catch(err){ $("#importStatus").textContent = String(err.message || err); }
+  });
+}
+$("#btnImport").onclick = ()=>{
+  const h = $("#stateImport");
+  h.hidden = !h.hidden;
+  if(!h.hidden){ drawStateImport(); const f = $("#stateJson"); if(f) f.focus(); }
+};
   $("#fileImport").onchange = safe(async (ev)=>{
     const f = ev.target.files && ev.target.files[0]; if(!f) return;
     let r;

@@ -22,6 +22,7 @@
     <button class="btn" id="btnImport">Import state</button>
     <button class="btn" id="btnBackup" hidden>Back up</button>
     <input type="file" id="fileImport" accept=".json,application/json" hidden>
+    <div id="stateImport" hidden></div>
     <button class="btn primary" id="btnSave" hidden>Save network</button>
   </div>
   <div id="airlinePanel" hidden></div>
@@ -176,7 +177,7 @@
       <h2>Demand source <span class="sub">What the growth suggestions are ranked on</span></h2>
       <div class="toolbar">
         <select id="demSel"></select>
-        <button class="btn sm" id="btnImport">Import demand data…</button>
+        <button class="btn sm" id="btnImportDemand">Import demand data…</button>
         <button class="btn sm" id="btnClearDem" hidden>Clear imported data</button>
       </div>
       <div class="pad"><p class="note" id="demNote"></p>

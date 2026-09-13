@@ -8,8 +8,24 @@ from playwright.sync_api import sync_playwright
 import pathlib, sys, json, threading, functools
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 
-EXPECT = {"roster":400, "surplus":1, "blockHrs":3786, "asmM":192.6, "gates":213,
-          "routes":404, "deps":1650, "tails":366, "fleetRequired":399, "checksFailing":0}
+# These came off a schedule known to be sound. If one moves, behaviour changed:
+# find the cause, do not edit the number to match.
+#
+# Changed once, deliberately, when the A320E was retired from the shipped fleet.
+# It was an extended-range A320 specific to this airline, and a stranger opening
+# the example inherited a variant they had no context for. Nothing it flew needed
+# the range — the longest was MCO-LIM at 2,441 nm against the A320's 2,900 — so
+# its 27 routes and 18 pinned tails moved to the A320.
+#
+#   tails 366 -> 365, fleetRequired 399 -> 398, surplus 1 -> 2, gates 213 -> 211
+#
+# Block hours, ASMs, routes and departures did not move, because the same flying
+# still happens. It got CHEAPER: the A320E carried a 60-minute turn for
+# international handling, and on 45-minute turns the rotations pack slightly
+# better. Retiring a sub-fleet saving an aircraft and two gates is a real result,
+# not a rounding artifact.
+EXPECT = {"roster":400, "surplus":2, "blockHrs":3786, "asmM":192.6, "gates":211,
+          "routes":404, "deps":1650, "tails":365, "fleetRequired":398, "checksFailing":0}
 CHECKS = ["unflown","extra","brkSpace","brkGround","open","brkNight","brkSpan","imb","curfew","rangeBad"]
 
 def check_starters(pg):
