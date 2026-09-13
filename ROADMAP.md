@@ -345,6 +345,59 @@ published figure rather than a total of exit ratings.
 
 ---
 
+## 12. Calibrate the cabin fare multipliers
+
+`SEAT_MULT` currently prices a seat against economy by cabin and seat kind:
+lie-flat 5.5, recliner 3.0, premium-economy recliner 2.0, extra-legroom standard
+1.6. A stage taper pulls the lie-flat figure down below about 1,800 nm, so a
+suite is worth less than a recliner on a short hop.
+
+**Where those numbers came from.** Judgement. Domestic first runs roughly two and
+a half to three and a half times economy, transcon lie-flat business somewhere
+between four and eight depending on route and season, and the extra-legroom
+figure was argued from the fare table in Daniel's own spreadsheet — Premium
+Economy there is two inches of pitch plus a free bag, no change fee, free
+same-day changes, Group 2 boarding and a drink, which is an unbundled-fee
+product rather than a legroom product. Every one of those is defensible and none
+is measured.
+
+**Why it matters more than it looks.** The multipliers are normalised so the
+seat-weighted fleet mean is 1.0, which means they never change total revenue —
+only its distribution. So a wrong multiplier does not show up as an implausible
+total. It shows up as the wrong aircraft looking good on the wrong route, which
+is exactly the judgement the planner exists to inform and exactly the error
+nobody notices.
+
+**What would actually calibrate them.**
+
+*DB1C carries a fare, not a cabin.* The 40% ticket sample gives an average fare
+per market with no cabin split, so the data already loaded cannot separate a
+first-class fare from an economy one. That is the honest blocker and the reason
+this has not been done.
+
+*T-100 plus DB1C would bound it.* Seats flown by carrier and market against
+passengers and revenue would give a revenue-per-seat by aircraft, and types with
+known cabin layouts would let the premium be inferred rather than assumed.
+
+*Published fares are the direct route and the least reproducible.* Scraping walk-up
+fares by cabin on a sample of markets would give real ratios, would date quickly,
+and would need a licence check before anything went into a public repository.
+
+*The taper shape is a separate question.* It is linear in stage between a floor
+of 0.30 and full value at 1,800 nm. The real curve is almost certainly not
+linear — the value of a bed jumps once a flight crosses into overnight or
+red-eye territory rather than rising smoothly with distance. Tying the taper to
+whether the itinerary actually spans a normal sleeping window, which the engine
+already knows because it schedules red-eyes, would be both more honest and
+cheaper than calibrating a curve.
+
+**Until then.** The figures stay in one constant block in `src/revenue.js`,
+mirrored in `revenue.py`, and the Model tab says they are assumed. Do not let
+them spread into the suggestion engine or the Economics tab as though they were
+measured.
+
+---
+
 ## Sequencing
 
 **1, 5 and 8** are the three that most change what the tool feels like to use,

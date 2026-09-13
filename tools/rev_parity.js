@@ -46,6 +46,12 @@ const sandbox = {
     { intl: { textContent: JSON.stringify(INTL) } }[id] || null) }
 };
 vm.createContext(sandbox);
+/* revenue.js reads seatKindOf() from the seatmap model — a cabin's fare now
+   depends on the kind of seat in it, not just which cabin it is. Load the same
+   model files the page does, in the same order, rather than stubbing a second
+   copy of that logic here and letting the two drift. */
+vm.runInContext(fs.readFileSync(path.join(ROOT, "src/seatmap.js"), "utf8"), sandbox,
+                {filename:"seatmap.js"});
 vm.runInContext(fs.readFileSync(path.join(ROOT, "src/revenue.js"), "utf8"),
                 sandbox);
 

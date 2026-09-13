@@ -56,6 +56,15 @@ const MODEL_SECTIONS = [
         regardless of whether anyone else actually flies it. Frequency buys seats
         but not share, so the model cannot express the main reason airlines add
         frequency.`],
+      [`Cabin fare multipliers are judgement`,
+       `A lie-flat suite is priced at 5.5 times economy, a recliner at 3, an
+        extra-legroom seat at 1.6, with the lie-flat figure tapering down on
+        short sectors. Those ratios are reasoned, not measured: the DB1C sample
+        carries an average fare per market with no cabin split, so nothing in the
+        data can separate a first-class fare from an economy one. They are
+        normalised so the fleet mean is 1.0, which means a wrong multiplier never
+        shows up as an implausible total — it shows up as the wrong aircraft
+        looking good on the wrong route.`],
       [`Cabin mix is priced, occupancy is not`,
        `Passengers are spread across cabins in proportion to seats, so a premium
         cabin earns its fare multiplier whether or not anyone would have bought

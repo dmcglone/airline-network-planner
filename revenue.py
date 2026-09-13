@@ -86,7 +86,48 @@ CONNECT_PENALTY = 0.65   # QSI multiplier for a one-stop against a nonstop
 COMPETITION = 1.0        # QSI attributed to every other airline in a market
 SPILL_PASSES = 4
 # Cabin fare multipliers, normalised below so the seat-weighted mean is 1.0.
-CABIN_MULT = {"F": 3.0, "PE": 1.6, "Y": 1.0}
+# What a seat is worth against economy, by cabin AND by the kind of seat in it.
+# A domestic recliner up front and a lie-flat suite are not the same product and
+# must not earn the same fare. Mirrors SEAT_MULT in src/revenue.js.
+SEAT_MULT = {
+    "F":  {"lieflat": 5.5, "recliner": 3.0},
+    "PE": {"recliner": 2.0, "standard": 1.6},
+    "Y":  {"standard": 1.0},
+}
+# A flat bed earns its premium because you can sleep on it, so the premium
+# depends on stage length. Recliners are not tapered: their value is legroom.
+LIEFLAT_FULL_NM, LIEFLAT_FLOOR = 1800.0, 0.30
+DEFAULT_KIND = {"F": "recliner", "PE": "standard", "Y": "standard"}
+
+
+def seat_kind_of(spec, cabin):
+    allowed = {"F": ("lieflat", "recliner"),
+               "PE": ("recliner", "standard"),
+               "Y": ("standard",)}[cabin]
+    k = (spec.get("geom", {}) or {}).get("seat", {}).get(cabin)
+    return k if k in allowed else DEFAULT_KIND[cabin]
+
+
+def seat_mult(cabin, kind, nm):
+    m = SEAT_MULT.get(cabin, {}).get(kind)
+    if m is None:
+        return 1.0
+    if kind != "lieflat":
+        return m
+    t = min(1.0, max(LIEFLAT_FLOOR, (nm or 0.0) / LIEFLAT_FULL_NM))
+    return 1.0 + (m - 1.0) * t
+
+
+def raw_premium(f):
+    """The un-normalised worth of an average seat on one flight."""
+    s = FLEET.get(f["t"])
+    if not s:
+        return 1.0
+    tot = s["F"] + s["PE"] + s["Y"]
+    if not tot:
+        return 1.0
+    return sum(seat_mult(c, seat_kind_of(s, c), f["nm"]) * s[c]
+               for c in ("F", "PE", "Y")) / tot
 
 US = "United States"
 is_intl = lambda o, d: (AP.get(o, [None]*6)[5] != US
@@ -220,38 +261,31 @@ def itineraries(F):
     return itins
 
 
-def cabin_shares():
-    """Fare multipliers normalised so the fleet-weighted mean is 1.0."""
-    seats = defaultdict(float)
-    for l in LINES:
-        f = FLEET[l["type"]]
-        for c in ("F", "PE", "Y"):
-            seats[c] += f[c] * len(l["flights"])
-    tot = sum(seats.values())
-    mean = sum(CABIN_MULT[c] * seats[c] / tot for c in seats)
-    return {c: CABIN_MULT[c] / mean for c in seats}, \
-           {c: seats[c] / tot for c in seats}
+def flight_premiums(F):
+    """Premiums normalised so the seat-weighted fleet mean is 1.0.
 
+    Per FLIGHT rather than per type, because the lie-flat taper makes the same
+    aircraft worth more on a long sector than a short one. Normalising keeps the
+    network total pinned to the measured DB1C fares -- cabin mix moves revenue
+    between flights rather than adding any.
 
-def cabin_premium(mult):
-    """What a seat on each aircraft type is worth against the fleet average.
-
-    The seat-weighted mean of the normalised multipliers, per type. An aircraft
-    carrying the fleet's own cabin mix scores exactly 1.0 and earns the observed
-    fare; a premium-heavy type earns more per passenger and an all-economy type
-    earns less. Because `mult` is normalised across the whole flown fleet, the
-    network total stays pinned to the measured DB1C fares -- only the
-    distribution across aircraft moves.
-
-    ASSUMPTION, and the reason this is step one rather than the finished job:
-    passengers are spread across cabins in proportion to seats, so a premium
-    cabin is credited whether or not anyone would have paid for it. That is
-    generous to premium-dense gauge. Cabin-level load factors and a cabin-level
-    spill would fix it, at the cost of making the spill loop cabin-aware.
+    ASSUMPTION, unchanged: passengers are spread across cabins in proportion to
+    seats, so a premium cabin is credited whether or not anyone would have
+    bought it. Mirrors flightPremiums() in src/revenue.js.
     """
-    return {t: sum(mult[c] * f[c] for c in ("F", "PE", "Y"))
-               / (f["F"] + f["PE"] + f["Y"])
-            for t, f in FLEET.items() if f["F"] + f["PE"] + f["Y"] > 0}
+    num = den = 0.0
+    raw = {}
+    for f in F:
+        s = FLEET.get(f["t"])
+        if not s:
+            continue
+        seats = s["F"] + s["PE"] + s["Y"]
+        r = raw_premium(f)
+        raw[f["id"]] = r
+        num += r * seats
+        den += seats
+    mean = (num / den) if den else 1.0
+    return {i: (r / mean if mean else 1.0) for i, r in raw.items()}, mean
 
 
 def allocate(itins, competition, prem):
@@ -317,7 +351,7 @@ def allocate(itins, competition, prem):
             # onto the legs by distance a few lines below, so using the same
             # weight here keeps leg revenue summing to itinerary revenue exactly
             # -- the invariant this whole file exists to hold.
-            im = sum(prem[f["t"]] * f["nm"] for f in i["legs"]) / i["nm"]
+            im = sum(prem.get(f["id"], 1.0) * f["nm"] for f in i["legs"]) / i["nm"]
             rev = flown * fare * im
             stats["rev"] += rev
             if src == "estimated":
@@ -338,8 +372,7 @@ FLIGHTS = flights()
 def main():
     F = FLIGHTS
     itins = itineraries(F)
-    mult, seatshare = cabin_shares()
-    prem = cabin_premium(mult)
+    prem, premMean = flight_premiums(F)
     seats = sum(f["seats"] for f in F)
     boarded, legrev, st, estrev = allocate(itins, COMPETITION, prem)
 
@@ -355,10 +388,12 @@ def main():
 
     print(f"fare curve: fare = {FARE_A:.2f} x nm^{FARE_B:.3f}  "
           f"(r2 {FARE_R2:.2f} on {FARE_N:,} real markets)")
-    print(f"cabin multipliers, normalised: "
-          + ", ".join(f"{c} {mult[c]:.2f}" for c in ("F", "PE", "Y"))
-          + "  seat share "
-          + ", ".join(f"{c} {seatshare[c]*100:.0f}%" for c in ("F", "PE", "Y")))
+    kinds = sorted({(c, seat_kind_of(FLEET[t], c))
+                    for t in FLEET for c in ("F", "PE", "Y") if FLEET[t][c]})
+    print("seat multipliers in use: "
+          + ", ".join(f"{c}/{k} {SEAT_MULT[c][k]:g}" for c, k in kinds)
+          + f"   fleet mean premium {premMean:.3f}"
+          + f"   (lie-flat tapers to {LIEFLAT_FLOOR:g} below {LIEFLAT_FULL_NM:g} nm)")
     print(f"competition QSI {COMPETITION:.2f} "
           f"(1.0 = one rival of equal schedule quality)")
     print(f"\nitineraries: {nonstop:,} nonstop, {onestop:,} one-stop over "

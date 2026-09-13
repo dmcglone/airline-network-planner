@@ -26,7 +26,43 @@ const REV_CIRCUITY = 1.35;     // connecting path vs nonstop great circle
 const REV_CONNECT_PENALTY = 0.65;
 const REV_COMPETITION = 1.0;   // QSI of every other airline in a market
 const REV_SPILL_PASSES = 4;
-const CABIN_MULT = {F:3.0, PE:1.6, Y:1.0};
+/* What a seat is worth against economy, by cabin AND by the kind of seat in it.
+   A domestic recliner up front and a lie-flat suite are not the same product and
+   must not earn the same fare: the seatmap can tell them apart, so the revenue
+   model has to as well, or a 20-suite A321XLR earns exactly what a 20-recliner
+   A321 earns. */
+const SEAT_MULT = {
+  F:  {lieflat: 5.5, recliner: 3.0},
+  PE: {recliner: 2.0, standard: 1.6},
+  Y:  {standard: 1.0}
+};
+
+/* A flat bed is worth paying for because you can sleep on it, so its premium
+   depends on how long the flight is. Below the floor it is a wide seat you
+   cannot use as a bed; by the reference stage it earns the full multiplier.
+   Without this, suites on a 400 nm hop would pay as well as suites on a
+   transcon, which is the kind of answer that discredits a model. Recliners and
+   extra-legroom seats are not tapered: their value is legroom, and you get that
+   on any stage. */
+const LIEFLAT_FULL_NM = 1800, LIEFLAT_FLOOR = 0.30;
+
+function seatMult(cabin, kind, nm){
+  const m = (SEAT_MULT[cabin] || {})[kind];
+  if(m === undefined) return 1;
+  if(kind !== "lieflat") return m;
+  const t = Math.min(1, Math.max(LIEFLAT_FLOOR, (nm || 0) / LIEFLAT_FULL_NM));
+  return 1 + (m - 1) * t;
+}
+
+/* The raw, un-normalised worth of an average seat on one flight. */
+function rawPremium(f){
+  const s = SPEC[f.t]; if(!s) return 1;
+  const tot = (s.F||0) + (s.PE||0) + (s.Y||0); if(!tot) return 1;
+  let v = 0;
+  for(const c of ["F","PE","Y"])
+    v += seatMult(c, seatKindOf(s.geom, c), f.nm) * (s[c]||0);
+  return v / tot;
+}
 
 const isIntl = (o,d) => (AP[o] && AP[o][5]) !== "United States"
                      || (AP[d] && AP[d][5]) !== "United States";
@@ -115,29 +151,30 @@ function buildItineraries(F){
    `competition` is the QSI attributed to every other airline in a market, so
    our share is Q/(Q+competition): a market we serve with three nonstops takes
    more than one we only reach over a hub. */
-/* What a seat on each aircraft type is worth against the fleet average. The
-   seat-weighted mean of the normalised multipliers, per type. An aircraft
-   carrying the fleet's own cabin mix scores exactly 1.0 and earns the observed
-   fare; a premium-heavy type earns more per passenger and an all-economy type
-   earns less. Because the multipliers are normalised across the whole flown
-   fleet, the network total stays pinned to the measured DB1C fares — only the
-   distribution across aircraft moves.
+/* Premiums normalised so the seat-weighted fleet mean is 1.0, which keeps the
+   network total pinned to the measured DB1C fares — cabin mix moves revenue
+   between flights rather than adding any.
 
-   ASSUMPTION, and the reason this is step one rather than the finished job:
-   passengers are spread across cabins in proportion to seats, so a premium
-   cabin is credited whether or not anyone would have paid for it. That is
-   generous to premium-dense gauge. Cabin-level load factors and a cabin-level
-   spill would fix it, at the cost of making the spill loop cabin-aware.
+   Per FLIGHT rather than per type, because the lie-flat taper makes the same
+   aircraft worth more on a long sector than a short one.
 
-   Mirrors cabin_premium() in revenue.py. */
-function cabinPremium(mult){
-  const out = {};
-  for(const t in SPEC){
-    const s = SPEC[t], tot = (s.F||0)+(s.PE||0)+(s.Y||0);
-    if(!tot) continue;
-    out[t] = (mult.F*(s.F||0) + mult.PE*(s.PE||0) + mult.Y*(s.Y||0))/tot;
+   ASSUMPTION, unchanged and still the weak point: passengers are spread across
+   cabins in proportion to seats, so a premium cabin is credited whether or not
+   anyone would have bought it. Cabin-level load factors and a cabin-aware spill
+   would fix it. Mirrors flight_premiums() in revenue.py. */
+function flightPremiums(F){
+  let num = 0, den = 0;
+  const raw = new Map();
+  for(const f of F){
+    const s = SPEC[f.t]; if(!s) continue;
+    const seats = (s.F||0)+(s.PE||0)+(s.Y||0);
+    const r = rawPremium(f);
+    raw.set(f.id, r); num += r*seats; den += seats;
   }
-  return out;
+  const mean = den ? num/den : 1;
+  const prem = new Map();
+  for(const [id, r] of raw) prem.set(id, mean ? r/mean : 1);
+  return {prem, mean};
 }
 
 function allocateDemand(F, itins, competition, prem){
@@ -188,7 +225,7 @@ function allocateDemand(F, itins, competition, prem){
     // revenue summing to itinerary revenue exactly — the invariant this whole
     // file exists to hold.
     let im = 0;
-    for(const f of i.legs) im += prem[f.t]*f.nm;
+    for(const f of i.legs) im += (prem.get(f.id) || 1)*f.nm;
     im /= i.nm;
     const rev = flown*m.fare*im;
     st.rev += rev;
@@ -203,27 +240,12 @@ function allocateDemand(F, itins, competition, prem){
   return {boarded, legrev, estrev, stats:st};
 }
 
-/* Cabin fare multipliers normalised so the seat-weighted mean is 1.0 — the
-   observed DB1C average constrains the answer rather than being added to. */
-function cabinMultipliers(F){
-  const seats = {F:0, PE:0, Y:0};
-  for(const f of F){ const s=SPEC[f.t]; if(!s) continue;
-    seats.F+=s.F; seats.PE+=s.PE; seats.Y+=s.Y; }
-  const tot = seats.F+seats.PE+seats.Y;
-  if(!tot) return {mult:CABIN_MULT, share:seats};
-  let mean = 0;
-  for(const c of ["F","PE","Y"]) mean += CABIN_MULT[c]*seats[c]/tot;
-  const mult = {};
-  for(const c of ["F","PE","Y"]) mult[c] = CABIN_MULT[c]/mean;
-  return {mult, share:{F:seats.F/tot, PE:seats.PE/tot, Y:seats.Y/tot}};
-}
-
 function revenueModel(M){
   const F = M.flights.map(f=>Object.assign({}, f,
     {seats: (SPEC[f.t] && SPEC[f.t].seats) || 0}));
   const itins = buildItineraries(F);
-  const cabins = cabinMultipliers(F);
-  const prem = cabinPremium(cabins.mult);
+  const cabins = flightPremiums(F);
+  const prem = cabins.prem;
   const r = allocateDemand(F, itins, REV_COMPETITION, prem);
   const seats = F.reduce((s,f)=>s+f.seats, 0);
   // The ceiling: what this schedule fills taking every passenger in every
@@ -240,6 +262,6 @@ function revenueModel(M){
     lf: seats ? [...r.boarded.values()].reduce((a,b)=>a+b,0)/seats : 0,
     rasm: asm ? r.stats.rev/asm*100 : 0,
     yield: rpm ? r.stats.rev/rpm*100 : 0,
-    cabins, fareFit: FARE_FIT
+    cabins: {mean: cabins.mean}, fareFit: FARE_FIT
   });
 }
