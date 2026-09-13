@@ -400,16 +400,32 @@ measured.
 
 ## Sequencing
 
+**Before a public v1**, in order: the two starter networks with a `verify.py`
+harness underneath them, first-run onboarding, splitting the demand and airport
+data out of the initial payload, and mobile triage. Everything in that list is
+about whether a stranger can use the thing. Nothing in it changes a number.
+
+**After launch**, and expect to re-read conclusions when they land: item 9 (the
+regional cost basis), item 12 (calibrating the cabin multipliers), and items 2,
+3 and 4 in the revenue layer. These are model-accuracy work, and model accuracy
+is what a second version is for.
+
+
 **1, 5 and 8** are the three that most change what the tool feels like to use,
 and none of them depends on the others. **2 → 3 → 7** is a chain: competition
 first, because time-of-day preference and pricing both work against it. **4** can
 land any time. **6** is independent and small, but it is the one that touches the
 check count, so it wants a quiet commit of its own.
 
-**9** should go first, ahead of all of it. It is a few lines, it corrects a claim
-the documentation currently gets backwards, and every route-level number the
-other items will be judged against is computed on top of it. Fixing a cost basis
-after building an analysis on it means re-reading every conclusion.
+**9 is deliberately not prioritised.** The earlier argument for doing it first was
+that every route-level number is computed on top of the cost basis, so changing
+it late means re-reading conclusions. That argument is sound and it is outweighed
+by what v1 is for: a public launch is judged on whether a stranger can understand
+the tool and build something with it, not on whether the E175 is costed from
+Horizon or from a four-carrier blend. The current basis is already measured data
+rather than a placeholder — the note that called it a placeholder was wrong, and
+item 9 explains why. Do it after launch, and expect to re-read the regional
+route-level findings when it lands.
 
 **10** is really two items. The cabin-revenue half is small, belongs with 2, 3
 and 4 in the revenue layer, and is worth doing on its own merits. The seatmap
