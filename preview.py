@@ -11,12 +11,14 @@ In a Claude session that writes to /mnt/user-data/outputs, the copy lands there
 and renders inline. Anywhere else it lands in dist/ and the path is printed for
 you to open. Pass --out to put it somewhere specific.
 
-WHICH FILE. dist/index.html, always -- the complete document, not the body-only
-artifact build. The <meta charset> in the standalone wrapper is why: without it
-a browser decodes this UTF-8 page as Latin-1, the A-yuml range inside a regex
-becomes an out-of-order character range, and the boot script dies before
-anything renders. See the note in README.md; verify.py serves over HTTP for the
-same reason.
+WHICH FILE. dist/standalone.html -- a complete document with the demand data
+inlined. Not index.html: that one fetches demand.json from alongside itself,
+which is right for a served site and wrong for a single file handed to someone,
+where the fetch 404s and the demand column silently falls back to estimates.
+Not artifact.html either: the <meta charset> in the standalone wrapper is what
+stops a browser decoding this UTF-8 page as Latin-1, which turns the A-yuml
+range inside a regex into an out-of-order character range and kills the boot
+script before anything renders.
 
 WHAT A PREVIEW IS NOT. It is a build of the working tree at this moment. It does
 not carry anything saved on the live Cloudflare site, and nothing done inside it
@@ -36,7 +38,7 @@ import subprocess
 import sys
 
 ROOT = pathlib.Path(__file__).parent
-BUILT = ROOT / "dist" / "index.html"
+BUILT = ROOT / "dist" / "standalone.html"
 
 # Where a Claude session can write files that render in the conversation. Used
 # only if it already exists -- this script is expected to run locally too.
@@ -62,7 +64,7 @@ def main():
     if not args.no_build:
         # Not a && chain and not piped: check the return code and stop on it,
         # rather than staging a stale page from a build that failed.
-        r = subprocess.run([sys.executable, str(ROOT / "build.py")],
+        r = subprocess.run([sys.executable, str(ROOT / "build.py"), "--target", "standalone"],
                            cwd=ROOT)
         if r.returncode != 0:
             print(f"build.py failed (exit {r.returncode}) — nothing staged",

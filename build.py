@@ -90,9 +90,14 @@ def wrap_standalone(html):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--target", choices=["web", "artifact", "both"], default="both",
-                    help="web: dist/index.html, a complete document for a web server. "
-                         "artifact: dist/artifact.html, body-only for the Artifact tool.")
+    ap.add_argument("--target", choices=["web", "artifact", "standalone", "both"],
+                    default="both",
+                    help="web: dist/index.html, a complete document that fetches "
+                         "demand.json alongside it. artifact: dist/artifact.html, "
+                         "body-only for the Artifact tool. standalone: "
+                         "dist/standalone.html, one complete file with the demand data "
+                         "inlined — for previewing, emailing or opening offline, where "
+                         "there is no sibling file to fetch.")
     args = ap.parse_args()
     html = build(defer_demand=False)
     # A truncated publish once shipped a dead artifact. Never again silently.
@@ -119,6 +124,12 @@ def main():
         targets.append(("dist/index.html", wrap_standalone(web)))
     if args.target in ("artifact", "both"):
         targets.append(("dist/artifact.html", html))
+    if args.target == "standalone":
+        # A complete document AND self-contained. The web build splits the demand
+        # data out to halve the critical path, which is right for a served site
+        # and wrong for a single file someone opens on its own — it 404s looking
+        # for a sibling that is not there.
+        targets.append(("dist/standalone.html", wrap_standalone(html)))
 
     for rel, text in targets:
         if rel.endswith("index.html") and "charset" not in text[:400]:

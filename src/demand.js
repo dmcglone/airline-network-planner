@@ -10,7 +10,7 @@
    data and never calls loadDemand(), so both paths end up in the same place. */
 let DEM = RAW.demand || {size:{}, beta:1.2, k:1};
 let DOT = (DEM.dot && DEM.dot.rows) ? DEM.dot : null;
-let demandReady = !!DOT;
+let demandReady = !!DOT, demandFailed = false;
 
 function loadDemand(){
   if(demandReady || !RAW.demandUrl) return Promise.resolve(false);
@@ -27,7 +27,18 @@ function loadDemand(){
       }
       return true;
     })
-    .catch(e => { console.warn("demand data unavailable", e); return false; });
+    .catch(e => {
+      // A 404 here is not fatal — the schedule is already built and the gravity
+      // model still answers — but it silently swaps measured demand for
+      // estimates, which is exactly the substitution this project refuses to
+      // make quietly. Say so where it will be seen.
+      demandFailed = true;
+      console.warn("demand data unavailable", e);
+      if(typeof toast === "function")
+        toast("Demand data did not load — showing gravity estimates instead");
+      if(typeof draw === "function") draw();
+      return false;
+    });
 }
 
 const dotNote = D => `Real origin-and-destination passengers and fares from the US DOT DB1C `
@@ -37,13 +48,15 @@ const dotNote = D => `Real origin-and-destination passengers and fares from the 
   + `about 3 passengers a day) the gravity model fills in.`;
 const DEMAND_SOURCES = {
   dot:     {label: DOT?`US DOT DB1C — ${DOT.period}`:"US DOT — loading…", unit:"pax/day",
-            note: DOT?dotNote(DOT):"The demand file is still loading."},
+            note: DOT ? dotNote(DOT)
+                      : "The demand file has not loaded, so every market is falling back to "
+                      + "the gravity estimate. Reload to try again."},
   gravity: {label:"Gravity model (no real data)", unit:"index",
             note:"Estimates demand from airport size and distance with no ticket data at all. Checked against the real DB1C figures it explains about half the variance (r² 0.52), ranks two markets correctly 75% of the time, and is typically out by a factor of 7. Useful for ordering candidates, not for sizing a route."},
   custom:  {label:"Licensed demand data", unit:"pax/day",
             note:"Placeholder for an acquired O&D dataset. Import it in the same shape and it overrides everything else."}
 };
-const demandSource = () => (state.demand && state.demand.source) || (DOT?"dot":"gravity");
+const demandSource = () => (state.demand && state.demand.source) || (DOT ? "dot" : "gravity");
 const demandRows   = () => (state.demand && state.demand.rows) || null;
 function demandOf(o,d){
   const rows=demandRows();
