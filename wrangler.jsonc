@@ -2,11 +2,15 @@
   // Cloudflare Workers Static Assets. Cloudflare recommends Workers over Pages
   // for new projects; Pages still works but new work goes to Workers.
   //
-  // There is no Worker script — this is a static page whose compute all runs in
-  // the visitor's browser, so Cloudflare just serves ./dist.
+  // The page is still static: all of its compute runs in the visitor's browser.
+  // The Worker exists only to receive crash reports at /_err. Everything else
+  // falls through to ./dist through the ASSETS binding, so serving is unchanged.
   "name": "airline-network-planner",
   "compatibility_date": "2026-09-02",
+  "main": "worker.js",
+  "observability": { "enabled": true },
   "assets": {
-    "directory": "./dist"
+    "directory": "./dist",
+    "binding": "ASSETS"
   }
 }

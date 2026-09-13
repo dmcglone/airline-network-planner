@@ -115,5 +115,5 @@
   "short": "Planner",
   "url": "https://airline-network-planner.daniel-mcglone.workers.dev"
  },
- "errorEndpoint": ""
+ "errorEndpoint": "/_err"
 }
