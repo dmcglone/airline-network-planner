@@ -295,7 +295,24 @@ function routeVerdict(o, d, t, freq){
   if(!SPEC[t] || !AP[o] || !AP[d]) return "";
   const dem = demandOf(o, d);
   const nm = dist(o, d), seats = SPEC[t].seats || 0;
-  const offered = seats * (freq || 1);
+  const adding = seats * (freq || 1);
+
+  /* Already flying this market changes the question. "Adding will merge into it"
+     describes the mechanics and answers nothing: what matters is what the market
+     looks like afterwards. A second daily on a route already turning people away
+     is a different decision from a second daily on one flying half empty, and
+     the form should be able to tell them apart. */
+  const cur = (state.routes || []).find(r => (r.o===o && r.d===d) || (r.o===d && r.d===o));
+  let already = 0, curDesc = [];
+  if(cur){
+    for(const x of TYPES){
+      const n = +cur.mix[x] || 0;
+      if(!n || !SPEC[x]) continue;
+      already += (SPEC[x].seats || 0) * n;
+      curDesc.push(`${n} × ${x}`);
+    }
+  }
+  const offered = already + adding;
 
   // Demand is a market total in both directions; a departure carries one way.
   const each = dem.v / 2;
@@ -304,7 +321,12 @@ function routeVerdict(o, d, t, freq){
   const cost = econFlightCost(t, blk(o, d, t) / 60);
 
   const bits = [], flags = [];
-  bits.push(`<b>${fmt(offered)}</b> seat${offered === 1 ? "" : "s"} a day each way`);
+  if(already){
+    bits.push(`you fly <b>${esc(curDesc.join(" + "))}</b> here already`);
+    bits.push(`<b>${fmt(already)}</b> → <b>${fmt(offered)}</b> seats a day each way`);
+  } else {
+    bits.push(`<b>${fmt(offered)}</b> seat${offered === 1 ? "" : "s"} a day each way`);
+  }
 
   if(!dem.v){
     flags.push(`<span class="chip warn">no demand estimate</span> nothing in the data `
@@ -323,14 +345,39 @@ function routeVerdict(o, d, t, freq){
   if(spilled >= 1)
     bits.push(`turns away <b>${fmt(Math.round(spilled))}</b> a day`);
 
+  if(already){
+    const before = Math.min(1, each / already);
+    const spillBefore = Math.max(0, each - already);
+    const spillAfter  = Math.max(0, each - offered);
+    // Compare SPILL, not load factor. A market already full stays at 100% after
+    // you add to it, so a load-factor test never fires on exactly the routes
+    // where adding capacity does the most good.
+    if(spillBefore > spillAfter + 0.5)
+      flags.push(`<span class="chip ok">soaks up spill</span> you turn away `
+        + `${fmt(Math.round(spillBefore))} a day now, `
+        + `${fmt(Math.round(spillAfter))} after`);
+    else if(before > 0.55 && lf < 0.45)
+      flags.push(`<span class="chip warn">dilutes it</span> the market fills `
+        + `${(before*100).toFixed(0)}% on what you fly today and `
+        + `${(lf*100).toFixed(0)}% after this`);
+  }
+
   if(fare && cost){
     // Carried passengers, not demand: a full aircraft turns the rest away.
-    const carried = Math.min(each, offered);
-    const rev = carried * fare * (freq ? 1 : 1) * 2;      // both directions
+    // On a market already served, price the ADDITION: the passengers the extra
+    // seats actually pick up, against what the extra departures cost. Pricing
+    // the whole market would credit this decision with revenue the existing
+    // flights already earn.
+    const carriedBefore = Math.min(each, already);
+    const carriedAfter = Math.min(each, offered);
+    const gained = carriedAfter - carriedBefore;
+    const rev = gained * fare * 2;                        // both directions
     const dayCost = cost.direct * 2 * (freq || 1);
     const contrib = rev - dayCost;
-    bits.push(`≈ <b>${money(Math.round(rev))}</b> revenue vs `
-      + `${money(Math.round(dayCost))} direct cost`);
+    bits.push((already ? `the extra seats pick up <b>${fmt(Math.round(gained*2))}</b> `
+                       + `passengers: ≈ <b>${money(Math.round(rev))}</b>`
+                        : `≈ <b>${money(Math.round(rev))}</b> revenue`)
+      + ` vs ${money(Math.round(dayCost))} direct cost`);
     // Direct cost only: no ownership, no overhead. Saying "profit" here would
     // overstate it by roughly the share the Economics tab allocates on top.
     flags.push(contrib >= 0
