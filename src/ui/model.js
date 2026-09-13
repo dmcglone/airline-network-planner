@@ -114,7 +114,42 @@ const MODEL_SECTIONS = [
   }
 ];
 
+let helpSection = "glossary";
+
+const HELP_SECTIONS = [
+  ["glossary", "Glossary"],
+  ["model",    "How the model works"],
+  ["wrong",    "Where it is wrong"],
+  ["sources",  "Sources"]
+];
+
 function drawModel(){
+  const host = $("#modelPanel"); if(!host) return;
+  const nav = `<div class="toolbar" style="flex-wrap:wrap">`
+    + HELP_SECTIONS.map(([id,label]) =>
+        `<button class="btn sm${helpSection===id?" on":""}" data-help="${id}">${esc(label)}</button>`
+      ).join("") + `</div>`;
+  if(helpSection === "glossary"){
+    host.innerHTML = nav + `<div class="panel"><h2>Glossary `
+      + `<span class="sub">What the words on these pages mean</span></h2>`
+      + glossaryHTML() + `</div>`;
+    const f = $("#glossFind");
+    if(f) f.addEventListener("input", e => {
+      glossQuery = e.target.value;
+      const box = f.closest(".panel");
+      box.innerHTML = `<h2>Glossary <span class="sub">What the words on these pages mean</span></h2>`
+        + glossaryHTML();
+      const nf = $("#glossFind");
+      if(nf){ nf.focus(); nf.setSelectionRange(nf.value.length, nf.value.length);
+              nf.addEventListener("input", ev => { glossQuery = ev.target.value; drawModel();
+                                                   const x=$("#glossFind"); if(x) x.focus(); }); }
+    });
+    return;
+  }
+  drawModelSections(nav);
+}
+
+function drawModelSections(nav){
   const host = $("#modelPanel"); if(!host) return;
   const sec = s => {
     if(s.items)
@@ -130,5 +165,8 @@ function drawModel(){
       + s.p.map(x=>`<p class="note">${esc(x.replace(/\s+/g," ").trim())}</p>`).join("")
       + `</div></div>`;
   };
-  host.innerHTML = MODEL_SECTIONS.map(sec).join("");
+  const want = helpSection === "wrong"   ? s => !!s.items
+             : helpSection === "sources" ? s => s.h === "Sources"
+             : s => !s.items && s.h !== "Sources";
+  host.innerHTML = nav + MODEL_SECTIONS.filter(want).map(sec).join("");
 }

@@ -96,7 +96,7 @@ $("#btnAirline").addEventListener("click", ()=>{
   airlineOpen = !airlineOpen; drawAirline();
   if(airlineOpen){ const f=$("#alName"); if(f) f.focus(); }
 });
-$("#btnModel").addEventListener("click", ()=>goTab("model"));
+$("#btnHelp").addEventListener("click", ()=>goTab("model"));
 document.addEventListener("click", e=>{
   const k = e.target.closest && e.target.closest("[data-goto]");
   if(k) goTab(k.dataset.goto);
@@ -114,7 +114,8 @@ document.addEventListener("click", e=>{
   // are handled by the input/change listeners instead.
   if(!/^(SELECT|INPUT|TEXTAREA|OPTION)$/.test(e.target.tagName)){
     const b = e.target.closest("button")||e.target;
-    if(typeof welcomeEvent==="function" && welcomeEvent(b)) return;
+    if(b && b.dataset && b.dataset.help){ helpSection = b.dataset.help; drawModel(); return; }
+  if(typeof welcomeEvent==="function" && welcomeEvent(b)) return;
     if(typeof stationEvent==="function" && stationEvent(b)) return;
     if(typeof smEvent==="function" && smEvent(b)) return;
   }

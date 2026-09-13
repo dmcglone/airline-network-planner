@@ -28,6 +28,7 @@
  "src/ui/share.js",
  "src/ui/welcome.js",
  "src/ui/airline.js",
+ "src/ui/glossary.js",
  "src/ui/model.js",
  "src/ui/checks.js",
  "src/ui/undo.js",

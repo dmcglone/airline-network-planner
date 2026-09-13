@@ -322,3 +322,12 @@ tfoot td{padding:8px 10px;border-top:1px solid var(--line);font-weight:600;backg
   .wc-blurb{ font-size:12px; line-height:1.45 }
   #airlinePanel .row{ gap:10px; padding:10px 12px }
 }
+
+
+/* glossary */
+.gloss-row{ display:grid; grid-template-columns:150px 1fr; gap:14px; padding:7px 0;
+  border-top:1px solid var(--line-2); font-size:13px; line-height:1.55; }
+.gloss-row:first-of-type{ border-top:0 }
+.gloss-row b{ font-family:var(--disp); font-size:14px; letter-spacing:.01em }
+.gloss-row span{ color:var(--ink-2) }
+@media (max-width: 760px){ .gloss-row{ grid-template-columns:1fr; gap:2px } }
