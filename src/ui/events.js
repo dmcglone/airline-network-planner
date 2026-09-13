@@ -325,17 +325,69 @@ $("#btnAddGo").onclick=()=>{
   }
   const stamp = () => new Date().toISOString().slice(0,10);
 
-  $("#btnExport").onclick = safe(async ()=>{
+  /* Save the network as a file.
+
+     Three surfaces, tried in order. DL is the Artifact tool's download API and
+     only exists there. Everywhere else — including the deployed site — a Blob
+     and an <a download> is the ordinary browser way to save a file, and it was
+     simply missing: the code fell straight from DL to the clipboard, so on the
+     real website Export quietly produced a clipboard copy rather than a file.
+     The clipboard stays as the last resort, for a sandboxed frame that refuses
+     downloads. */
+  function downloadJson(json, filename){
+    try{
+      const url = URL.createObjectURL(new Blob([json], {type:"application/json"}));
+      const a = el("a", {href:url, download:filename});
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 4000);
+      return true;
+    }catch(e){ return false; }
+  }
+
+  /* Export offers the choice rather than guessing.
+
+     A chain of fallbacks looked tidier, but it cannot tell whether it worked: a
+     sandboxed frame blocks the download silently, the anchor click throws
+     nothing, and the code cheerfully reports "Saved". Asking is both honest and
+     symmetric with Import, which offers a file and a paste box for the same
+     reason. */
+  $("#btnExport").onclick = safe(()=>{
+    const h = $("#stateExport");
+    h.hidden = !h.hidden;
+    if(h.hidden) return;
     const json = JSON.stringify(exportState(), null, 1);
-    if(DL){
-      try{ await DL.save({filename:"network-"+stamp()+".json", data:json});
-           toast("Exported "+Math.round(json.length/1024)+" KB"); return; }
-      catch(e){ if(e && e.code==="declined"){ toast("Export cancelled"); return; } }
-    }
-    // no download surface in this view — fall back to the clipboard
-    try{ await navigator.clipboard.writeText(json);
-         toast("Copied "+Math.round(json.length/1024)+" KB of state to the clipboard"); }
-    catch(e){ toast("Couldn't export — no download or clipboard access in this view"); }
+    const kb = Math.round(json.length/1024);
+    const name = `${(state.brand||"network").replace(/[^A-Za-z0-9]+/g,"-").toLowerCase()}-${stamp()}.json`;
+    h.innerHTML =
+        `<div class="pad" style="border-top:1px solid var(--line-2)">`
+      + `<div class="mkt" style="gap:9px;flex-wrap:wrap;align-items:center">`
+      + `<b>${esc(name)}</b><span class="dim">${kb} KB</span>`
+      + `<button class="btn sm" id="btnDlState">Download</button>`
+      + `<button class="btn sm" id="btnCopyState">Copy to clipboard</button>`
+      + `<button class="btn sm" id="btnCloseExport">Close</button></div>`
+      + `<div class="dim" id="exportStatus" style="font-size:12.5px;margin-top:6px">`
+      + `Download saves a file. Copy puts the same JSON on the clipboard, which is `
+      + `what to use if downloads are blocked here — Import state takes a paste.</div></div>`;
+    $("#btnCloseExport").onclick = ()=>{ h.hidden = true; };
+    $("#btnDlState").onclick = safe(async ()=>{
+      if(DL){
+        try{ await DL.save({filename:name, data:json});
+             h.hidden = true; toast("Exported "+kb+" KB"); return; }
+        catch(err){ if(err && err.code==="declined"){ toast("Export cancelled"); return; } }
+      }
+      const url = URL.createObjectURL(new Blob([json], {type:"application/json"}));
+      const a = el("a", {href:url, download:name});
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 4000);
+      $("#exportStatus").textContent =
+        "If no file appeared, this view blocks downloads — use Copy to clipboard instead.";
+    });
+    $("#btnCopyState").onclick = safe(async ()=>{
+      try{ await navigator.clipboard.writeText(json);
+           h.hidden = true; toast(`Copied ${kb} KB — paste it into Import state`); }
+      catch(err){ $("#exportStatus").textContent =
+           "The clipboard is not available here. Use Download, or Share for a link."; }
+    });
   });
 
 /* Import used to be a file picker and nothing else, while Export falls back to
