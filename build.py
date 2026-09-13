@@ -12,7 +12,7 @@ rather than copied:
   @geo  the coastline and border geometry
 Everything else is copied through verbatim.
 """
-import argparse, json, pathlib, sys
+import argparse, shutil, json, pathlib, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent
 D = ROOT / "src/data"
@@ -78,6 +78,22 @@ def build(defer_demand=False):
 # Latin-1, "À-ÿ" inside a regex becomes an out-of-order character range, and
 # the whole boot script dies on load. That shipped nothing only because it was
 # caught over HTTP — file:// happens to sniff the encoding correctly.
+def inject_site_urls(html):
+    """Fill in the absolute URLs the social crawlers need.
+
+    og:image and og:url have to be absolute — a crawler does not resolve a
+    relative path and cannot fetch a data URI. The address is in config.json
+    rather than hardcoded here, so pointing the site at a real domain is one
+    line of data, not a code change.
+    """
+    url = (load("config.json").get("site") or {}).get("url", "").rstrip("/")
+    if not url:
+        return html          # no address configured: ship without the cards
+    tags = (f'<meta property="og:url" content="{url}/">\n'
+            f'<meta property="og:image" content="{url}/og.png">\n'
+            f'<meta name="twitter:image" content="{url}/og.png">\n')
+    return html.replace('<meta property="og:type"', tags + '<meta property="og:type"', 1)
+
 def wrap_standalone(html):
     """Turn the artifact body into a complete, self-describing document."""
     head = ('<!doctype html>\n<html lang="en">\n<head>\n'
@@ -119,9 +135,14 @@ def main():
                 sys.exit(f"build: web output is missing {marker}")
         if '"demand"' in web.split("</script>")[0]:
             sys.exit("build: web output still inlines the demand data")
+        # Social previews need an absolute URL to a real image — a data URI is
+        # not fetchable by the crawler, and a relative path is not resolved by
+        # most of them. So the file is copied out and the URL is built from the
+        # configured site address.
+        shutil.copyfile(ROOT / "src/assets/og.png", ROOT / "dist" / "og.png")
         (ROOT / "dist" / "demand.json").write_text(
             json.dumps(load("dot_db1c.json"), separators=(",", ":")), encoding="utf-8")
-        targets.append(("dist/index.html", wrap_standalone(web)))
+        targets.append(("dist/index.html", inject_site_urls(wrap_standalone(web))))
     if args.target in ("artifact", "both"):
         targets.append(("dist/artifact.html", html))
     if args.target == "standalone":

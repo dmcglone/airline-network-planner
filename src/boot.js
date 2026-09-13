@@ -76,7 +76,24 @@ fillSelects(); drawTabs(); M=build();
 if(typeof markCommitted==="function") markCommitted();
 // Nobody has been here before: offer a network to start from rather than
 // opening on somebody else's 404-route airline with no explanation.
-if(!sawSavedState){ welcomeOpen = true; drawWelcome(); }
+/* A shared link is the most specific thing anyone can arrive with: it beats
+   saved state and it means they are not a first-time visitor needing the
+   picker. Loading it is async, so the page is already built and on screen by
+   the time it swaps in. */
+if(typeof stateFromHash === "function"){
+  stateFromHash().then(shared => {
+    if(!shared){
+      if(!sawSavedState){ welcomeOpen = true; drawWelcome(); }
+      return;
+    }
+    state = shared;
+    applyStationConfig(state); syncFeedModes(); reconcileGeom(state.fleet); applyBrand();
+    save(); M = build();
+    if(typeof fillSelects === "function") fillSelects();
+    draw(); markCommitted(); paintUndo();
+    toast(`Opened a shared airline — ${state.brand || "unnamed"}`);
+  });
+} else if(!sawSavedState){ welcomeOpen = true; drawWelcome(); }
 
 /* Demand arrives after the schedule is already on screen. Nothing waits for it:
    the engine never needed it, and the panels that do simply show no demand until

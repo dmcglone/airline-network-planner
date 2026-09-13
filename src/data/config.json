@@ -112,6 +112,8 @@
  "storageKey": "frontier-planner-v1",
  "site": {
   "name": "Airline Network Planner",
-  "short": "Planner"
- }
+  "short": "Planner",
+  "url": "https://airline-network-planner.daniel-mcglone.workers.dev"
+ },
+ "errorEndpoint": ""
 }

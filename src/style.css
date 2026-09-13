@@ -7,7 +7,8 @@
   --shadow:0 1px 2px rgba(15,26,36,.06),0 4px 14px rgba(15,26,36,.05);
   --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   --sans:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,sans-serif;
-  --disp:"Barlow Condensed","IBM Plex Sans",system-ui,sans-serif;
+  /* condensed where the machine has one, system sans otherwise */
+  --disp:"Barlow Condensed","Helvetica Neue",system-ui,-apple-system,"Segoe UI Semibold","Segoe UI",Roboto,sans-serif;
 }
 :root:not([data-theme="light"]){ @media (prefers-color-scheme: dark){
   --bg:#0B1117; --surface:#131C25; --surface-2:#182430; --ink:#E4EDF4; --ink-2:#9FB0BF;

@@ -2,12 +2,43 @@
 function guard(fn){                                   // never let one bad interaction kill the page
   try { fn(); }
   catch(err){
-    console.error(err);
-    toast("Something went wrong applying that change — it was rolled back");
+    reportError(err, "guard");
+    toast("Something went wrong applying that change — it was rolled back. " +
+          "Press the Model tab for what this tool does and does not do.");
     try { state=load(); M=build(); draw(); } catch(e2){ console.error(e2); }
   }
 }
-window.addEventListener("error", ev=>{ console.error(ev.error||ev.message); });
+/* Errors used to go to the console and nowhere else, which means a stranger
+   hitting a crash produces no signal anybody will ever see: "it works for me"
+   becomes the only available evidence.
+
+   The report is deliberately thin — message, where it happened, and which tab
+   was open. No state, because a network is the user's and may be identifying,
+   and nothing at all unless an endpoint is configured. If none is set, the
+   fallback is to make the error copyable so a person can send it if they care
+   enough, which is a great deal better than silence. */
+let lastErrText = "", errSent = 0;
+function reportError(err, where){
+  const msg = (err && (err.stack || err.message)) || String(err);
+  lastErrText = `${where}: ${msg}\n  tab=${typeof tab!=="undefined"?tab:"?"}`
+              + `\n  routes=${(state&&state.routes||[]).length} types=${(state&&state.fleet||[]).length}`
+              + `\n  ${navigator.userAgent}`;
+  console.error(where, err);
+  const url = (typeof CFG!=="undefined" && CFG.errorEndpoint) || "";
+  if(url && errSent < 5){                       // a loop must not become a flood
+    errSent++;
+    try{
+      navigator.sendBeacon(url, new Blob([JSON.stringify({
+        message: String(msg).slice(0,1200), where,
+        tab: typeof tab!=="undefined"?tab:null,
+        routes: (state&&state.routes||[]).length,
+        ua: navigator.userAgent, at: new Date().toISOString()
+      })], {type:"application/json"}));
+    }catch(e){}
+  }
+}
+window.addEventListener("error", ev => reportError(ev.error || ev.message, "window"));
+window.addEventListener("unhandledrejection", ev => reportError(ev.reason, "promise"));
 document.addEventListener("input", e=>{
   const t=e.target;
   if(t.dataset && t.dataset.i!==undefined && t.dataset.t){
@@ -60,6 +91,7 @@ document.addEventListener("change", e=>{
 $("#btnUndo").addEventListener("click", doUndo);
 $("#btnRedo").addEventListener("click", doRedo);
 $("#btnStartOver") && $("#btnStartOver").addEventListener("click", ()=>{ welcomeOpen=true; drawWelcome(); });
+$("#btnShare").addEventListener("click", ()=>{ doShare(); });
 $("#btnAirline").addEventListener("click", ()=>{
   airlineOpen = !airlineOpen; drawAirline();
   if(airlineOpen){ const f=$("#alName"); if(f) f.focus(); }
