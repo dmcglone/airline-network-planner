@@ -25,13 +25,14 @@ function drawAirline(){
     + ` value="${esc(state.brand || BRAND.name)}"></label>`
     + `<label>Code<input id="alCode" maxlength="2" class="code" style="width:64px;text-transform:uppercase"`
     + ` value="${esc(code)}"></label>`
-    + `<label>Design day<input id="alDay" maxlength="24" style="width:170px"`
+    + `<label>Design day label<input id="alDay" maxlength="24" style="width:170px"`
     + ` value="${esc(state.designDay || BRAND.designDay || "")}"></label>`
     + `<button class="btn" id="alDone">Done</button>`
     + `<button class="btn sm" id="btnStartOver">Start a different airline</button>`
     + `<span class="dim" style="font-size:12.5px;padding-bottom:6px">`
     + `The code prefixes every flight number. It follows the name until you change it,`
-    + ` then it is yours.</span>`
+    + ` then it is yours. The design day is a caption: the schedule is one representative `
+    + `day and nothing reads the date.</span>`
     + `</div>`;
 
   $("#alName").addEventListener("input", e=>{

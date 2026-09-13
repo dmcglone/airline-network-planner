@@ -111,6 +111,15 @@ move the acceptance metrics, because the schedule genuinely changes — so the
 design day stays the reference case and the metrics stay pinned to it. A season
 other than the design day is a scenario, not a new baseline.
 
+**A date picker belongs with this item, not before it.** The Airline panel has a
+design day field and the obvious suggestion is to make it a calendar picker. It
+should not become one until this lands. Nothing reads the date today: it is a
+caption on a schedule that represents one generic day. A picker sitting beside a
+Season column full of real monthly data would imply it drives that data, and
+somebody would choose a January date, see identical demand and conclude the
+seasonality is fabricated. Once demand scales by month, the picker is the right
+control and the caption becomes a real input.
+
 ## 6. Gate caps as a constraint
 
 Peak gates are computed by interval-graph colouring and then reported. Nothing
