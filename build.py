@@ -35,6 +35,7 @@ def gen_net():
     return "\n".join([block("net", net), block("cfg", load("config.json")),
                       block("fleet", load("fleet.json")),
                       block("frames", load("airframes.json")),
+                      block("starters", load("starters.json")),
                       block("econ", load("economics.json")),
                       block("intl", load("intl_demand.json"))])
 

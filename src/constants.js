@@ -77,6 +77,8 @@ const flightNo = fn => airlineCode() + " " + fn;
 
 const validCode = s => /^[A-Z0-9]{2}$/.test(String(s||"").toUpperCase());
 
+const STARTERS = (()=>{ try { return JSON.parse(document.getElementById("starters").textContent).starters || []; }
+                        catch(e){ return []; } })();
 const FRAMES = (()=>{ try { return JSON.parse(document.getElementById("frames").textContent).frames || []; }
                       catch(e){ return []; } })();
 /* The airframes that ship with the planner. A type the user adds is not in

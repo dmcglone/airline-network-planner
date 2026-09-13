@@ -1,0 +1,13 @@
+{
+ "note": "Starting networks offered on first run. A starter is a small, complete, legal airline: something a stranger can read in one screen and immediately change. The shipped example network is deliberately NOT one of these — it is too large to see your own fingerprints in.",
+ "schema": {
+  "id": "short slug, used by loadStarter()",
+  "name": "what the picker calls it",
+  "blurb": "one line on what this starter is for and what it teaches",
+  "brand": "placeholder airline name, expected to be overwritten immediately",
+  "code": "two-letter designator to match",
+  "state": "partial state overlaid on baseline(): stations, roles, routes, roster, feed, spacing, redeye, spare",
+  "expect": "metrics this starter must produce. verify.py asserts these and that all ten checks pass. A starter with no expect block is a starter that can rot silently."
+ },
+ "starters": []
+}

@@ -62,6 +62,32 @@ function applyStationConfig(st){
   for(const k in ROLE) if(!STA.includes(k)) delete ROLE[k];
 }
 
+/* Load a starting network.
+
+   A starter is a partial state overlaid on baseline(): it names its stations,
+   their roles, its routes and its roster, and inherits everything else. That
+   keeps a starter small and means a new state field does not have to be added
+   to every starter file to avoid breaking them.
+
+   Nothing is fetched — the starters ship inside the page like the fleet and the
+   airport data, so this is a state swap and a rebuild. */
+function loadStarter(id){
+  const s = (typeof STARTERS !== "undefined" ? STARTERS : []).find(x => x.id === id);
+  if(!s) return false;
+  const next = baseline();
+  Object.assign(next, JSON.parse(JSON.stringify(s.state || {})));
+  if(s.brand) next.brand = s.brand;
+  if(s.code){ next.code = s.code; next.codeSetByUser = false; }
+  // a starter names its own bases, so the roles and the feed follow from it
+  next.stations = (next.stations || STA).slice();
+  next.roles = Object.assign({}, next.roles);
+  state = next;
+  applyStationConfig(state);
+  syncFeedModes();
+  reconcileGeom(state.fleet);
+  return true;
+}
+
 function load(){
   try{ const s = localStorage.getItem(KEY); if(s){ const p = JSON.parse(s); if(p&&p.routes&&p.fleet){ if(!p.feed) p.feed={SJC:1,PIT:1,MCO:1,RDU:0,DEN:0}; if(!p.spacing) p.spacing='balanced'; if(!p.roster) p.roster=Object.assign({},FLEET_PINNED); if(p.spare===undefined) p.spare=0.08; if(p.redeye===undefined) p.redeye=1;
         if(p.v!==2){                                     // one-time: seed the default red-eye markets
