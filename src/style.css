@@ -266,3 +266,58 @@ tfoot td{padding:8px 10px;border-top:1px solid var(--line);font-weight:600;backg
 .wc-name{ font-family:var(--disp); font-size:16px; font-weight:600; }
 .wc-facts{ font-family:var(--mono); font-size:11px; letter-spacing:.04em; color:var(--accent); }
 .wc-blurb{ font-size:12.5px; line-height:1.5; color:var(--ink-2); }
+
+/* ---------- narrow screens ----------
+   Triage, not a redesign. On a phone the header stacked into eight rows of
+   buttons and ten stacked metrics, so the whole first screen was chrome and no
+   content was visible at all. The aim here is that every tab is reachable and
+   nothing is clipped — the dense tables stay dense and scroll sideways, which
+   is the right answer for a data grid on a small screen. */
+@media (max-width: 760px){
+  header .bar{ flex-wrap:nowrap; overflow-x:auto; gap:7px; padding:8px 10px;
+    scrollbar-width:none; }
+  header .bar::-webkit-scrollbar{ display:none; }
+  header .bar > *{ flex:0 0 auto; }
+  .mark span{ font-size:15px }
+  .planning-sep{ display:none }
+  .planning-label{ display:none }
+  .planning b{ font-size:14px }
+  .tag{ display:none }                 /* design day: reference, not navigation */
+  .btn{ padding:7px 11px; font-size:12.5px }
+
+  /* one scrolling line of metrics rather than a ten-row block */
+  .kpis{ display:flex; flex-wrap:nowrap; overflow-x:auto; gap:0;
+    scrollbar-width:none; }
+  .kpis::-webkit-scrollbar{ display:none; }
+  .kpi{ flex:0 0 auto; min-width:112px; padding:8px 13px }
+  .kpi .v{ font-size:19px }
+
+  /* the tabs are the only way around the app, so keep them in reach */
+  .tabs{ position:sticky; top:0; z-index:20; background:var(--surface);
+    border-bottom:1px solid var(--line); overflow-x:auto; scrollbar-width:none; }
+  .tabs::-webkit-scrollbar{ display:none; }
+  .tab{ flex:0 0 auto }
+  .tabgap{ display:none }
+
+  .panel{ margin:10px 8px }
+  /* a select sized to its longest option, and inline chips in the Model tab,
+     were each pushing the page a few dozen pixels wider than the screen */
+  select, input[type=text], input:not([type]){ max-width:100% }
+  .toolbar{ flex-wrap:wrap }
+  .mkt{ flex-wrap:wrap }
+  .chip{ max-width:100%; white-space:normal }
+  .pad{ padding:12px 13px }
+  h2{ font-size:16px }
+
+  /* anything that lays out in columns gets one */
+  /* the picker is a stranger's first screen, so it has to fit one */
+  #welcome{ padding:10px 8px; align-items:stretch }
+  .welcome-inner{ padding:16px 15px 12px }
+  .welcome-inner h2{ font-size:19px }
+  .welcome-inner > .note{ font-size:12.5px; line-height:1.5 }
+  .welcome-grid{ grid-template-columns:1fr; gap:9px; margin:12px 0 6px }
+  .welcome-card{ padding:11px 12px; gap:4px }
+  .wc-name{ font-size:14.5px }
+  .wc-blurb{ font-size:12px; line-height:1.45 }
+  #airlinePanel .row{ gap:10px; padding:10px 12px }
+}
