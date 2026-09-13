@@ -1,11 +1,43 @@
 /* ---------- demand ---------- */
 // Three interchangeable sources behind one interface. Gravity ships with the app; DOT is a real
 // importer for BTS DB1B / T-100 exports; custom is the hook for licensed O&D data.
-const DEM = RAW.demand || {size:{},beta:1.2,k:1};
-const DOT = (DEM.dot && DEM.dot.rows) ? DEM.dot : null;
+/* The demand file is the biggest thing the page loads and the engine does not
+   need it: a schedule is built from routes, fleet and geography. On the web it
+   therefore arrives AFTER first paint, and everything here has to work with it
+   absent — returning no demand rather than throwing — until it lands.
+
+   DEM and DOT are `let` for exactly that reason. The artifact build inlines the
+   data and never calls loadDemand(), so both paths end up in the same place. */
+let DEM = RAW.demand || {size:{}, beta:1.2, k:1};
+let DOT = (DEM.dot && DEM.dot.rows) ? DEM.dot : null;
+let demandReady = !!DOT;
+
+function loadDemand(){
+  if(demandReady || !RAW.demandUrl) return Promise.resolve(false);
+  return fetch(RAW.demandUrl, {cache:"force-cache"})
+    .then(r => r.ok ? r.json() : Promise.reject(new Error("HTTP "+r.status)))
+    .then(j => {
+      DEM = Object.assign({}, DEM, j);
+      DOT = (DEM.dot && DEM.dot.rows) ? DEM.dot : null;
+      demandReady = !!DOT;
+      // the labels were built while DOT was null, so rebuild them
+      if(DOT){
+        DEMAND_SOURCES.dot.label = `US DOT DB1C — ${DOT.period}`;
+        DEMAND_SOURCES.dot.note  = dotNote(DOT);
+      }
+      return true;
+    })
+    .catch(e => { console.warn("demand data unavailable", e); return false; });
+}
+
+const dotNote = D => `Real origin-and-destination passengers and fares from the US DOT DB1C `
+  + `Market files covering ${D.period} — ${fmt(D.sampled)} sampled tickets at a 40% sample rate, `
+  + `grossed up and expressed per direction per day across ${fmt(D.markets)} markets, with a `
+  + `monthly demand curve for each. Where a market is not in the sample (international, or under `
+  + `about 3 passengers a day) the gravity model fills in.`;
 const DEMAND_SOURCES = {
-  dot:     {label: DOT?`US DOT DB1C — ${DOT.period}`:"US DOT (none loaded)", unit:"pax/day",
-            note: DOT?`Real origin-and-destination passengers and fares from the US DOT DB1C Market files covering ${DOT.period} — ${fmt(DOT.sampled)} sampled tickets at a 40% sample rate, grossed up and expressed per direction per day across ${fmt(DOT.markets)} markets, with a monthly demand curve for each. Where a market is not in the sample (international, or under about 3 passengers a day) the gravity model fills in.`:"No DOT file loaded."},
+  dot:     {label: DOT?`US DOT DB1C — ${DOT.period}`:"US DOT — loading…", unit:"pax/day",
+            note: DOT?dotNote(DOT):"The demand file is still loading."},
   gravity: {label:"Gravity model (no real data)", unit:"index",
             note:"Estimates demand from airport size and distance with no ticket data at all. Checked against the real DB1C figures it explains about half the variance (r² 0.52), ranks two markets correctly 75% of the time, and is typically out by a factor of 7. Useful for ordering candidates, not for sizing a route."},
   custom:  {label:"Licensed demand data", unit:"pax/day",

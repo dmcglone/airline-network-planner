@@ -77,6 +77,12 @@ if(typeof markCommitted==="function") markCommitted();
 // Nobody has been here before: offer a network to start from rather than
 // opening on somebody else's 404-route airline with no explanation.
 if(!sawSavedState){ welcomeOpen = true; drawWelcome(); }
+
+/* Demand arrives after the schedule is already on screen. Nothing waits for it:
+   the engine never needed it, and the panels that do simply show no demand until
+   it lands and then redraw. */
+if(typeof loadDemand === "function")
+  loadDemand().then(ok => { if(ok){ draw(); } });
 $("#bAp").value = M.apStats["PHL"] ? "PHL — "+AP["PHL"][0] : "";
 // The board opened at PHL and fell back to SJC, both of which are just stations
 // this airline happened to have. Fall back to whatever the network actually

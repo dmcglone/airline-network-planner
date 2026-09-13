@@ -26,12 +26,26 @@ def block(tag, obj):
     body = json.dumps(obj, separators=(",", ":"), sort_keys=True).replace("</", "<\\/")
     return f'<script type="application/json" id="{tag}">{body}</script>'
 
-def gen_net():
+def gen_net(defer_demand=False):
+    """Assemble the data blocks that ship inside the page.
+
+    The DB1C demand file is 192 KB gzipped, over half the compressed payload,
+    and the engine does not need it: a schedule is built from routes, fleet and
+    geography. It only feeds the demand column, the Grow tab and the revenue
+    model. So the web build leaves it out of the document and fetches it after
+    first paint, which roughly halves time-to-interactive on a slow connection.
+
+    The artifact build still inlines it, because a body-only fragment pasted
+    into another page has nowhere reliable to fetch a sibling file from.
+    """
     state = json.loads((ROOT / "network.json").read_text(encoding="utf-8"))["state"]
     net = {"airports": load("airports.json"),
            "routes":   state["routes"],
-           "stations": load("stations.json"),
-           "demand":   load("dot_db1c.json")}
+           "stations": load("stations.json")}
+    if defer_demand:
+        net["demandUrl"] = "demand.json"
+    else:
+        net["demand"] = load("dot_db1c.json")
     return "\n".join([block("net", net), block("cfg", load("config.json")),
                       block("fleet", load("fleet.json")),
                       block("frames", load("airframes.json")),
@@ -44,11 +58,12 @@ def gen_geo():
 
 GENERATED = {"@net": gen_net, "@geo": gen_geo}
 
-def build():
+def build(defer_demand=False):
     out = []
     for rel in json.load(open(ROOT / "src/manifest.json")):
         if rel in GENERATED:
-            out.append(GENERATED[rel]())
+            fn = GENERATED[rel]
+            out.append(fn(defer_demand) if fn is gen_net else fn())
             continue
         p = ROOT / rel
         if not p.exists():
@@ -79,7 +94,7 @@ def main():
                     help="web: dist/index.html, a complete document for a web server. "
                          "artifact: dist/artifact.html, body-only for the Artifact tool.")
     args = ap.parse_args()
-    html = build()
+    html = build(defer_demand=False)
     # A truncated publish once shipped a dead artifact. Never again silently.
     for marker in ('id="net"', 'id="geo"', 'id="cfg"', 'id="fleet"',
                    "function drawMap", "function exportState", "function build("):
@@ -90,7 +105,18 @@ def main():
     (ROOT / "dist").mkdir(exist_ok=True)
     targets = []
     if args.target in ("web", "both"):
-        targets.append(("dist/index.html", wrap_standalone(html)))
+        # the web page fetches the demand file after first paint
+        web = build(defer_demand=True)
+        # A truncated web page shipped once. Check the parts that make the
+        # deferred build different, not just the ones the artifact shares.
+        for marker in ('id="net"', "function build(", "demandUrl", "function loadDemand"):
+            if marker not in web:
+                sys.exit(f"build: web output is missing {marker}")
+        if '"demand"' in web.split("</script>")[0]:
+            sys.exit("build: web output still inlines the demand data")
+        (ROOT / "dist" / "demand.json").write_text(
+            json.dumps(load("dot_db1c.json"), separators=(",", ":")), encoding="utf-8")
+        targets.append(("dist/index.html", wrap_standalone(web)))
     if args.target in ("artifact", "both"):
         targets.append(("dist/artifact.html", html))
 
