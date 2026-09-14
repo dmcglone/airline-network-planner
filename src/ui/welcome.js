@@ -86,15 +86,10 @@ function welcomeEvent(t){
   } else if(!loadStarter(id)){
     return true;
   }
-  applyStationConfig(state); syncFeedModes(); applyBrand();
   welcomeOpen = false; drawWelcome();
-  // AFTER the swap, not before. pushUndo stores `committed` — the state as of
-  // the last finished build — and skips when nothing has changed yet, so
-  // calling it ahead of the mutation records nothing at all.
-  pushUndo("starting over");
-  save(); M = build();
-  if(typeof fillSelects === "function") fillSelects();
-  draw(); markCommitted(); paintUndo();
+  // swapNetwork pushes the undo snapshot after the swap, which is the only order
+  // that works: it stores the state as of the last finished build.
+  swapNetwork(() => {}, "starting over");
   const s = (typeof STARTERS !== "undefined" ? STARTERS : []).find(x => x.id === id);
   toast(s ? `Started from ${s.name.toLowerCase()}. Rename it in the Airline panel`
           : "Network loaded");

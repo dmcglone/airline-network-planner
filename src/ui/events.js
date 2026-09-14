@@ -228,11 +228,36 @@ $("#btnTheme").onclick=()=>{
   const dark=cur ? cur==="dark" : matchMedia("(prefers-color-scheme: dark)").matches;
   document.documentElement.setAttribute("data-theme", dark?"light":"dark");
 };
+/* Replacing the whole network, in one place.
+
+   Several paths swap every route, station and aircraft type at once: the first-
+   run picker, Revert to baseline, Import state, Undo. Each one was doing its own
+   sequence of applyStationConfig / syncFeedModes / reconcileGeom / build / save /
+   fillSelects / draw, and each one remembered a different subset. Revert forgot
+   fillSelects, so the Add route dropdowns kept offering the PREVIOUS network's
+   stations and gauges while the table below showed the new routes.
+
+   The steps are order-dependent and there is no reason for four copies of them.
+   Anything that replaces the network calls this. */
+function swapNetwork(mutate, label){
+  if(label) pushUndo(label);
+  mutate();
+  applyStationConfig(state);
+  if(typeof syncFeedModes === "function") syncFeedModes();
+  if(typeof reconcileGeom === "function") reconcileGeom(state.fleet);
+  applyBrand();
+  M = build();
+  save();
+  fillSelects();                      // stations and gauges, or the form lies
+  draw();
+  if(typeof markCommitted === "function") markCommitted();
+  if(typeof paintUndo === "function") paintUndo();
+}
+
 $("#btnReset").onclick=()=>{
   if(!confirm("Discard your edits and return to the baseline network?")) return;
-  pushUndo("revert to baseline");          // a full wipe is the thing you most want back
-  state=baseline(); applyStationConfig(state); applyBrand();
-  M=build(); save(); draw(); toast("Reverted to the baseline network");
+  swapNetwork(() => { state = baseline(); }, "revert to baseline");
+  toast("Reverted to the baseline network");
 };
 $("#btnCopy").onclick=async()=>{
   const lines=["origin,dest,destination_name,days_per_week,"+TYPES.join(",")+",flights_per_day,distance_nm,red_eye"];
@@ -598,11 +623,7 @@ function drawStateImport(){
     let parsed; try{ parsed = JSON.parse(txt); }
     catch(err){ $("#importStatus").textContent = "That is not valid JSON."; return; }
     try{
-      pushUndo("import");
-      importState(parsed);
-      M = build(); save();
-      if(typeof fillSelects === "function") fillSelects();
-      draw(); markCommitted(); paintUndo();
+      swapNetwork(() => importState(parsed), "import");
       $("#stateImport").hidden = true;
       toast(`Imported ${state.routes.length} routes`);
     }catch(err){ $("#importStatus").textContent = String(err.message || err); }
