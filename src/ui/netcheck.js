@@ -101,99 +101,125 @@ function trialWithRoute(a){
   } finally { state.routes = keep; }
 }
 
-let netCheck = null;              // {sig, html}: the last result, while it still applies
-const netSig = a => [a.o, a.d, a.t, a.n, a.w, a.red ? 1 : 0, state.routes.length,
-                     JSON.stringify(state.routes).length].join("|");
+/* The check runs by itself once the form settles. It is a full rebuild, a second
+   or so on a large network, and it holds the page while it runs, so it waits for
+   typing to stop rather than running on every keystroke. Results are cached per
+   form state and dropped whenever the network itself changes. */
+const NETCHECK_DELAY = 500;
+let netTimer = null;
+let netCache = {m: null, map: new Map()};
 
-function runNetCheck(){
-  const a = addFormValues();
-  if(!a.d || !AP[a.d]) return;
-  const host = $("#netCheck"); if(!host) return;
-  host.innerHTML = `<div class="nc-busy">Rebuilding your schedule with ${esc(a.o)}–${esc(a.d)} added…</div>`;
-  // Let the message paint before the rebuild holds the thread.
-  setTimeout(() => {
-    let html;
+const netSig = a => [a.o, a.d, a.t, a.n, a.w, a.red ? 1 : 0].join("|");
+
+function netCached(a){
+  if(netCache.m !== M) netCache = {m: M, map: new Map()};
+  return netCache.map.get(netSig(a)) || null;
+}
+
+function scheduleNetCheck(a){
+  clearTimeout(netTimer);
+  netTimer = setTimeout(() => {
+    const now = addFormValues();
+    if(netSig(now) !== netSig(a) || $("#addRow").hidden) return;   // form moved on
+    let R;
     try{
       const before = netSnapshot(M, a.o, a.d);
       const after = trialWithRoute(a);
-      html = (before && after) ? netCheckHTML(a, before, after)
-        : `<div class="nc-busy">The economics could not be computed for this network.</div>`;
+      R = (before && after) ? netResult(before, after) : {err: "The economics could not be computed for this network."};
     } catch(err){
       console.error("network check failed", err);
-      html = `<div class="nc-busy">The rebuild failed: ${esc(err.message || String(err))}</div>`;
+      R = {err: `The network check failed: ${err.message || err}`};
     }
-    netCheck = {sig: netSig(a), html};
-    host.innerHTML = html;
-    const btn = document.querySelector("[data-netcheck]");
-    if(btn) btn.textContent = "Check again";
-  }, 30);
+    netCached(a);                                 // make sure the cache belongs to this M
+    netCache.map.set(netSig(a), R);
+    if(netCache.map.size > 40) netCache.map.delete(netCache.map.keys().next().value);
+    addInfo();
+  }, NETCHECK_DELAY);
 }
 
-function netCheckHTML(a, B, A){
-  const sgn = (n, f) => (n > 0.5 ? "+" : n < -0.5 ? "−" : "±") + f(Math.abs(n));
-  const $k = n => moneyK(n).replace("−", "");
+/* The comparison, as numbers. */
+function netResult(B, A){
   const I = A.iso;
-
   // Revenue with the rest of the schedule held still; cost of the flights added.
   const pairRev = I.pairRev - B.pair.rev;
   const dRev = I.rev - B.rev;
-  const restRev = dRev - pairRev;
   const pairCost = A.pair.direct - B.pair.direct;
-  const net = dRev - pairCost;
-  const dConn = I.conn - B.conn, dPax = I.pax - B.pax;
-
-  // Aircraft and gates come from the full rebuild: those are real requirements.
-  const dTails = A.tails - B.tails, dGates = A.gates - B.gates;
-  const moreShort = A.short - B.short;
-  // Ownership and overhead scale with the cost the route adds, at the network's ratio.
   const allocRatio = B.direct ? B.alloc / B.direct : 1;
-  const netAlloc = dRev - pairCost * allocRatio;
-  const existed = B.pair.deps > 0;
+  return {
+    net: dRev - pairCost,
+    netAlloc: dRev - pairCost * allocRatio,
+    pairRev, pairCost, restRev: dRev - pairRev,
+    dPax: I.pax - B.pax, dConn: I.conn - B.conn,
+    // Aircraft, gates and checks come from the full rebuild: real requirements.
+    dTails: A.tails - B.tails, surplus: [B.surplus, A.surplus],
+    short: A.short, moreShort: A.short - B.short,
+    dGates: A.gates - B.gates, fails: [B.fails, A.fails],
+    existed: B.pair.deps > 0
+  };
+}
 
-  const tone = net < 0 ? "bad" : (netAlloc < 0 || moreShort > 0) ? "warn" : "ok";
-  const head = net < 0
-    ? `Your network earns about ${money(Math.round(-net / 100) * 100)} a day less`
-    : `Your network earns about ${money(Math.round(net / 100) * 100)} a day more`;
+const netSgn = (n, f) => (n > 0.5 ? "+" : n < -0.5 ? "−" : "±") + f(Math.abs(n));
+const netK = n => moneyK(n).replace("−", "");
+
+function netTone(R){
+  return R.net < 0 ? "bad" : (R.netAlloc < 0 || R.moreShort > 0) ? "warn" : "ok";
+}
+
+function netBanner(R){
+  const tone = netTone(R);
+  const head = R.net < 0
+    ? `Your network earns about ${money(Math.round(-R.net / 100) * 100)} a day less`
+    : `Your network earns about ${money(Math.round(R.net / 100) * 100)} a day more`;
   const why = [];
-  if(restRev > 250)
-    why.push(`${$k(restRev)} of revenue lands on flights you already fly, from passengers this route feeds.`);
-  else if(restRev < -250)
-    why.push(`It takes ${$k(-restRev)} a day from flights you already fly, mostly passengers you were connecting.`);
-  if(moreShort > 0)
-    why.push(`You don't have the aircraft: ${fmt(moreShort)} more rotation${moreShort === 1 ? "" : "s"} couldn't be flown.`);
-  else if(net >= 0 && netAlloc < 0)
+  if(R.restRev > 250)
+    why.push(`${netK(R.restRev)} of that lands on flights you already fly, from passengers this route feeds.`);
+  else if(R.restRev < -250)
+    why.push(`It takes ${netK(-R.restRev)} a day from flights you already fly, mostly passengers you were connecting.`);
+  if(R.moreShort > 0)
+    why.push(`You don't have the aircraft: ${fmt(R.moreShort)} more rotation${R.moreShort === 1 ? "" : "s"} couldn't be flown.`);
+  else if(R.net >= 0 && R.netAlloc < 0)
     why.push(`It covers direct cost but not ownership and overhead.`);
+  return {tone, head, why};
+}
 
+/* The aircraft card that sits with demand and load factor. */
+function netAircraftCard(R, pending){
+  if(pending || !R || R.err)
+    return `<div class="rv-m"><div class="rv-l">Aircraft</div><div class="rv-v dim">…</div>`
+      + `<div class="rv-n">${pending ? "checking your fleet" : "not available"}</div></div>`;
+  const bad = R.moreShort > 0;
+  return `<div class="rv-m"><div class="rv-l">Aircraft</div>`
+    + `<div class="rv-v${bad ? " bad" : ""}">${netSgn(R.dTails, fmt)}</div>`
+    + `<div class="rv-n${bad ? " bad" : ""}">${bad
+        ? `short by ${fmt(R.short)} rotation${R.short === 1 ? "" : "s"}`
+        : `surplus ${fmt(R.surplus[0])} → ${fmt(R.surplus[1])}`}</div></div>`;
+}
+
+/* The breakdown, including what the quick read said about the route alone. */
+function netBreakdown(R, A){
   const row = (label, value, note, cls) =>
     `<div class="nc-row"><div class="nc-l">${label}</div>`
     + `<div class="nc-v${cls ? " " + cls : ""}">${value}</div><div class="nc-n">${note || ""}</div></div>`;
-
+  const pairNet = R.pairRev - R.pairCost;
+  const alone = A && A.contrib != null
+    ? `; local passengers alone ${A.contrib < 0 ? "−" : "+"}${netK(A.contrib)}` : "";
   const rows = [
-    row(existed ? "This market, change" : "This route", `${sgn(pairRev, $k)} rev`,
-        `${sgn(pairCost, $k)} direct cost`),
-    row("Rest of your network", `${sgn(restRev, $k)} rev`,
-        restRev >= 0 ? "fed onto flights you already fly" : "taken from flights you already fly",
-        restRev < -250 ? "bad" : ""),
-    row("Passengers", `${sgn(dPax, v => fmt(Math.round(v)))} a day`,
-        `${sgn(dConn, v => fmt(Math.round(v)))} connecting, network-wide`),
-    row("Aircraft", sgn(dTails, fmt),
-        moreShort > 0 ? `short by ${fmt(A.short)} rotation${A.short === 1 ? "" : "s"}`
-                      : `surplus ${fmt(B.surplus)} → ${fmt(A.surplus)}`,
-        moreShort > 0 ? "bad" : ""),
-    row("Gates", sgn(dGates, fmt), "summed across stations"),
-    row("Checks", A.fails > B.fails ? "worse" : "unchanged",
-        A.fails ? `${fmt(A.fails)} of ten failing${B.fails ? `, was ${fmt(B.fails)}` : ""}` : "all ten pass",
-        A.fails > B.fails ? "bad" : ""),
-    row("Fully allocated", `${sgn(netAlloc, $k)} a day`, "after ownership and overhead",
-        netAlloc < 0 ? "bad" : "")
+    row(R.existed ? "This market, change" : "This route", `${netSgn(pairNet, netK)} a day`,
+        `${netK(R.pairRev)} rev with connections, ${netK(R.pairCost)} direct cost${alone}`,
+        pairNet < 0 ? "bad" : ""),
+    row("Rest of your network", `${netSgn(R.restRev, netK)} rev`,
+        R.restRev >= 0 ? "fed onto flights you already fly" : "taken from flights you already fly",
+        R.restRev < -250 ? "bad" : ""),
+    row("Passengers", `${netSgn(R.dPax, v => fmt(Math.round(v)))} a day`,
+        `${netSgn(R.dConn, v => fmt(Math.round(v)))} connecting, network-wide`),
+    row("Gates", netSgn(R.dGates, fmt), "summed across stations"),
+    row("Checks", R.fails[1] > R.fails[0] ? "worse" : "unchanged",
+        R.fails[1] ? `${fmt(R.fails[1])} of ten failing${R.fails[0] ? `, was ${fmt(R.fails[0])}` : ""}` : "all ten pass",
+        R.fails[1] > R.fails[0] ? "bad" : ""),
+    row("Fully allocated", `${netSgn(R.netAlloc, netK)} a day`, "after ownership and overhead",
+        R.netAlloc < 0 ? "bad" : "")
   ].join("");
-
-  const icon = tone === "bad" ? "▲" : tone === "warn" ? "●" : "✓";
-  return `<div class="rv-banner ${tone}"><span class="rv-icon" aria-hidden="true">${icon}</span><div>`
-    + `<div class="rv-head">${head}</div>`
-    + (why.length ? `<div class="rv-why">${why.join(" ")}</div>` : "")
-    + `</div></div>`
-    + `<div class="nc-grid">${rows}</div>`
+  return `<div class="nc-grid">${rows}</div>`
     + `<details class="nc-how"><summary>How this is measured</summary><div>`
     + `Revenue is your current schedule with this market's flights added, so every other flight `
     + `stays where it is. Aircraft, gates and checks come from rebuilding the whole day with the `

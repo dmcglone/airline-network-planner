@@ -137,7 +137,6 @@ document.addEventListener("click", e=>{
     if(b && b.dataset && b.dataset.hint){
     dismissHint(true); if(b.dataset.hint === "open") goTab("model"); return;
   }
-  if(b && b.dataset && b.dataset.netcheck){ runNetCheck(); return; }
   if(b && b.dataset && b.dataset.fit){ const g=$("#nT"); if(g){ g.value=b.dataset.fit; addInfo(); } return; }
   if(b && b.dataset && b.dataset.bank){ bankStation = b.dataset.bank; drawBanks(); return; }
   if(b && b.dataset && b.dataset.gloss){ showGlossTerm(b.dataset.gloss); return; }
@@ -323,7 +322,7 @@ function fillSelects(){
    quiet substitution this project keeps refusing to make. */
 function routeVerdict(o, d, t, freq){
   const A = routeAnalysis(o, d, t, freq);
-  return A ? verdictHTML(A) : "";
+  return A ? verdictHTML(A) : "";   // the quick read alone; addInfo adds the network
 }
 
 /* The numbers behind the verdict, kept apart from how they are drawn. */
@@ -399,12 +398,13 @@ const durHM = min => `${Math.floor(min/60)}h${String(Math.round(min)%60).padStar
 /* Answer first, then the three numbers that decide it, then the one picture that
    puts local and connecting traffic on the same axis. Colour comes from the
    money, so a healthy side-signal never paints a losing route green. */
-function verdictHTML(A){
+/* The quick read: what the route looks like on its own, from its own demand and
+   cost. Returned as parts so the panel can put the network answer on top once it
+   arrives, and keep these numbers underneath as the explanation. */
+function quickVerdict(A){
   if(!A.has)
-    return `<div class="rv-banner warn"><div class="rv-head">No demand estimate</div>`
-      + `<div class="rv-why">Nothing in the data reaches this market, so the planner can't say `
-      + `whether anyone wants it.</div></div>`;
-
+    return {tone: "warn", head: "No demand estimate",
+            why: [`Nothing in the data reaches this market, so the planner can't say whether anyone wants it.`]};
   const pct = x => `${Math.round(x * 100)}%`;
   const hasMoney = A.contrib != null;
   const tone = hasMoney
@@ -412,12 +412,11 @@ function verdictHTML(A){
     : (A.lf < 0.5 ? "warn" : "ok");
 
   let head;
-  if(hasMoney && A.contrib < 0) head = `Loses about ${money(Math.round(-A.contrib / 100) * 100)} a day`;
-  else if(hasMoney && tone === "warn") head = `Covers its direct cost, but flies ${pct(A.lf)} full`;
-  else if(hasMoney) head = `Earns about ${money(Math.round(A.contrib / 100) * 100)} a day over direct cost`;
+  if(hasMoney && A.contrib < 0) head = `Loses about ${money(Math.round(-A.contrib / 100) * 100)} a day on its own`;
+  else if(hasMoney && tone === "warn") head = `Covers its direct cost on its own, but flies ${pct(A.lf)} full`;
+  else if(hasMoney) head = `Earns about ${money(Math.round(A.contrib / 100) * 100)} a day on its own`;
   else head = tone === "warn" ? `Flies ${pct(A.lf)} full` : `Fills ${pct(A.lf)} of the seats`;
 
-  // Why, in one or two sentences.
   const why = [];
   if(A.already){
     if(A.spillBefore > A.spilled + 0.5)
@@ -431,42 +430,50 @@ function verdictHTML(A){
     else if(A.lf < 0.2) why.push(`Almost no local demand.`);
     else if(A.lf < 0.5) why.push(`Local demand fills under half the seats.`);
   }
-  const op = A.opened && A.opened.markets ? A.opened : null;
-  // Connecting passengers the aircraft could actually seat, per direction.
-  const connSeat = op ? Math.max(0, Math.min(op.each, A.offered - Math.min(A.each, A.offered))) : 0;
-  if(op && hasMoney && A.contrib < 0){
-    // Judge on money, not seats: a connecting passenger pays this leg only a
-    // prorated share of their fare, so filling seats is not covering cost.
-    const connRev = op.each ? op.rev * (connSeat / op.each) : 0;
-    const gap = A.cost - A.rev;
-    const share = op.rev ? gap / op.rev : Infinity;      // of the whole connecting market
-    if(A.rev + connRev < A.cost)
-      why.push(`Connections help the network, but even at their ceiling they wouldn't cover this route's cost.`);
-    else
-      why.push(`Connecting traffic could cover the gap if this route won about `
-        + `${share < 0.01 ? "1" : Math.ceil(share * 100)}% of the connecting market it opens.`);
-  } else if(op && A.lf < 0.5){
-    why.push((A.each + connSeat) / A.offered < 0.5
-      ? `Connections help the network but can't fill this aircraft.`
-      : `Connecting traffic could fill it, if the schedule captures it.`);
-  } else if(op){
-    why.push(`Also opens ${fmt(op.markets)} connecting market${op.markets === 1 ? "" : "s"} `
-      + `through ${esc(A.o)}, about ${fmt(Math.round(op.pax))} passengers a day in total.`);
-  } else if(A.hubNoConn){
+  if(A.hubNoConn)
     why.push(`Nothing connects through ${esc(A.o)} to ${esc(A.d)}, so it earns only its own traffic.`);
-  }
+  return {tone, head, why};
+}
 
-  const icon = tone === "bad" ? "▲" : tone === "warn" ? "●" : "✓";
-  const banner = `<div class="rv-banner ${tone}"><span class="rv-icon" aria-hidden="true">${icon}</span>`
-    + `<div><div class="rv-head">${head}</div>`
-    + (why.length ? `<div class="rv-why">${why.join(" ")}</div>` : "") + `</div></div>`;
+function bannerHTML(v, extra){
+  const icon = v.tone === "bad" ? "▲" : v.tone === "warn" ? "●" : v.tone === "ok" ? "✓" : "…";
+  const why = (v.why || []).join(" ");
+  return `<div class="rv-banner ${v.tone}"><span class="rv-icon" aria-hidden="true">${icon}</span><div>`
+    + (v.label ? `<div class="rv-label">${v.label}</div>` : "")
+    + `<div class="rv-head">${v.head}</div>`
+    + (why ? `<div class="rv-why">${why}</div>` : "")
+    + (extra || "") + `</div></div>`;
+}
 
-  // The three numbers.
+/* net: undefined when no check applies, "pending" while it runs, or a result. */
+function verdictHTML(A, net){
+  const q = quickVerdict(A);
+  const pending = net === "pending";
+  const R = net && net !== "pending" ? net : null;
+
+  let banner;
+  if(R && !R.err) banner = bannerHTML(netBanner(R));
+  else if(pending)
+    banner = bannerHTML({tone: "pending", label: "First look, this route on its own",
+      head: q.head, why: q.why},
+      `<div class="rv-checking">Checking against your network…</div>`);
+  else banner = bannerHTML(q, R && R.err ? `<div class="rv-why">${esc(R.err)}</div>` : "");
+
+  if(!A.has) return banner + (R && !R.err ? netBreakdown(R, A) : "");
+
+  const pct = x => `${Math.round(x * 100)}%`;
   const lfTone = A.lf < 0.5 ? " bad" : "";
-  const mTone = hasMoney && A.contrib < 0 ? " bad" : "";
   const seatsNote = A.already
     ? `${fmt(A.already)} → ${fmt(A.offered)} seats each way`
     : `${fmt(A.offered)} seats each way`;
+  const third = net === undefined
+    ? (A.contrib != null
+        ? `<div class="rv-m"><div class="rv-l">On its own</div>`
+          + `<div class="rv-v${A.contrib < 0 ? " bad" : ""}">${A.contrib < 0 ? "" : "+"}${moneyK(A.contrib)}</div>`
+          + `<div class="rv-n">${moneyK(A.rev)} rev · ${moneyK(A.cost)} direct cost</div></div>`
+        : `<div class="rv-m"><div class="rv-l">On its own</div><div class="rv-v dim">—</div>`
+          + `<div class="rv-n">no fare or cost basis</div></div>`)
+    : netAircraftCard(R, pending);
   const metrics = `<div class="rv-metrics">`
     + `<div class="rv-m"><div class="rv-l">Local demand</div>`
       + `<div class="rv-v">${fmt(Math.round(A.each))}<small>/day</small></div>`
@@ -475,17 +482,14 @@ function verdictHTML(A){
     + `<div class="rv-m"><div class="rv-l">Load factor</div>`
       + `<div class="rv-v${lfTone}">${pct(A.lf)}</div>`
       + `<div class="rv-n">${A.spilled >= 1 ? `turns away ${fmt(Math.round(A.spilled))} a day` : seatsNote}</div></div>`
-    + (hasMoney
-      ? `<div class="rv-m"><div class="rv-l">Contribution</div>`
-        + `<div class="rv-v${mTone}">${A.contrib < 0 ? "" : "+"}${moneyK(A.contrib)}</div>`
-        + `<div class="rv-n">${A.already ? `${fmt(Math.round(A.gained))} more pax · ` : ""}`
-        + `${moneyK(A.rev)} rev · ${moneyK(A.cost)} direct cost</div></div>`
-      : `<div class="rv-m"><div class="rv-l">Contribution</div><div class="rv-v dim">—</div>`
-        + `<div class="rv-n">no fare or cost basis</div></div>`)
-    + `</div>`;
+    + third + `</div>`;
 
   // Local and connecting traffic on one axis. The connecting part is a ceiling:
   // the whole market, before competition or timing, so it is hatched and says so.
+  const op = A.opened && A.opened.markets ? A.opened : null;
+  // The bar shows how full the route is, which the network verdict says nothing
+  // about, so it is drawn neutral rather than in the verdict's colour.
+  const tone = "local";
   const localW = A.lf * 100;
   const connW = op ? Math.max(0, Math.min(100 - localW, op.each / A.offered * 100)) : 0;
   const more = op ? op.markets - op.top.length : 0;
@@ -503,14 +507,17 @@ function verdictHTML(A){
     + `</div></div>`;
 
   // A downgauge nudge on a route that already pays and fills is noise.
-  const showFit = A.fit && !(tone === "ok" && A.fit.seats < A.seats);
+  // Judged on the route's own economics: a network loss from cannibalisation is
+  // not a sign the aircraft is the wrong size.
+  const good = q.tone === "ok";
+  const showFit = A.fit && !(good && A.fit.seats < A.seats);
   const fit = showFit
     ? `<div class="rv-fit">A ${A.fit.seats < A.seats ? "smaller" : "larger"} gauge fits `
       + `demand of ${fmt(Math.round(A.each))} a day better. `
       + `<button class="btn sm" data-fit="${esc(A.fit.t)}">Try ${esc(A.fit.t)}, ${fmt(A.fit.seats)} seats</button></div>`
     : "";
 
-  return banner + metrics + bar + fit;
+  return banner + metrics + bar + fit + (R && !R.err ? netBreakdown(R, A) : "");
 }
 
 function addInfo(){
@@ -522,6 +529,9 @@ function addInfo(){
   const rv=redeyeInfo(o,d,t);
   const exists=state.routes.find(r=>(r.o===o&&r.d===d)||(r.o===d&&r.d===o));
   const short = SPEC[t] && nm > SPEC[t].rng;
+  // Set the overnight option's visibility first: the form values read it.
+  const rb=$("#nRedWrap");
+  if(rb){ rb.hidden=!rv.ok; $("#nRedLbl").textContent = rv.ok ? `${rv.from}→${rv.to}` : ""; }
 
   const header = `<div class="rv-title"><span class="rv-pair">${esc(o)} → ${esc(d)}</span>`
     + `<span class="rv-sub">${esc(AP[d][0])}, ${esc(cityOf(d))} · ${fmt(nm)} nm · `
@@ -539,9 +549,15 @@ function addInfo(){
       + `<div class="rv-why">${fmt(nm - SPEC[t].rng)} nm short. In range: ${esc(ok.join(", "))}.</div>`
       + `</div></div>`
       + `<div class="rv-fit"><button class="btn sm" data-fit="${esc(ok[0])}">Try ${esc(ok[0])}</button></div>`;
-  else
-    body = routeVerdict(o, d, t, +($("#nN")||{}).value || 1);
-
+  else {
+    // The quick read shows at once; the network check follows when typing stops,
+    // and its answer becomes the verdict.
+    const a = addFormValues();
+    const A = routeAnalysis(o, d, t, a.n);
+    const R = netCached(a);
+    if(!R) scheduleNetCheck(a);
+    body = A ? verdictHTML(A, R || "pending") : "";
+  }
   const details = `<details class="rv-details"><summary>Route details`
     + ` <span class="dim">in range for ${fmt(ok.length)} type${ok.length===1?"":"s"}</span></summary>`
     + `<div>${fmt(nm)} nm (${fmt(nm*SM)} statute miles), block ${durHM(blk(o,d,t))} on ${esc(t)}.<br>`
@@ -552,23 +568,13 @@ function addInfo(){
   const red = rv.ok
     ? `<span class="rv-red">Red-eye viable, ${hhmm(rv.dep)} to ${hhmm(rv.arr)}</span>` : "";
 
-  // The full check is a rebuild, so it runs on request, and a result is only
-  // shown while the form still describes the route it was run for.
-  const canCheck = ok.length && !short && typeof runNetCheck === "function";
-  const sig = canCheck ? netSig(addFormValues()) : "";
-  const kept = netCheck && netCheck.sig === sig ? netCheck.html : "";
-  const check = canCheck
-    ? `<div class="nc"><div class="nc-bar"><button class="btn sm" data-netcheck="1">`
-      + `${kept ? "Check again" : "Check against my network"}</button>`
-      + `<span class="dim">Rebuilds your whole schedule with this route and compares.</span></div>`
-      + `<div id="netCheck">${kept}</div></div>`
-    : "";
-
-  box.innerHTML = `<div class="rv-card">${header}${body}${check}`
+  // Keep the details panel open across the re-render that the check triggers.
+  const wasOpen = !!(box.querySelector(".rv-details") || {}).open;
+  const howOpen = !!(box.querySelector(".nc-how") || {}).open;
+  box.innerHTML = `<div class="rv-card">${header}${body}`
     + `<div class="rv-foot">${details}${red}</div></div>`;
-
-  const rb=$("#nRedWrap");
-  if(rb){ rb.hidden=!rv.ok; $("#nRedLbl").textContent = rv.ok ? `${rv.from}→${rv.to}` : ""; }
+  if(wasOpen) box.querySelector(".rv-details").open = true;
+  if(howOpen && box.querySelector(".nc-how")) box.querySelector(".nc-how").open = true;
 }
 $("#btnAdd").onclick=()=>{ $("#addRow").hidden=false; $("#nD").focus(); addInfo(); };
 $("#btnAddCancel").onclick=()=>{ $("#addRow").hidden=true; addDest=null; $("#nD").value=""; };
@@ -627,7 +633,7 @@ $("#btnAddGo").onclick=()=>{
   applyAddRoute(state.routes, a);
   const {o, d, t, n}=a;
   addDest=null; $("#nD").value=""; $("#nRed").checked=false; $("#addRow").hidden=true;
-  netCheck=null;
+  clearTimeout(netTimer);
   M=build(); save(); draw(); toast("Added "+o+"–"+d+" · "+n+"× "+t);
 };
 
