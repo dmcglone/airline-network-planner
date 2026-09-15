@@ -137,6 +137,7 @@ document.addEventListener("click", e=>{
     if(b && b.dataset && b.dataset.hint){
     dismissHint(true); if(b.dataset.hint === "open") goTab("model"); return;
   }
+  if(b && b.dataset && b.dataset.fit){ const g=$("#nT"); if(g){ g.value=b.dataset.fit; addInfo(); } return; }
   if(b && b.dataset && b.dataset.bank){ bankStation = b.dataset.bank; drawBanks(); return; }
   if(b && b.dataset && b.dataset.gloss){ showGlossTerm(b.dataset.gloss); return; }
   if(b && b.dataset && b.dataset.help){ helpSection = b.dataset.help; drawModel(); return; }
@@ -320,18 +321,22 @@ function fillSelects(){
    confident-looking contribution built on the gravity model is exactly the
    quiet substitution this project keeps refusing to make. */
 function routeVerdict(o, d, t, freq){
-  if(!SPEC[t] || !AP[o] || !AP[d]) return "";
+  const A = routeAnalysis(o, d, t, freq);
+  return A ? verdictHTML(A) : "";
+}
+
+/* The numbers behind the verdict, kept apart from how they are drawn. */
+function routeAnalysis(o, d, t, freq){
+  if(!SPEC[t] || !AP[o] || !AP[d]) return null;
   const dem = demandOf(o, d);
   const nm = dist(o, d), seats = SPEC[t].seats || 0;
   const adding = seats * (freq || 1);
 
-  /* Already flying this market changes the question. "Adding will merge into it"
-     describes the mechanics and answers nothing: what matters is what the market
-     looks like afterwards. A second daily on a route already turning people away
-     is a different decision from a second daily on one flying half empty, and
-     the form should be able to tell them apart. */
+  /* Already flying this market changes the question. What matters is what the
+     market looks like afterwards: a second daily on a route already turning
+     people away is a different decision from one on a route flying half empty. */
   const cur = (state.routes || []).find(r => (r.o===o && r.d===d) || (r.o===d && r.d===o));
-  let already = 0, curDesc = [];
+  let already = 0; const curDesc = [];
   if(cur){
     for(const x of TYPES){
       const n = +cur.mix[x] || 0;
@@ -341,132 +346,214 @@ function routeVerdict(o, d, t, freq){
     }
   }
   const offered = already + adding;
+  const A = {o, d, t, nm, seats, offered, already, curDesc, real: !!dem.real, has: !!dem.v};
+  if(!dem.v) return A;
 
   // Demand is a market total in both directions; a departure carries one way.
   const each = dem.v / 2;
-  const fare = dem.fare || (typeof FARE_A !== "undefined"
-                            ? FARE_A * Math.pow(nm, FARE_B) : null);
+  A.each = each;
+  A.lf = offered ? Math.min(1, each / offered) : 0;
+  A.spilled = Math.max(0, each - offered);
+
+  if(already){
+    A.lfBefore = Math.min(1, each / already);
+    A.spillBefore = Math.max(0, each - already);
+  }
+
+  const fare = dem.fare || (typeof FARE_FIT !== "undefined" ? FARE_FIT.a * Math.pow(nm, FARE_FIT.b) : null);
   const cost = econFlightCost(t, blk(o, d, t) / 60);
-
-  const bits = [], flags = [];
-  if(already){
-    bits.push(`you fly <b>${esc(curDesc.join(" + "))}</b> here already`);
-    bits.push(`<b>${fmt(already)}</b> → <b>${fmt(offered)}</b> seats a day each way`);
-  } else {
-    bits.push(`<b>${fmt(offered)}</b> seat${offered === 1 ? "" : "s"} a day each way`);
-  }
-
-  if(!dem.v){
-    flags.push(`<span class="chip warn">no demand estimate</span> nothing in the data `
-      + `reaches this market, so the planner cannot say whether anyone wants it`);
-    return `${bits.join(" · ")}<br>${flags.join(" ")}`;
-  }
-
-  const lf = offered ? Math.min(1, each / offered) : 0;
-  bits.push(`demand <b>${fmt(Math.round(each))}</b> a day`
-    + (dem.real ? ` <span class="chip ok">measured</span>`
-                : ` <span class="chip warn">estimated</span>`));
-  bits.push(`fills <b>${(lf * 100).toFixed(0)}%</b>`);
-  // "fills 100%" on its own hides the more interesting half: how many people
-  // wanted the flight and could not have it.
-  const spilled = Math.max(0, each - offered);
-  if(spilled >= 1)
-    bits.push(`turns away <b>${fmt(Math.round(spilled))}</b> a day`);
-
-  if(already){
-    const before = Math.min(1, each / already);
-    const spillBefore = Math.max(0, each - already);
-    const spillAfter  = Math.max(0, each - offered);
-    // Compare SPILL, not load factor. A market already full stays at 100% after
-    // you add to it, so a load-factor test never fires on exactly the routes
-    // where adding capacity does the most good.
-    if(spillBefore > spillAfter + 0.5)
-      flags.push(`<span class="chip ok">soaks up spill</span> you turn away `
-        + `${fmt(Math.round(spillBefore))} a day now, `
-        + `${fmt(Math.round(spillAfter))} after`);
-    else if(before > 0.55 && lf < 0.45)
-      flags.push(`<span class="chip warn">dilutes it</span> the market fills `
-        + `${(before*100).toFixed(0)}% on what you fly today and `
-        + `${(lf*100).toFixed(0)}% after this`);
-  }
-
   if(fare && cost){
-    // Carried passengers, not demand: a full aircraft turns the rest away.
-    // On a market already served, price the ADDITION: the passengers the extra
-    // seats actually pick up, against what the extra departures cost. Pricing
-    // the whole market would credit this decision with revenue the existing
-    // flights already earn.
-    const carriedBefore = Math.min(each, already);
-    const carriedAfter = Math.min(each, offered);
-    const gained = carriedAfter - carriedBefore;
-    const rev = gained * fare * 2;                        // both directions
-    const dayCost = cost.direct * 2 * (freq || 1);
-    const contrib = rev - dayCost;
-    bits.push((already ? `the extra seats pick up <b>${fmt(Math.round(gained*2))}</b> `
-                       + `passengers: ≈ <b>${money(Math.round(rev))}</b>`
-                        : `≈ <b>${money(Math.round(rev))}</b> revenue`)
-      + ` vs ${money(Math.round(dayCost))} direct cost`);
-    // Direct cost only: no ownership, no overhead. Saying "profit" here would
-    // overstate it by roughly the share the Economics tab allocates on top.
-    flags.push(contrib >= 0
-      ? `<span class="chip ok">covers its direct cost</span> about `
-        + `${money(Math.round(contrib))} a day of contribution, before ownership `
-        + `and overhead`
-      : `<span class="chip bad">below direct cost</span> about `
-        + `${money(Math.round(-contrib))} a day short before ownership is even counted`);
+    // Carried passengers, not demand. On a market already served, price the
+    // ADDITION: pricing the whole market would credit this decision with revenue
+    // the existing flights already earn. Direct cost only, before ownership and
+    // overhead, so this is contribution and never "profit".
+    const gained = Math.min(each, offered) - Math.min(each, already);
+    A.gained = gained * 2;
+    A.rev = gained * fare * 2;
+    A.cost = cost.direct * 2 * (freq || 1);
+    A.contrib = A.rev - A.cost;
   }
 
-  if(lf < 0.5 && offered)
-    flags.push(`<span class="chip warn">thin</span> you would fly it `
-      + `${(lf * 100).toFixed(0)}% full at this gauge`);
-
-  // Which of your fleet fits the demand best, in range, nearest without spilling
+  // Which of your fleet fits the demand best, in range.
   const fits = TYPES.filter(x => SPEC[x] && nm <= SPEC[x].rng && SPEC[x].seats)
     .map(x => ({t:x, seats:SPEC[x].seats, gap:Math.abs(SPEC[x].seats - each)}))
     .sort((a, b) => a.gap - b.gap);
   if(fits.length && fits[0].t !== t && Math.abs(fits[0].seats - each) < Math.abs(seats - each) * 0.7)
-    flags.push(`<span class="chip">${esc(fits[0].t)} fits closer</span> `
-      + `${fmt(fits[0].seats)} seats against demand of ${fmt(Math.round(each))}`);
+    A.fit = fits[0];
 
-  // A spoke on a hub is worth its own traffic plus what it connects to.
-  const opened = (typeof connectionsOpened === "function") ? connectionsOpened(o, d) : null;
-  if(opened && opened.markets){
-    flags.push(`<span class="chip ok">opens ${fmt(opened.markets)} connecting market`
-      + `${opened.markets === 1 ? "" : "s"}</span> about `
-      + `${fmt(Math.round(opened.pax))} more passengers a day could reach your network `
-      + `through ${esc(o)}, biggest ${opened.top.map(x => esc(x.s)).join(", ")}`);
-  } else if((ROLE[o] === "Hub" || ROLE[o] === "Focus") && (state.routes || []).length > 2){
-    flags.push(`<span class="chip warn">no connections</span> nothing you already fly from `
-      + `${esc(o)} can route through it to ${esc(d)} without a detour, so this is worth only `
-      + `its own traffic`);
+  A.opened = (typeof connectionsOpened === "function") ? connectionsOpened(o, d) : null;
+  A.hubNoConn = !(A.opened && A.opened.markets)
+    && (ROLE[o] === "Hub" || ROLE[o] === "Focus") && (state.routes || []).length > 2;
+  return A;
+}
+
+const moneyK = n => {
+  const a = Math.abs(n), s = n < 0 ? "−" : "";
+  if(a >= 1e6) return `${s}$${(a/1e6).toFixed(1)}m`;
+  if(a >= 1e4) return `${s}$${(a/1e3).toFixed(1)}k`;
+  return s + "$" + fmt(Math.round(a));
+};
+const durHM = min => `${Math.floor(min/60)}h${String(Math.round(min)%60).padStart(2,"0")}`;
+
+/* Answer first, then the three numbers that decide it, then the one picture that
+   puts local and connecting traffic on the same axis. Colour comes from the
+   money, so a healthy side-signal never paints a losing route green. */
+function verdictHTML(A){
+  if(!A.has)
+    return `<div class="rv-banner warn"><div class="rv-head">No demand estimate</div>`
+      + `<div class="rv-why">Nothing in the data reaches this market, so the planner can't say `
+      + `whether anyone wants it.</div></div>`;
+
+  const pct = x => `${Math.round(x * 100)}%`;
+  const hasMoney = A.contrib != null;
+  const tone = hasMoney
+    ? (A.contrib < 0 ? "bad" : A.lf < 0.5 ? "warn" : "ok")
+    : (A.lf < 0.5 ? "warn" : "ok");
+
+  let head;
+  if(hasMoney && A.contrib < 0) head = `Loses about ${money(Math.round(-A.contrib / 100) * 100)} a day`;
+  else if(hasMoney && tone === "warn") head = `Covers its direct cost, but flies ${pct(A.lf)} full`;
+  else if(hasMoney) head = `Earns about ${money(Math.round(A.contrib / 100) * 100)} a day over direct cost`;
+  else head = tone === "warn" ? `Flies ${pct(A.lf)} full` : `Fills ${pct(A.lf)} of the seats`;
+
+  // Why, in one or two sentences.
+  const why = [];
+  if(A.already){
+    if(A.spillBefore > A.spilled + 0.5)
+      why.push(`Soaks up spill: you turn away ${fmt(Math.round(A.spillBefore))} a day now, `
+        + `${fmt(Math.round(A.spilled))} after.`);
+    else if(A.lfBefore > 0.55 && A.lf < 0.45)
+      why.push(`Dilutes the market: ${pct(A.lfBefore)} full today, ${pct(A.lf)} after this.`);
+  }
+  if(!why.length){
+    if(A.spilled >= 1) why.push(`More people want it than you'd seat.`);
+    else if(A.lf < 0.2) why.push(`Almost no local demand.`);
+    else if(A.lf < 0.5) why.push(`Local demand fills under half the seats.`);
+  }
+  const op = A.opened && A.opened.markets ? A.opened : null;
+  // Connecting passengers the aircraft could actually seat, per direction.
+  const connSeat = op ? Math.max(0, Math.min(op.each, A.offered - Math.min(A.each, A.offered))) : 0;
+  if(op && hasMoney && A.contrib < 0){
+    // Judge on money, not seats: a connecting passenger pays this leg only a
+    // prorated share of their fare, so filling seats is not covering cost.
+    const connRev = op.each ? op.rev * (connSeat / op.each) : 0;
+    const gap = A.cost - A.rev;
+    const share = op.rev ? gap / op.rev : Infinity;      // of the whole connecting market
+    if(A.rev + connRev < A.cost)
+      why.push(`Connections help the network, but even at their ceiling they wouldn't cover this route's cost.`);
+    else
+      why.push(`Connecting traffic could cover the gap if this route won about `
+        + `${share < 0.01 ? "1" : Math.ceil(share * 100)}% of the connecting market it opens.`);
+  } else if(op && A.lf < 0.5){
+    why.push((A.each + connSeat) / A.offered < 0.5
+      ? `Connections help the network but can't fill this aircraft.`
+      : `Connecting traffic could fill it, if the schedule captures it.`);
+  } else if(op){
+    why.push(`Also opens ${fmt(op.markets)} connecting market${op.markets === 1 ? "" : "s"} `
+      + `through ${esc(A.o)}, about ${fmt(Math.round(op.pax))} passengers a day in total.`);
+  } else if(A.hubNoConn){
+    why.push(`Nothing connects through ${esc(A.o)} to ${esc(A.d)}, so it earns only its own traffic.`);
   }
 
-  if(!dem.real)
-    flags.push(`<span class="dim">The gravity model is typically off by about seven times, `
-      + `so read this as an ordering rather than a number.</span>`);
+  const icon = tone === "bad" ? "▲" : tone === "warn" ? "●" : "✓";
+  const banner = `<div class="rv-banner ${tone}"><span class="rv-icon" aria-hidden="true">${icon}</span>`
+    + `<div><div class="rv-head">${head}</div>`
+    + (why.length ? `<div class="rv-why">${why.join(" ")}</div>` : "") + `</div></div>`;
 
-  return `${bits.join(" · ")}<br>${flags.join(" &nbsp; ")}`;
+  // The three numbers.
+  const lfTone = A.lf < 0.5 ? " bad" : "";
+  const mTone = hasMoney && A.contrib < 0 ? " bad" : "";
+  const seatsNote = A.already
+    ? `${fmt(A.already)} → ${fmt(A.offered)} seats each way`
+    : `${fmt(A.offered)} seats each way`;
+  const metrics = `<div class="rv-metrics">`
+    + `<div class="rv-m"><div class="rv-l">Local demand</div>`
+      + `<div class="rv-v">${fmt(Math.round(A.each))}<small>/day</small></div>`
+      + `<div class="rv-n${A.real ? "" : " warn"}">${A.real ? "Measured, DB1C"
+          : "Estimated, often off 7×"}</div></div>`
+    + `<div class="rv-m"><div class="rv-l">Load factor</div>`
+      + `<div class="rv-v${lfTone}">${pct(A.lf)}</div>`
+      + `<div class="rv-n">${A.spilled >= 1 ? `turns away ${fmt(Math.round(A.spilled))} a day` : seatsNote}</div></div>`
+    + (hasMoney
+      ? `<div class="rv-m"><div class="rv-l">Contribution</div>`
+        + `<div class="rv-v${mTone}">${A.contrib < 0 ? "" : "+"}${moneyK(A.contrib)}</div>`
+        + `<div class="rv-n">${A.already ? `${fmt(Math.round(A.gained))} more pax · ` : ""}`
+        + `${moneyK(A.rev)} rev · ${moneyK(A.cost)} direct cost</div></div>`
+      : `<div class="rv-m"><div class="rv-l">Contribution</div><div class="rv-v dim">—</div>`
+        + `<div class="rv-n">no fare or cost basis</div></div>`)
+    + `</div>`;
+
+  // Local and connecting traffic on one axis. The connecting part is a ceiling:
+  // the whole market, before competition or timing, so it is hatched and says so.
+  const localW = A.lf * 100;
+  const connW = op ? Math.max(0, Math.min(100 - localW, op.each / A.offered * 100)) : 0;
+  const more = op ? op.markets - op.top.length : 0;
+  const bar = `<div class="rv-bar-wrap">`
+    + `<div class="rv-bar-h"><span>Seats filled, per direction</span><span>${fmt(A.offered)} seats</span></div>`
+    + `<div class="rv-bar" role="img" aria-label="Local ${pct(A.lf)}`
+      + (op ? `, connecting ceiling ${Math.round(connW)}% more` : "") + `">`
+      + `<div class="rv-local ${tone}" style="width:${localW.toFixed(1)}%"></div>`
+      + (connW ? `<div class="rv-conn" style="width:${connW.toFixed(1)}%"></div>` : "")
+    + `</div>`
+    + `<div class="rv-legend"><span><i class="rv-sw ${tone}"></i>Local ${fmt(Math.round(A.each))}</span>`
+    + (op ? `<span><i class="rv-sw conn"></i>Connecting ceiling ${fmt(Math.round(op.each))}, via `
+        + op.top.map(x => esc(x.s)).join(", ")
+        + (more > 0 ? ` and ${fmt(more)} more` : "") + `</span>` : "")
+    + `</div></div>`;
+
+  // A downgauge nudge on a route that already pays and fills is noise.
+  const showFit = A.fit && !(tone === "ok" && A.fit.seats < A.seats);
+  const fit = showFit
+    ? `<div class="rv-fit">A ${A.fit.seats < A.seats ? "smaller" : "larger"} gauge fits `
+      + `demand of ${fmt(Math.round(A.each))} a day better. `
+      + `<button class="btn sm" data-fit="${esc(A.fit.t)}">Try ${esc(A.fit.t)}, ${fmt(A.fit.seats)} seats</button></div>`
+    : "";
+
+  return banner + metrics + bar + fit;
 }
 
 function addInfo(){
   const o=$("#nO").value, d=addDest;
   const box=$("#addInfo");
-  if(!d||!AP[d]){ box.innerHTML='<span class="dim">Pick a destination to see distance, block time and which gauges can make it.</span>'; return; }
+  if(!d||!AP[d]){ box.innerHTML='<span class="dim">Pick a destination to see distance, block time and whether the route is worth flying.</span>'; return; }
   const nm=dist(o,d), t=$("#nT").value;
   const ok=TYPES.filter(x=>nm<=SPEC[x].rng);
   const rv=redeyeInfo(o,d,t);
-  const redLine = rv.ok
-    ? `<span class="chip ok">red-eye viable</span> ${rv.from}→${rv.to}, depart <b>${hhmm(rv.dep)}</b>, land <b>${hhmm(rv.arr)}</b> next morning`
-    : `<span class="chip">no red-eye</span> ${esc(rv.why)}`;
-  const exists=state.routes.find(r=>r.o===o&&r.d===d);
-  box.innerHTML=`<b>${o}–${d}</b> ${esc(AP[d][0])}, ${esc(cityOf(d))} · <b>${fmt(nm)} nm</b> `
-    +`(${fmt(nm*SM)} sm) · block on ${t} <b>${(blk(o,d,t)/60).toFixed(2)} h</b> · `
-    +(ok.length?`in range for ${ok.join(", ")}`:`<span class="chip bad">no gauge in your fleet can make this</span>`)
-    +(nm>SPEC[t].rng?` · <span class="chip bad">${t} is ${fmt(nm-SPEC[t].rng)} nm short</span>`:"")
-    +(exists?` · <span class="chip warn">this route already exists, so adding will merge into it</span>`:"")
-    +`<br>${redLine}`
-    +(()=>{ const v = routeVerdict(o, d, t, +($("#nN")||{}).value || 1);
-            return v ? `<div class="verdict">${v}</div>` : ""; })();
+  const exists=state.routes.find(r=>(r.o===o&&r.d===d)||(r.o===d&&r.d===o));
+  const short = SPEC[t] && nm > SPEC[t].rng;
+
+  const header = `<div class="rv-title"><span class="rv-pair">${esc(o)} → ${esc(d)}</span>`
+    + `<span class="rv-sub">${esc(AP[d][0])}, ${esc(cityOf(d))} · ${fmt(nm)} nm · `
+    + `${durHM(blk(o,d,t))} on ${esc(t)}</span></div>`;
+
+  // Things that stop the route outright come before any verdict.
+  let body;
+  if(!ok.length)
+    body = `<div class="rv-banner bad"><span class="rv-icon" aria-hidden="true">▲</span><div>`
+      + `<div class="rv-head">Out of range for your whole fleet</div>`
+      + `<div class="rv-why">${fmt(nm)} nm is beyond every type you fly.</div></div></div>`;
+  else if(short)
+    body = `<div class="rv-banner bad"><span class="rv-icon" aria-hidden="true">▲</span><div>`
+      + `<div class="rv-head">${esc(t)} can't make it</div>`
+      + `<div class="rv-why">${fmt(nm - SPEC[t].rng)} nm short. In range: ${esc(ok.join(", "))}.</div>`
+      + `</div></div>`
+      + `<div class="rv-fit"><button class="btn sm" data-fit="${esc(ok[0])}">Try ${esc(ok[0])}</button></div>`;
+  else
+    body = routeVerdict(o, d, t, +($("#nN")||{}).value || 1);
+
+  const details = `<details class="rv-details"><summary>Route details`
+    + ` <span class="dim">in range for ${fmt(ok.length)} type${ok.length===1?"":"s"}</span></summary>`
+    + `<div>${fmt(nm)} nm (${fmt(nm*SM)} statute miles), block ${durHM(blk(o,d,t))} on ${esc(t)}.<br>`
+    + `In range: ${ok.length ? esc(ok.join(", ")) : "none of your fleet"}.`
+    + (exists ? `<br>You already fly this market, so adding merges into it.` : "")
+    + (rv.ok ? "" : `<br>No red-eye: ${esc(rv.why)}.`)
+    + `</div></details>`;
+  const red = rv.ok
+    ? `<span class="rv-red">Red-eye viable, ${hhmm(rv.dep)} to ${hhmm(rv.arr)}</span>` : "";
+
+  box.innerHTML = `<div class="rv-card">${header}${body}`
+    + `<div class="rv-foot">${details}${red}</div></div>`;
+
   const rb=$("#nRedWrap");
   if(rb){ rb.hidden=!rv.ok; $("#nRedLbl").textContent = rv.ok ? `${rv.from}→${rv.to}` : ""; }
 }

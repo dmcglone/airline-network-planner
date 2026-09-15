@@ -137,8 +137,12 @@ function connectionsOpened(hub, dest){
   if(ROLE[hub] !== "Hub" && ROLE[hub] !== "Focus") return null;
   const spokes = hubSpokes(hub);
   spokes.delete(dest);
-  let pax = 0, markets = 0, measured = 0;
+  // pax is the two-way market total. rev is what those passengers would pay THIS
+  // leg: their O&D fare prorated by mileage, the same way the revenue model
+  // splits a connecting fare across its legs.
+  let pax = 0, markets = 0, measured = 0, rev = 0;
   const top = [];
+  const legNm = dist(hub, dest);
   for(const s of spokes){
     if(!AP[s]) continue;
     const gc = dist(dest, s), via = dist(dest, hub) + dist(hub, s);
@@ -146,8 +150,10 @@ function connectionsOpened(hub, dest){
     const dem = demandOf(dest, s);
     if(!dem.v) continue;
     pax += dem.v; markets++; if(dem.real) measured++;
+    const fare = dem.fare || (typeof FARE_FIT !== "undefined" ? FARE_FIT.a * Math.pow(gc, FARE_FIT.b) : 0);
+    rev += dem.v * fare * (legNm / via);
     top.push({s, pax: dem.v});
   }
   top.sort((a, b) => b.pax - a.pax);
-  return {pax, markets, measured, top: top.slice(0, 3)};
+  return {pax, each: pax / 2, rev, markets, measured, top: top.slice(0, 3)};
 }
