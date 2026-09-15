@@ -42,22 +42,35 @@ function failsOf(m){
 }
 
 /* The numbers compared, for one built schedule. */
-function netSnapshot(m, o, d){
-  const E = econOf(m);
-  if(!E || E.err) return null;
+function netSnapshot(m, o, d, costOnly, t){
+  // The rebuilt schedule only supplies cost, fleet and gates, so its revenue
+  // model, the most expensive part of a check, is skipped for it.
+  const E = costOnly ? {cost: econModel(m)} : econOf(m);
+  if(!E || E.err || !E.cost) return null;
   const key = pairKey(o, d);
   const pair = {rev: 0, direct: 0, pax: 0, deps: 0};
   for(const {f, cost} of E.cost.flights){
     if(pairKey(f.o, f.d) !== key) continue;
-    pair.rev += E.rev.legrev.get(f.id) || 0;
-    pair.pax += E.rev.boarded.get(f.id) || 0;
+    if(E.rev){
+      pair.rev += E.rev.legrev.get(f.id) || 0;
+      pair.pax += E.rev.boarded.get(f.id) || 0;
+    }
     pair.direct += cost.direct;
     pair.deps++;
   }
   const T = m.totals;
+  // Aircraft and gates are read for what the route itself touches: its own type,
+  // and its own two airports. Rebuilding re-chains every rotation and re-colours
+  // every station's gates, so one added E175 turn can move the A320 requirement
+  // or a gate count at a station it never visits. That movement is the rebuild,
+  // not the route, the same way revenue is.
+  const ft = m.fleet.find(f => f.t === t) || {total: 0, short: 0, surplus: 0};
+  const gatesAt = m.stations.filter(s => s.code === o || s.code === d)
+    .reduce((x, s) => x + s.gates, 0);
   return {
-    rev: E.rev.stats.rev, direct: E.cost.totals.direct, alloc: E.cost.totals.allocated,
-    pax: E.rev.stats.pax, conn: E.rev.stats.conn,
+    typeTotal: ft.total, typeShort: ft.short, typeSurplus: ft.surplus, gatesAt,
+    rev: E.rev ? E.rev.stats.rev : null, direct: E.cost.totals.direct, alloc: E.cost.totals.allocated,
+    pax: E.rev ? E.rev.stats.pax : null, conn: E.rev ? E.rev.stats.conn : null,
     tails: T.totalFleet, surplus: T.surplus, short: T.shortRots,
     gates: T.gates, fails: failsOf(m), pair
   };
@@ -80,7 +93,11 @@ function isolatedRevenue(base, trial, o, d){
   const kept = base.flights.filter(f => pairKey(f.o, f.d) !== key);
   const added = trial.flights.filter(f => pairKey(f.o, f.d) === key)
     .map((f, i) => Object.assign({}, f, {id: 9e8 + i}));
-  const R = revenueModel({flights: kept.concat(added)});
+  // The same allocation revenueModel() runs, without its second "ceiling" pass,
+  // which this comparison never reads.
+  const F = kept.concat(added).map(f => Object.assign({}, f,
+    {seats: (SPEC[f.t] && SPEC[f.t].seats) || 0}));
+  const R = allocateDemand(F, buildItineraries(F), REV_COMPETITION, flightPremiums(F).prem);
   let pairRev = 0, pairPax = 0;
   for(const f of added){
     pairRev += R.legrev.get(f.id) || 0;
@@ -97,8 +114,8 @@ function trialWithRoute(a){
     state.routes = JSON.parse(JSON.stringify(keep));
     applyAddRoute(state.routes, a);
     const m = build();
-    const snap = netSnapshot(m, a.o, a.d);
-    if(snap) snap.iso = isolatedRevenue(M, m, a.o, a.d);
+    const snap = netSnapshot(m, a.o, a.d, true, a.t);
+    if(snap){ snap.iso = isolatedRevenue(M, m, a.o, a.d); snap.type = a.t; }
     return snap;
   } finally { state.routes = keep; }
 }
@@ -118,23 +135,33 @@ function netCached(a){
   return netCache.map.get(netSig(a)) || null;
 }
 
+/* Run a check now, or return the cached one. Shared by Add route and Grow, so a
+   suggestion checked on the Grow tab opens instantly in Add route. */
+function computeNetCheck(a){
+  const hit = netCached(a);
+  if(hit) return hit;
+  let R;
+  try{
+    const before = netSnapshot(M, a.o, a.d, false, a.t);
+    const after = trialWithRoute(a);
+    R = (before && after) ? netResult(before, after)
+      : {err: "The economics could not be computed for this network."};
+  } catch(err){
+    console.error("network check failed", err);
+    R = {err: `The network check failed: ${err.message || err}`};
+  }
+  netCached(a);                                   // make sure the cache belongs to this M
+  netCache.map.set(netSig(a), R);
+  if(netCache.map.size > 80) netCache.map.delete(netCache.map.keys().next().value);
+  return R;
+}
+
 function scheduleNetCheck(a){
   clearTimeout(netTimer);
   netTimer = setTimeout(() => {
     const now = addFormValues();
     if(netSig(now) !== netSig(a) || $("#addRow").hidden) return;   // form moved on
-    let R;
-    try{
-      const before = netSnapshot(M, a.o, a.d);
-      const after = trialWithRoute(a);
-      R = (before && after) ? netResult(before, after) : {err: "The economics could not be computed for this network."};
-    } catch(err){
-      console.error("network check failed", err);
-      R = {err: `The network check failed: ${err.message || err}`};
-    }
-    netCached(a);                                 // make sure the cache belongs to this M
-    netCache.map.set(netSig(a), R);
-    if(netCache.map.size > 40) netCache.map.delete(netCache.map.keys().next().value);
+    computeNetCheck(a);
     addInfo();
   }, NETCHECK_DELAY);
 }
@@ -153,9 +180,10 @@ function netResult(B, A){
     pairRev, pairCost, restRev: dRev - pairRev,
     dPax: I.pax - B.pax, dConn: I.conn - B.conn,
     // Aircraft, gates and checks come from the full rebuild: real requirements.
-    dTails: A.tails - B.tails, surplus: [B.surplus, A.surplus],
-    short: A.short, moreShort: A.short - B.short,
-    dGates: A.gates - B.gates, fails: [B.fails, A.fails],
+    type: A.type,
+    dTails: A.typeTotal - B.typeTotal, surplus: [B.typeSurplus, A.typeSurplus],
+    short: A.typeShort, moreShort: Math.max(0, A.typeShort - B.typeShort),
+    dGates: A.gatesAt - B.gatesAt, fails: [B.fails, A.fails],
     existed: B.pair.deps > 0
   };
 }
@@ -178,7 +206,7 @@ function netBanner(R){
   else if(R.restRev < -250)
     why.push(`It takes ${netK(-R.restRev)} a day from flights you already fly, mostly passengers you were connecting.`);
   if(R.moreShort > 0)
-    why.push(`You don't have the aircraft: ${fmt(R.moreShort)} more rotation${R.moreShort === 1 ? "" : "s"} couldn't be flown.`);
+    why.push(`You don't have the aircraft: it needs ${fmt(R.moreShort)} more ${esc(R.type)} than you own.`);
   else if(R.net >= 0 && R.netAlloc < 0)
     why.push(`It covers direct cost but not ownership and overhead.`);
   return {tone, head, why};
@@ -190,11 +218,11 @@ function netAircraftCard(R, pending){
     return `<div class="rv-m"><div class="rv-l">Aircraft</div><div class="rv-v dim">…</div>`
       + `<div class="rv-n">${pending ? "checking your fleet" : "not available"}</div></div>`;
   const bad = R.moreShort > 0;
-  return `<div class="rv-m"><div class="rv-l">Aircraft</div>`
+  return `<div class="rv-m"><div class="rv-l">${esc(R.type)} needed</div>`
     + `<div class="rv-v${bad ? " bad" : ""}">${netSgn(R.dTails, fmt)}</div>`
     + `<div class="rv-n${bad ? " bad" : ""}">${bad
-        ? `short by ${fmt(R.short)} rotation${R.short === 1 ? "" : "s"}`
-        : `surplus ${fmt(R.surplus[0])} → ${fmt(R.surplus[1])}`}</div></div>`;
+        ? `${fmt(R.moreShort)} more than you own`
+        : `spare ${fmt(Math.max(0, R.surplus[0]))} → ${fmt(Math.max(0, R.surplus[1]))}`}</div></div>`;
 }
 
 /* The breakdown, including what the quick read said about the route alone. */
@@ -214,7 +242,7 @@ function netBreakdown(R, A){
         R.restRev < -250 ? "bad" : ""),
     row("Passengers", `${netSgn(R.dPax, v => fmt(Math.round(v)))} a day`,
         `${netSgn(R.dConn, v => fmt(Math.round(v)))} connecting, network-wide`),
-    row("Gates", netSgn(R.dGates, fmt), "summed across stations"),
+    row("Gates", netSgn(R.dGates, fmt), "at the route's own airports, at peak"),
     row("Checks", R.fails[1] > R.fails[0] ? "worse" : "unchanged",
         R.fails[1] ? `${fmt(R.fails[1])} of ten failing${R.fails[0] ? `, was ${fmt(R.fails[0])}` : ""}` : "all ten pass",
         R.fails[1] > R.fails[0] ? "bad" : ""),
@@ -225,8 +253,9 @@ function netBreakdown(R, A){
     + `<details class="nc-how"><summary>How this is measured</summary><div>`
     + `Revenue is your current schedule with this market's flights added, so every other flight `
     + `stays where it is. Aircraft, gates and checks come from rebuilding the whole day with the `
-    + `route in it. Adding a route re-times flights across the network, and that reshuffle alone `
-    + `moves revenue between unrelated markets by more than most routes are worth, so it is left `
-    + `out. Competition is still one generic rival per market, so read gains as optimistic.`
+    + `route in it, counted for the route's own aircraft type and its own two airports. A rebuild `
+    + `re-times flights and re-chains aircraft across the whole network, which on its own moves `
+    + `revenue between unrelated markets, and aircraft between types the route never uses, by `
+    + `more than most routes are worth. That reshuffle is left out. Competition is still one generic rival per market, so read gains as optimistic.`
     + `</div></details>`;
 }
