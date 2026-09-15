@@ -19,6 +19,7 @@
  "src/ui/render.js",
  "src/ui/network.js",
  "src/ui/schedule.js",
+ "src/ui/banks.js",
  "src/ui/rotations.js",
  "src/ui/stations.js",
  "src/ui/fleet.js",

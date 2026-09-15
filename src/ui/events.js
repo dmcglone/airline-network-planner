@@ -92,6 +92,8 @@ $("#btnUndo").addEventListener("click", doUndo);
 $("#btnRedo").addEventListener("click", doRedo);
 $("#btnStartOver") && $("#btnStartOver").addEventListener("click", ()=>{ welcomeOpen=true; drawWelcome(); });
 $("#btnShare").addEventListener("click", ()=>{ doShare(); });
+$("#schedModeList").addEventListener("click", ()=>{ schedMode="list"; drawSched(); });
+$("#schedModeBanks").addEventListener("click", ()=>{ schedMode="banks"; drawSched(); });
 $("#btnAirline").addEventListener("click", ()=>{
   airlineOpen = !airlineOpen; drawAirline();
   if(airlineOpen){ const f=$("#alName"); if(f) f.focus(); }
@@ -135,6 +137,7 @@ document.addEventListener("click", e=>{
     if(b && b.dataset && b.dataset.hint){
     dismissHint(true); if(b.dataset.hint === "open") goTab("model"); return;
   }
+  if(b && b.dataset && b.dataset.bank){ bankStation = b.dataset.bank; drawBanks(); return; }
   if(b && b.dataset && b.dataset.gloss){ showGlossTerm(b.dataset.gloss); return; }
   if(b && b.dataset && b.dataset.help){ helpSection = b.dataset.help; drawModel(); return; }
   if(typeof welcomeEvent==="function" && welcomeEvent(b)) return;

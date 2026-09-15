@@ -83,6 +83,12 @@
     <div class="panel">
       <h2>Flight schedule <span class="sub" id="schedCount"></span></h2>
       <div class="toolbar">
+        <button class="btn sm on" id="schedModeList">List</button>
+        <button class="btn sm" id="schedModeBanks">Banks</button>
+      </div>
+      <div id="bankView" hidden></div>
+      <div id="listView">
+      <div class="toolbar">
         <input type="text" id="sq" class="grow" placeholder="Filter by flight number, airport or rotation…">
         <select id="sStation"><option value="">All origins</option></select>
         <select id="sType"><option value="">All gauges</option></select>
@@ -90,6 +96,7 @@
           <input type="checkbox" id="sRon"> Overnight legs only</label>
       </div>
       <div class="scroll"><table id="tSched"></table></div>
+      </div>
     </div>
     <p class="note">All times are local to the airport shown. <b>+1</b> means the flight arrives the following calendar day.
       Showing the first 400 matches; narrow the filter to see the rest.</p>

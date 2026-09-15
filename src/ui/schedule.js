@@ -1,5 +1,16 @@
 /* ----- schedule ----- */
+let schedMode = "list";
 function drawSched(){
+  // Two shapes for the same day. The list is for looking a flight up; the bank
+  // view is for asking whether a hub connects. Neither replaces the other.
+  const banks = schedMode === "banks";
+  const lv = $("#listView"), bv = $("#bankView");
+  if(lv) lv.hidden = banks;
+  if(bv) bv.hidden = !banks;
+  const ml = $("#schedModeList"), mb = $("#schedModeBanks");
+  if(ml) ml.classList.toggle("on", !banks);
+  if(mb) mb.classList.toggle("on", banks);
+  if(banks){ if(typeof drawBanks === "function") drawBanks(); return; }
   const q=$("#sq").value.trim().toUpperCase(), fs=$("#sStation").value, ft=$("#sType").value, ro=$("#sRon").checked;
   let rows=M.flights.filter(f=>{
     if(fs&&f.o!==fs) return false;

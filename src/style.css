@@ -373,3 +373,18 @@ tfoot td{padding:8px 10px;border-top:1px solid var(--line);font-weight:600;backg
 .connrow td{ padding-top:0; padding-bottom:10px; font-size:12.5px; line-height:1.6;
   color:var(--ink-2); border-top:0; }
 .connrow b{ color:var(--ink); }
+
+/* bank view */
+.bank{ border:1px solid var(--line-2); border-radius:9px; margin-bottom:11px; overflow:hidden; }
+.bank-head{ padding:8px 13px; background:var(--surface-2); border-bottom:1px solid var(--line-2);
+  font-size:13px; }
+.bank-head b{ font-family:var(--disp); font-size:15px; color:var(--accent); }
+.bank-cols{ display:grid; grid-template-columns:1fr 1fr; gap:0; }
+.bank-cols > div{ padding:9px 13px; }
+.bank-cols > div + div{ border-left:1px solid var(--line-2); }
+.bank-col-h{ font-family:var(--mono); font-size:10px; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--ink-3); margin-bottom:6px; }
+.mv{ font-size:12.5px; line-height:1.9; }
+.mv .mono{ color:var(--ink-3); margin-right:5px; }
+@media (max-width: 760px){ .bank-cols{ grid-template-columns:1fr }
+  .bank-cols > div + div{ border-left:0; border-top:1px solid var(--line-2) } }
