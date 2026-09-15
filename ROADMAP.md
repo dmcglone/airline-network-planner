@@ -154,10 +154,18 @@ competitor is not much of a decision.
 
 Snapshot two network states and diff the eight metrics plus the P&L side by side.
 
-**Why.** Every edit already triggers a full rebuild, so both states are directly
-comparable by construction — this is nearly free. It is also what turns the tool
-from "here is my network" into "here are two networks and here is what changed,"
-which is the difference between a report and a planner.
+**Why.** It is what turns the tool from "here is my network" into "here are two
+networks and here is what changed," which is the difference between a report
+and a planner.
+
+**Caution.** Two full rebuilds are *not* directly comparable, which an earlier
+version of this note claimed. A rebuild re-times flights across the whole day,
+and that reshuffle alone moves network revenue by a median of $18k a day (see
+"Known limitation: the schedule reshuffles" below). A diff of the P&L between
+two states therefore mixes the change with the reshuffle. Compare the way the
+network check does: revenue on one schedule with the changed markets swapped
+in, aircraft counted for the types that changed, gates at the airports that
+changed.
 
 **Where.** `state.js` (export/import already round-trips the whole thing) plus a
 new UI surface.
@@ -441,6 +449,71 @@ and 4 in the revenue layer, and is worth doing on its own merits. The seatmap
 half is the largest piece of UI on this list and should not start until the
 first half is in, or it will be a tool for discovering that seats are free.
 
+## Known limitation: the schedule reshuffles
+
+Investigated September 2026, on the shipped network. Decision: **accepted, not
+fixed.**
+
+**What happens.** A small edit re-plans much of the day. Across 72 edits (every
+Grow pick plus 40 random extra frequencies) the median edit re-timed 52 of
+1,650 flights and the worst 516, many by more than two hours; only 10 left the
+schedule untouched. Adding PIT-ABE re-timed 444.
+
+**Why.** `build()` is greedy and sequential:
+- a line's starting bank and stagger come from its position in the list
+  (`startbank = banks[(li-1)%3]`, `stag = (li%8)*6`), so one added turn
+  renumbers every line after it;
+- base|type pools are processed largest first, so adding a turn can reorder
+  them;
+- market spacing, RON caps, feed assignment and red-eye use carry from one pool
+  to the next, so a change at one base ripples into others.
+
+**What it costs.** Every rebuilt schedule is valid (all ten checks) and no less
+efficient, and its own totals are right. The damage is only in *comparing* two
+rebuilds:
+
+| Across 72 edits | |
+|---|---|
+| Median revenue effect of the edit itself | $21k/day |
+| Median distortion from the reshuffle | $18k/day (p90 $72k, max $170k) |
+| Reshuffle larger than the edit | 39 of 72 |
+| Reshuffle flipped gain vs loss | 13 of 72 |
+
+The same reshuffle moves aircraft requirements between types an edit never
+touches (adding AUS-DAL on an E175 asked for one more A319 and two more A320s)
+and gate counts at stations it never visits.
+
+**Where it is handled.** The network check (Add route, Grow) measures around
+it: revenue on the current schedule with only the changed market swapped in,
+aircraft for the added type, gates at the route's own airports. The Economics
+tab's before/after totals and the Board and Schedule tabs are still exposed.
+
+**What was tried and rejected.**
+- *A soft connection window* (weight ramping in over 20-30 min above MCT and
+  out before 240). Cut market-level churn only 7-16% and moved baseline
+  revenue $200-550k a day, so it would need recalibration. The revenue model
+  is not the problem: jittering every flight by up to a minute moves the total
+  under 0.1%, and one flight moved one minute changes it by a median of $11.
+- *Stable line identity plus a fixed pool order.* Looked like a 72% cut on the
+  8 edits it was tuned on; on 72 unseen edits it was 29%, and the hub starter
+  needed 3 more gates. Overfitted.
+
+**Why the real fix was not built.** An anchored rebuild, preferring each line's
+previous times where still valid, would work, but the schedule would stop being
+a function of the network alone. Shared and imported networks would rebuild
+differently for different people; `verify.py`, `engine.py` parity, undo,
+starters and the three copies of the state would all need the previous schedule
+as input; anchored schedules drift from what a fresh build would give, which
+brings back a "re-plan" button and the reshuffle with it; and the history is
+invisible to the user. For a planning tool rather than an operating airline,
+the reshuffle is forgivable as long as nothing presents it as the effect of an
+edit.
+
+**If it is revisited.** A small "what changed" readout after an edit ("your
+change +$79k/day; the rebuild also re-timed 64 flights, worth +$170k") would
+make the Economics tab honest without touching the engine. It reuses the
+network check's measurement.
+
 ## Carried forward
 
 Still open from before this list:
@@ -454,8 +527,11 @@ Still open from before this list:
   cannot represent a real airport with a curfew unless it shipped with one. The
   check label now reads the times from the table rather than naming SJC outright,
   so the reporting side is already ready for this.
-- Grow ranks on estimated contribution without a `trialBuild()`, by design — it
-  is too slow for several hundred candidates per base. A "verify top 3" button
-  would keep the fast ranking and give a real rebuild on the ones that matter.
+- Grow still ranks its candidates on estimated contribution, by design: a
+  network check for several hundred per base is too slow. The four it shows per
+  base are now checked against the network and re-ranked (done September
+  2026), but a candidate ranked lower by the estimate is never checked, so a
+  route that is weak alone and strong for the network can be missed. Checking
+  deeper costs proportionally more time.
 - Per-flight turn times: base by gauge plus an international surcharge.
 - HNL–AUS and HNL–RDU as red-eye candidates if those routes are ever added.
