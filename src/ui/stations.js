@@ -2,6 +2,7 @@
 function drawStations(){
   if(typeof drawStationRoles==="function") drawStationRoles();
   if(typeof wireStationAC==="function") wireStationAC();
+  const gt=$("#stnGateTotal"); if(gt) gt.textContent = `${fmt(M.totals.gates)} peak gates across the network`;
   const g=$("#stnGrid"); g.innerHTML="";
   for(const s of M.stations){
     const mx=Math.max(1,...s.D,...s.A);

@@ -134,8 +134,8 @@ function drawEcon(){
   const neg = rows.filter(r=>r.contrib<0);
   const negM = neg.filter(r=>!r.estimated);
   const N = 20;
-  const routeRows = rs => rs.map(r=>
-    `<tr><td class="mono">${r.o}–${r.d}</td>`
+  const routeRows = (rs, act) => rs.map(r=>
+    `<tr data-pair="${esc(r.k)}"><td class="mono">${r.o}–${r.d}</td>`
     + `<td class="num mono">${fmt(r.deps)}</td>`
     + `<td class="num mono">${fmt(Math.round(r.nm))}</td>`
     + `<td class="num mono">${(r.lf*100).toFixed(0)}%</td>`
@@ -145,13 +145,17 @@ function drawEcon(){
     + `${moneyK(r.contrib)}</td>`
     + `<td class="dim">${[...r.types].join(", ")}`
     + (r.estimated?` <span class="chip bad" title="More than a quarter of this route's revenue comes from markets with no measured demand, so this number is an estimate.">est</span>`:"")
-    + `</td></tr>`).join("");
+    + `</td>` + (act ? cutCell(r) : "") + `</tr>`).join("");
   const head = `<table><thead><tr><th>Route</th><th class="num">Deps</th>`
     + `<th class="num">nm</th><th class="num">LF</th><th class="num">Rev/dep</th>`
     + `<th class="num">Cost/dep</th><th class="num">Contribution/day</th>`
-    + `<th>Gauge</th></tr></thead><tbody>`;
-  $("#econWorst").innerHTML = head + routeRows(rows.slice(0,N)) + `</tbody></table>`;
-  $("#econBest").innerHTML = head
+    + `<th>Gauge</th>`;
+  const losing = rows.slice(0,N).filter(r=>r.contrib<0);
+  $("#econWorst").innerHTML = `<p class="note" id="cutProgress"></p>`
+    + head + `<th>If you cut it</th><th></th></tr></thead><tbody>`
+    + routeRows(losing, true) + `</tbody></table>`;
+  startCutChecks(losing);
+  $("#econBest").innerHTML = head + `</tr></thead><tbody>`
     + routeRows(rows.slice(-N).reverse()) + `</tbody></table>`;
 
   $("#econRouteNote").innerHTML =

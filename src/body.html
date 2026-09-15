@@ -44,9 +44,10 @@
     <div class="panel">
       <h2>Route network <span class="sub" id="routeCount"></span></h2>
       <div class="toolbar">
-        <input type="text" id="q" class="grow" placeholder="Filter by airport code, city or country…">
+        <input type="text" id="q" class="grow" placeholder="Filter by airport, city or country, or a route like SJC–BOS…">
         <select id="fStation"><option value="">All stations</option></select>
         <select id="fType"><option value="">All gauges</option></select>
+        <select id="fSort" aria-label="Order"><option value="">In base order</option><option value="worst">Least contribution first</option><option value="best">Most contribution first</option></select>
         <select id="fRed"><option value="">All routes</option><option value="ok">Red-eye viable (43)</option><option value="on">Red-eye operating</option></select>
         <button class="btn sm" id="btnAdd">+ Add route</button>
       </div>
@@ -122,7 +123,7 @@
       <div id="stnRoles"></div>
     </div>
     <div class="panel">
-      <h2>Stations <span class="sub">Departures and arrivals by local hour · peak aircraft on the ground is your gate requirement</span></h2>
+      <h2>Stations <span class="sub">Departures and arrivals by local hour · peak aircraft on the ground is your gate requirement · <span id="stnGateTotal"></span></span></h2>
       <div class="pad"><div class="stations" id="stnGrid"></div>
         <div class="legend"><span><i class="sw" style="background:var(--accent)"></i>Departures</span>
           <span><i class="sw" style="background:var(--steel)"></i>Arrivals</span>

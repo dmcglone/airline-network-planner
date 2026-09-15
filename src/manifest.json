@@ -36,6 +36,7 @@
  "src/ui/undo.js",
  "src/ui/netcheck.js",
  "src/ui/growcheck.js",
+ "src/ui/money.js",
  "src/ui/events.js",
  "src/ui/map.js",
  "src/ui/board.js",

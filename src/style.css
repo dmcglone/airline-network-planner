@@ -475,3 +475,16 @@ tfoot td{padding:8px 10px;border-top:1px solid var(--line);font-weight:600;backg
 .tabbadge.bad{color:#fff;background:var(--bad)}
 .sg .imp.worse{color:var(--bad);font-family:inherit;font-size:12px}
 .btn.quiet{background:none;border-color:transparent;color:var(--ink-3);text-decoration:underline}
+
+/* header: the four figures that say whether the network is any good */
+.kpis.head{gap:10px;padding:2px 20px 12px}
+.kpis.head .kpi{display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:var(--surface-2);border:1px solid var(--line-2);border-radius:9px;padding:7px 14px;margin:0;min-width:150px;font:inherit;color:inherit}
+.kpis.head .kpi:hover{border-color:var(--line)}
+.kpis.head .kpi .v{font-size:24px}
+.kpis.head .kpi.flag{border-color:var(--bad);background:var(--bad-soft)}
+@media (max-width:640px){ .kpis.head{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:2px 12px 10px}
+  .kpis.head .kpi{min-width:0;padding:6px 10px} .kpis.head .kpi .v{font-size:20px} .kpis.head .kpi .knote{white-space:normal} }
+#tRoutes .neg{color:var(--bad)}
+.cutv{white-space:nowrap}
+.cutv .gi-why{white-space:normal}
+.cuta{white-space:nowrap;text-align:right}

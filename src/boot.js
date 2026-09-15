@@ -101,8 +101,16 @@ if(typeof stateFromHash === "function"){
    it lands and then redraw. */
 if(typeof drawHint === "function" && sawSavedState) drawHint();
 
+/* Anything priced before demand landed was priced on no passengers, and is cached
+   on the model. Throw it away, so the header and every table price again. */
 if(typeof loadDemand === "function")
-  loadDemand().then(ok => { if(ok){ draw(); } });
+  loadDemand().then(ok => {
+    demandSettled = true;
+    if(M) delete M.__econ;
+    if(typeof netCache !== "undefined") netCache = {m: null, map: new Map()};
+    draw();
+  }, () => { demandSettled = true; if(M) delete M.__econ; draw(); });
+else demandSettled = true;
 $("#bAp").value = M.apStats["PHL"] ? "PHL — "+AP["PHL"][0] : "";
 // The board opened at PHL and fell back to SJC, both of which are just stations
 // this airline happened to have. Fall back to whatever the network actually

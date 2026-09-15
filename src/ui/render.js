@@ -63,25 +63,5 @@ function paintChecksTab(){
   b.innerHTML = `Checks <span class="tabbadge ${bad?"bad":"ok"}">${bad?fmt(bad):"✓"}</span>`;
   b.setAttribute("aria-label", bad ? `Checks, ${bad} failing` : "Checks, all passing");
 }
-function drawKpis(){
-  paintChecksTab();
-  const T=M.totals, bad=failCount();
-  const dPin=T.totalFleet-T.pinned;
-  const R=M.feedStats?M.feedStats.redeyes:0;
-  const items=[["Daily flights",fmt(T.deps),"", R?fmt(R)+" fly overnight":"no red-eyes"],
-    ["Aircraft rotations",fmt(T.tails),"",""],
-    ["Fleet required",fmt(T.totalFleet),"", dPin===0?"level with baseline":(dPin>0?"+":"")+fmt(dPin)+" vs baseline"],
-    ["Fleet roster",fmt(T.roster),"",""],
-    ["Surplus",(T.surplus>0?"+":"")+fmt(T.surplus),"", T.surplus<0?fmt(T.shortRots)+" rotations unflown":"aircraft spare"],
-    ["Block hours/day",fmt(T.blockHrs),"",""],
-    ["Daily ASMs",fmt(T.asm/1e6,1),"m",""],["Peak gates",fmt(T.gates),"",""],
-    ["Routes",fmt(T.routes),"",""],["Checks failing",String(bad),"",""]];
-  $("#kpis").innerHTML=items.map(([k,v,u,note],i)=>{
-    const flag=(i===9&&bad>0)||(i===4&&T.surplus<0)||(i===2&&dPin>0);
-    const go=i===9?` data-goto="checks" title="Open the schedule integrity checks"`:"";
-    return `<div class="kpi${flag?" flag":""}${i===9?" clickable":""}"${go}><div class="k">${esc(k)}</div>`
-      +`<div class="v">${v}${u?`<small>${u}</small>`:""}</div>`
-      +(note?`<div class="knote">${esc(note)}</div>`:"")+`</div>`;}).join("");
-}
 function failCount(){ const c=M.checks;
   return [c.unflown,c.extra,c.brkSpace,c.brkGround,c.open,c.brkNight,c.brkSpan,c.imb,c.curfew,c.rangeBad.length].filter(x=>x>0).length; }

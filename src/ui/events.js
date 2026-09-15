@@ -84,7 +84,7 @@ document.addEventListener("change", e=>{
   const id=e.target.id;
   if(id==="demSel"){ state.demand=Object.assign({},state.demand,{source:e.target.value});
     if(e.target.value==="gravity") delete state.demand.rows; save(); draw(); return; }
-  if(["fStation","fType","fRed"].includes(id)) drawRoutes();
+  if(["fStation","fType","fRed","fSort"].includes(id)) drawRoutes();
   else if(["sStation","sType","sRon"].includes(id)) drawSched();
   else if(["rStation","rType"].includes(id)) drawRot();
 });
@@ -137,7 +137,11 @@ document.addEventListener("click", e=>{
     if(b && b.dataset && b.dataset.hint){
     dismissHint(true); if(b.dataset.hint === "open") goTab("model"); return;
   }
-  if(b && b.dataset && b.dataset.review){ reviewGrow(+b.dataset.review); return; }
+  if(b && b.dataset && b.dataset.review){
+    const v=b.dataset.review;
+    if(v.includes("|")){ const [o,d]=v.split("|"); reviewMarket(o,d); } else reviewGrow(+v);
+    return; }
+  if(b && b.dataset && b.dataset.cut){ const [o,d]=b.dataset.cut.split("|"); cutMarket(o,d); return; }
   if(b && b.dataset && b.dataset.keepdays){ const w=$("#nW"); if(w){ w.value=b.dataset.keepdays; addInfo(); } return; }
   if(b && b.dataset && b.dataset.fit){ const g=$("#nT"); if(g){ g.value=b.dataset.fit; addInfo(); } return; }
   if(b && b.dataset && b.dataset.bank){ bankStation = b.dataset.bank; drawBanks(); return; }
@@ -150,7 +154,10 @@ document.addEventListener("click", e=>{
   const d=e.target.dataset && e.target.dataset.del;
   if(d!==undefined && d!==null && d!==""){
     const i=+d, r=state.routes[i];
-    if(r && confirm("Remove "+r.o+"–"+r.d+" from the network?")){ state.routes.splice(i,1); M=build(); save(); draw(); }
+    const both = r && state.routes.some(x=>x!==r && pairKey(x.o,x.d)===pairKey(r.o,r.d));
+    if(r && confirm("Remove "+r.o+"–"+r.d+(both?" in both directions":"")+" from the network?")){
+      removeMarket(state.routes, r.o, r.d); rebuild(`remove ${r.o}–${r.d}`);
+    }
   }
 });
 function toast(msg){
