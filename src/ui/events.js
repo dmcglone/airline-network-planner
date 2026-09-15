@@ -137,6 +137,7 @@ document.addEventListener("click", e=>{
     if(b && b.dataset && b.dataset.hint){
     dismissHint(true); if(b.dataset.hint === "open") goTab("model"); return;
   }
+  if(b && b.dataset && b.dataset.review){ reviewGrow(+b.dataset.review); return; }
   if(b && b.dataset && b.dataset.keepdays){ const w=$("#nW"); if(w){ w.value=b.dataset.keepdays; addInfo(); } return; }
   if(b && b.dataset && b.dataset.fit){ const g=$("#nT"); if(g){ g.value=b.dataset.fit; addInfo(); } return; }
   if(b && b.dataset && b.dataset.bank){ bankStation = b.dataset.bank; drawBanks(); return; }

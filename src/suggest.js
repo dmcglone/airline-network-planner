@@ -165,15 +165,20 @@ function suggestGrow(){
                      -(a.contrib!=null?a.contrib:-Infinity)
                      || (b.fare?b.dem*b.fare:b.dem)-(a.fare?a.dem*a.fare:a.dem));
     const top=cands.slice(0,4);
-    if(top.length) out.push({kind:"grow",base:B,items:top.map(o=>({
-      code:o.c,
+    if(top.length) out.push({kind:"grow",base:B,items:top.map((o,rank)=>({
+      code:o.c, rank, contrib:o.contrib,
+      // Structured facts, so the card can lead with the network verdict and keep
+      // the route-alone estimate as small print.
+      facts:{base:B, city:cityName(o.c), nm:o.nm, dem:o.dem, fare:o.fare, rev:o.rev, cost:o.cost,
+             season:o.season, others:o.others, spare:o.spare, g:o.g},
+      spec:{o:B, d:o.c, t:o.g, n:1, w:7, red:false},
       txt:`${B}–${o.c} · ${esc(cityName(o.c))} · ${fmt(o.nm)} nm · ${fmt(o.dem)} ${demandUnit()}`
         + (o.fare?` · $${fmt(o.fare)} avg fare · $${fmt(o.dem*o.fare*2)} market/day`:"")
         + (o.contrib!=null?` · <b>${o.contrib>=0?"+":"−"}$${fmt(Math.abs(Math.round(o.contrib)))}</b>/day est. contribution`:"")
         + (o.season?` <span class="mono" title="Jul 2025 → May 2026">${o.season.spark}</span> peak ${o.season.peak} ${o.season.peakX.toFixed(1)}×`:""),
       sub:`${o.others?`already flown from ${o.others} of your stations`:"new city for the network"}${o.spare?` · you have a spare ${o.g}`:` · would need a ${o.g}`}`
         + (o.contrib!=null?` · est. $${fmt(Math.round(o.rev))} revenue vs $${fmt(Math.round(o.cost))} direct cost, before any aircraft charge`:""),
-      apply:()=>{ state.routes.push({o:B,d:o.c,dow:7,mix:{[o.g]:1}}); state.routes.sort((a,b)=>a.o<b.o?-1:a.o>b.o?1:(a.d<b.d?-1:1)); }}))});
+      apply:()=>{ applyAddRoute(state.routes, {o:B, d:o.c, t:o.g, n:1, w:7, red:false}); }}))});
   }
   return out;
 }

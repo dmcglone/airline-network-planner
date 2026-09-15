@@ -85,13 +85,7 @@ function drawSuggest(){
     $("#sGrow").innerHTML=`<p class="note"><b>No demand data in this version of the page.</b> Grow ranks unserved markets by passenger demand, and this build's data block has no demand table, so it has nothing to rank. Reload the latest published version, or paste your own market data in the box above.</p>`;
     return;
   }
-  $("#sGrow").innerHTML=`<p class="note">Ranked by ${src==="gravity"?"modelled":"imported"} demand (${demandUnit()}), ranked on market revenue where real fares exist, within range of a gauge you fly, at least ${MIN_SUGG_NM} nm so the route competes with airlines rather than with driving. Cities already served from that station are excluded. <b>US destinations only</b> — the demand model is calibrated on US scheduled service, so it has nothing reliable to say about international markets.</p><div class="growgrid">`
-    + grow.map(g=>{
-        const items=g.items.map(o=>{ const i=SUGG.length; SUGG.push({apply:o.apply});
-          return `<div class="opt"><span><span class="m">${o.txt}</span><br><span class="dim" style="font-size:11.5px">${o.sub}</span></span>`
-               + `<button class="btn sm" data-apply="${i}">Add</button></div>`; }).join("");
-        return `<div class="sg"><h4>From ${g.base}</h4>${items}</div>`; }).join("")
-    + `</div>`;
+  renderGrow(grow, `<p class="note">Candidates are unserved US markets ${src==="gravity"?"(modelled demand)":"(imported demand)"}, within range of a gauge you fly and at least ${MIN_SUGG_NM} nm, so the route competes with airlines rather than with driving. Cities already served from that station are excluded. <b>US destinations only</b>: the demand model is calibrated on US scheduled service.</p>`);
 }
 function draw(){
   drawKpis();
