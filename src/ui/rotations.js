@@ -1,12 +1,33 @@
 /* ----- rotations ----- */
-function drawRot(){
+let rotMode = "timeline";
+
+/* The rotations the filters and sort select, shared by both views. */
+function rotRows(){
   const q=$("#rq").value.trim().toUpperCase(), fs=$("#rStation").value, ft=$("#rType").value;
-  const rows=M.rots.filter(r=>{
+  const so=($("#rSort")||{}).value||"";
+  let rows=M.rots.filter(r=>{
     if(fs&&r.base!==fs) return false;
     if(ft&&r.t!==ft) return false;
     if(!q) return true;
     return (r.id+r.ron+r.path).toUpperCase().includes(q);
   });
+  const use=r=>r.block/((SPEC[r.t]&&SPEC[r.t].util)||11);
+  if(so==="idle") rows=rows.slice().sort((a,b)=>use(a)-use(b));
+  else if(so==="ron") rows=rows.slice().sort((a,b)=>a.ron<b.ron?-1:a.ron>b.ron?1:a.first-b.first);
+  return rows;
+}
+
+function drawRot(){
+  const tl=rotMode==="timeline";
+  $("#rotModeTime").classList.toggle("on", tl);
+  $("#rotModeTable").classList.toggle("on", !tl);
+  $("#rotTimeline").hidden=!tl;
+  $("#rotTableWrap").hidden=tl;
+  if(tl) drawRotTimeline(); else drawRotTable();
+}
+
+function drawRotTable(){
+  const rows=rotRows();
   $("#rotCount").textContent = fmt(rows.length)+" of "+fmt(M.rots.length)+" rotations";
   const t=$("#tRot");
   t.innerHTML="<thead><tr><th>Rotation</th><th>Base</th><th>Gauge</th><th class='r'>Legs</th><th class='r'>Block</th>"

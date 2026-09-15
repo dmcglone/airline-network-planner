@@ -98,13 +98,15 @@ document.addEventListener("change", e=>{
     if(e.target.value==="gravity") delete state.demand.rows; commitNow("demand source", true); return; }
   if(["fStation","fType","fRed","fSort"].includes(id)) drawRoutes();
   else if(["sStation","sType","sRon"].includes(id)) drawSched();
-  else if(["rStation","rType"].includes(id)) drawRot();
+  else if(["rStation","rType","rSort"].includes(id)) drawRot();
 });
 $("#btnUndo").addEventListener("click", doUndo);
 $("#btnRedo").addEventListener("click", doRedo);
 $("#btnStartOver") && $("#btnStartOver").addEventListener("click", ()=>{ welcomeOpen=true; drawWelcome(); });
 $("#btnShare").addEventListener("click", ()=>{ doShare(); });
 $("#schedModeList").addEventListener("click", ()=>{ schedMode="list"; drawSched(); });
+$("#rotModeTime").addEventListener("click", ()=>{ rotMode="timeline"; drawRot(); });
+$("#rotModeTable").addEventListener("click", ()=>{ rotMode="table"; drawRot(); });
 $("#schedModeBanks").addEventListener("click", ()=>{ schedMode="banks"; drawSched(); });
 $("#btnSettings").addEventListener("click", ()=>{ goTab("settings"); });
 if($("#btnHelp")) $("#btnHelp").addEventListener("click", ()=>{ dismissHint(true); goTab("model"); });

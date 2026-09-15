@@ -104,15 +104,23 @@
     <div class="panel">
       <h2>Aircraft rotations <span class="sub" id="rotCount"></span></h2>
       <div class="toolbar">
+        <button class="btn sm on" id="rotModeTime">Timeline</button>
+        <button class="btn sm" id="rotModeTable">Table</button>
+      </div>
+      <div class="toolbar">
         <input type="text" id="rq" class="grow" placeholder="Filter by base, gauge, overnight station or routing…">
         <select id="rStation"><option value="">All bases</option></select>
         <select id="rType"><option value="">All gauges</option></select>
+        <select id="rSort" aria-label="Order"><option value="">By first departure</option><option value="idle">Least used first</option><option value="ron">By overnight station</option></select>
       </div>
-      <div class="scroll"><table id="tRot"></table></div>
+      <div id="rotTimeline"></div>
+      <div class="scroll" id="rotTableWrap" hidden><table id="tRot"></table></div>
     </div>
-    <p class="note">Each row is one aircraft's full day. The routing string starts and ends at the same airport, so the
-      pattern repeats indefinitely. <b>Overnights at</b> is where the aircraft sits between the last arrival and the first
-      departure. 06:00 departures from a spoke city are only possible because an aircraft slept there.</p>
+    <p class="note">Each row is one aircraft's full day, and the day repeats: the routing starts and ends at the same
+      airport. The timeline draws it on a 24-hour clock in the base's local time, so a line that runs past midnight
+      carries on at the left of its own row, and the dotted stretch is the night, labelled with where the aircraft
+      sleeps. A 06:00 departure from a spoke city is only possible because an aircraft slept there. Amber marks an
+      aircraft sitting idle for three hours or more between flights; <b>Least used first</b> puts the emptiest days at the top.</p>
   </section>
 
   <section class="pane" id="pane-stations" role="tabpanel" aria-labelledby="tab-stations" tabindex="0" hidden>

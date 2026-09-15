@@ -21,6 +21,7 @@
  "src/ui/schedule.js",
  "src/ui/banks.js",
  "src/ui/rotations.js",
+ "src/ui/timeline.js",
  "src/ui/stations.js",
  "src/ui/fleet.js",
  "src/ui/seatmap.js",
