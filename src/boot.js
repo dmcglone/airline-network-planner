@@ -84,7 +84,7 @@ if(typeof markCommitted==="function") markCommitted();
 if(typeof stateFromHash === "function"){
   stateFromHash().then(shared => {
     if(!shared){
-      if(!sawSavedState){ welcomeOpen = true; drawWelcome(); }
+      if(!sawSavedState){ welcomeOpen = true; welcomeFirst = true; drawWelcome(); }
       return;
     }
     state = shared;
@@ -94,7 +94,7 @@ if(typeof stateFromHash === "function"){
     draw(); markCommitted(); paintUndo();
     toast(`Opened a shared airline — ${state.brand || "unnamed"}`);
   });
-} else if(!sawSavedState){ welcomeOpen = true; drawWelcome(); }
+} else if(!sawSavedState){ welcomeOpen = true; welcomeFirst = true; drawWelcome(); }
 
 /* Demand arrives after the schedule is already on screen. Nothing waits for it:
    the engine never needed it, and the panels that do simply show no demand until

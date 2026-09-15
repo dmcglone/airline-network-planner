@@ -24,7 +24,7 @@ function drawRoutes(){
   const t=$("#tRoutes");
   t.innerHTML = "<thead><tr><th>From</th><th>To</th><th class='r'>Distance</th>"
     + TYPES.map(x=>`<th class='r'>${x}</th>`).join("")
-    + "<th class='r'>Flights/day</th><th class='r'>Demand</th><th>Season</th><th class='r'>Days/wk</th><th>Red-eye</th><th></th></tr></thead>";
+    + "<th class='r'>Flights/day</th><th class='r' title='Passengers a day, each way. * marks an estimate from the gravity model, often off by several times.'>Pax/day</th><th>Season</th><th class='r'>Days/wk</th><th>Red-eye</th><th></th></tr></thead>";
   const tb=el("tbody");
   for(const r of rows){
     const i=state.routes.indexOf(r), nm=dist(r.o,r.d), n=TYPES.reduce((a,x)=>a+(+r.mix[x]||0),0);
@@ -41,7 +41,7 @@ function drawRoutes(){
           + ` aria-label="${esc(x+" flights per day, "+r.o+" to "+r.d)}"`
           + ` value="${+r.mix[x]||""}"></td>`).join("")
       + `<td class="num"><b>${n}</b></td>`
-      + `<td class="num">${dd.v>0?fmt(dd.v)+(dd.real?"":"*"):"—"}</td>`
+      + `<td class="num">${dd.v>0?fmt(dd.v)+(dd.real?"":`<span title="Estimated by the gravity model, not measured">*</span>`):"—"}</td>`
       + `<td class="mono" style="font-size:13px" title="${sc?`Jul 2025 → May 2026 · peak ${sc.peak} ${sc.peakX.toFixed(1)}×, trough ${sc.trough} ${sc.troughX.toFixed(1)}×`:"no monthly data"}">${sc?sc.spark:""}</td>`
       + `<td class="num"><input type="number" min="1" max="7" data-i="${i}" data-w="1"`
       + ` aria-label="${esc("Days per week, "+r.o+" to "+r.d)}" value="${r.dow||7}"></td>`

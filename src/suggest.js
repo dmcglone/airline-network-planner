@@ -56,20 +56,25 @@ function suggestFix(){
   if(M.feedStats.late>0){
     const off=Object.keys(FEEDMODE).filter(k=>!(state.feed&&state.feed[k]));
     if(off.length){
-      let imp="could not be verified";
+      let imp="could not be verified", worse=false;
       try{
         const keepF=state.feed; state.feed=Object.assign({},keepF); off.forEach(k=>state.feed[k]=1);
         const m=build(); state.feed=keepF;
         const dShort=m.fleet.reduce((a,x)=>a+x.short,0)-M.fleet.reduce((a,x)=>a+x.short,0);
-        imp=`verified — ${M.feedStats.late} → ${m.feedStats.late} spokes unfed, fleet ${fmt(M.totals.tails)} → ${fmt(m.totals.tails)}, `
-          + `gates ${fmt(M.totals.gates)} → ${fmt(m.totals.gates)}`
-          + (dShort>0?`, and ${dShort} more gauge${dShort===1?"":"s"} would go short`:``);
+        const dAir=m.totals.tails-M.totals.tails, dGate=m.totals.gates-M.totals.gates;
+        // Worse is what a planner would not accept for this: aircraft types left
+        // short, or more aircraft or gates than the feed is worth.
+        worse = dShort>0 || dAir>0 || dGate>0;
+        imp=`tested: ${M.feedStats.late} → ${m.feedStats.late} spokes without a morning departure, `
+          + `aircraft ${fmt(M.totals.tails)} → ${fmt(m.totals.tails)}, gates ${fmt(M.totals.gates)} → ${fmt(m.totals.gates)}`
+          + (dShort>0?`, and ${dShort} aircraft type${dShort===1?"":"s"} would go short`:``);
       }catch(e){}
       out.push({kind:"fix",sev:"med",
         title:`${M.feedStats.late} spoke cities have no departure before 09:00`,
         why:`${off.join(" and ")} ${off.length===1?"is":"are"} not pulling a morning feed, so their spokes take whatever times fall out of hub-side packing.`,
-        action:`Switch on the bank feed at ${off.join(" and ")}`,
-        impact:imp,
+        action: worse ? `Switching on the bank feed at ${off.join(" and ")} costs more than it fixes`
+                      : `Switch on the bank feed at ${off.join(" and ")}`,
+        impact:imp, worse,
         apply:()=>{ state.feed=state.feed||{}; off.forEach(k=>state.feed[k]=1); }});
     }
   }
@@ -106,9 +111,9 @@ function suggestFill(){
     if(!cands.length) continue;
     const best=cands.slice(0,3);
     out.push({kind:"fill",sev:"med",rot:st,
-      title:`${st.id} flies ${st.block.toFixed(2)} h and sits for ${idle.toFixed(2)}`,
+      title:`${article(T)[0].toUpperCase()+article(T).slice(1)} ${T} at ${B} flies ${hrsHM(st.block)} and sits idle for ${hrsHM(idle)}`,
       why:`${st.path} — a ${T} at ${B} with most of its day free.`,
-      options:best.map(o=>({code:o.c, txt:`${B}–${o.c} · ${esc(cityName(o.c))} · ${fmt(dist(B,o.c))} nm · ${o.rt.toFixed(2)} h round trip · demand ${fmt(o.dem)} · flown from ${o.others} of your stations`,
+      options:best.map(o=>({code:o.c, txt:`${B}–${o.c} · ${esc(cityName(o.c))} · ${fmt(dist(B,o.c))} nm · ${hrsHM(o.rt)} round trip · ${fmt(o.dem)} pax/day · flown from ${o.others} of your stations`,
         apply:()=>{ state.routes.push({o:B,d:o.c,dow:7,mix:{[T]:1}}); state.routes.sort((a,b)=>a.o<b.o?-1:a.o>b.o?1:(a.d<b.d?-1:1)); }}))});
   }
   return out;

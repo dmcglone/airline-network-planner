@@ -14,4 +14,21 @@ const loc = (ap,u) => u + off(ap);
 const utc = (ap,l) => l - off(ap);
 const mod = (n,m) => ((n%m)+m)%m;
 const hhmm = m => { const v = mod(Math.round(m),1440); return String(Math.floor(v/60)).padStart(2,"0")+":"+String(v%60).padStart(2,"0"); };
+/* One way to write a duration and one way to write a big amount of money,
+   everywhere. Durations of a flight or an aircraft's day read as 3h53, never as
+   3.88 hours. Money is rounded to what the model can actually support: the
+   network total moves by tens of thousands between equivalent schedules, so
+   $22,694,399 claims a precision nothing here has. */
+const durHM = min => { const m = Math.round(min);
+  return `${Math.floor(m/60)}h${String(m%60).padStart(2,"0")}`; };
+const hrsHM = h => durHM(h*60);
+/* "an A319", "an E175", "a B737": aircraft codes are read letter by letter, so the
+   article follows how the first letter is said, not how it is spelled. */
+const article = code => /^[AEFHILMNORSX]/i.test(String(code)) ? "an" : "a";
+const moneyK = n => {
+  const a = Math.abs(n), s = n < 0 ? "−" : "";
+  if(a >= 1e6) return `${s}$${(a/1e6).toFixed(1)}M`;
+  if(a >= 1e4) return `${s}$${(a/1e3).toFixed(1)}k`;
+  return s + "$" + fmt(Math.round(a));
+};
 const fmt = (n,d=0) => (n==null||isNaN(n)) ? "–" : n.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});

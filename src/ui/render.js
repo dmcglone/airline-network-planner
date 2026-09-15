@@ -16,7 +16,7 @@ const cityName = a => AP[a] ? tc(AP[a][1]) : a;
    judge the result. */
 const TABS=[["network","Network"],["map","Map"],["suggest","Suggestions"],["gap"],
             ["schedule","Schedule"],["rot","Rotations"],["board","Board"],["stations","Stations"],["gap"],
-            ["fleet","Fleet"],["econ","Economics"]];
+            ["fleet","Fleet"],["econ","Economics"],["gap"],["checks","Checks"],["model","Help"]];
 let tab="network";
 /* Somewhere to send people from outside the bar -- the Checks metric, a link. */
 function goTab(id){
@@ -54,8 +54,17 @@ function drawTabs(){
     b.onclick=()=>goTab(id);
     c.appendChild(b);
   });
+  paintChecksTab();
+}
+/* The Checks tab carries its own status, so a failure is visible from anywhere. */
+function paintChecksTab(){
+  const b=$("#tab-checks"); if(!b || typeof M==="undefined" || !M) return;
+  const bad=failCount();
+  b.innerHTML = `Checks <span class="tabbadge ${bad?"bad":"ok"}">${bad?fmt(bad):"✓"}</span>`;
+  b.setAttribute("aria-label", bad ? `Checks, ${bad} failing` : "Checks, all passing");
 }
 function drawKpis(){
+  paintChecksTab();
   const T=M.totals, bad=failCount();
   const dPin=T.totalFleet-T.pinned;
   const R=M.feedStats?M.feedStats.redeyes:0;

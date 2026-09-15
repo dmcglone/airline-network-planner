@@ -30,7 +30,7 @@ function drawSched(){
     +`<td class="dim">${esc(AP[f.d]?AP[f.d][0]:f.d)}</td>`
     +`<td class="num">${hhmm(f.dep)}</td><td class="num">${hhmm(f.arr)}</td>`
     +`<td>${f.day>0?'<span class="chip warn">+1</span>':""}</td>`
-    +`<td class="num">${f.blk.toFixed(2)}</td><td class="num">${fmt(f.nm)}</td>`
+    +`<td class="num">${hrsHM(f.blk)}</td><td class="num">${fmt(f.nm)}</td>`
     +`<td class="num">${SPEC[f.t].seats}</td>`
     +`<td class="num">${f.dow<7?`<span class="chip">${f.dow}×</span>`:"7"}</td></tr>`).join("");
   t.appendChild(tb);

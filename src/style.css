@@ -468,3 +468,10 @@ tfoot td{padding:8px 10px;border-top:1px solid var(--line);font-weight:600;backg
 .gi-pill.ok{color:var(--ok);border-color:var(--ok);background:var(--ok-soft)}
 .gi-pill.pending{font-weight:400;color:var(--ink-3)}
 .gi-why{font-size:11.5px;color:var(--ink-2)}
+
+/* quick fixes: tab status, tested-worse suggestions */
+.tabbadge{display:inline-block;min-width:16px;margin-left:4px;padding:0 5px;border-radius:999px;font-size:11px;line-height:16px;text-align:center;font-weight:600}
+.tabbadge.ok{color:var(--ok);background:var(--ok-soft)}
+.tabbadge.bad{color:#fff;background:var(--bad)}
+.sg .imp.worse{color:var(--bad);font-family:inherit;font-size:12px}
+.btn.quiet{background:none;border-color:transparent;color:var(--ink-3);text-decoration:underline}

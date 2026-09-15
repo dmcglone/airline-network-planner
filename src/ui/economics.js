@@ -45,7 +45,7 @@ function econRoutes(E){
   return [...by.values()].sort((x,y)=>x.contrib-y.contrib);
 }
 
-const money = n => (n<0?"−":"") + "$" + fmt(Math.abs(Math.round(n)));
+const money = n => (n<0?"−":"") + "$" + fmt(Math.abs(Math.round(n)));   // exact, for the Add route verdict
 
 function drawEcon(){
   const E = econOf(M);
@@ -60,13 +60,13 @@ function drawEcon(){
     + `<div class="v">${v}</div>`
     + (note?`<div class="knote">${esc(note)}</div>`:"") + `</div>`;
   $("#econKpis").innerHTML = [
-    kpi("Revenue/day", money(R.stats.rev),
+    kpi("Revenue/day", moneyK(R.stats.rev),
         `${Math.round((1-R.stats.estRev/R.stats.rev)*100)}% measured`),
-    kpi("Direct cost/day", money(T.direct), "excludes ownership"),
-    kpi("Contribution/day", money(contrib),
+    kpi("Direct cost/day", moneyK(T.direct), "excludes ownership"),
+    kpi("Contribution/day", moneyK(contrib),
         `${Math.round(contrib/R.stats.rev*100)}% of revenue`, contrib<0),
-    kpi("Allocated cost/day", money(T.allocated), "with ownership + overhead"),
-    kpi("Operating result", money(op), op<0?"loss":"profit", op<0),
+    kpi("Allocated cost/day", moneyK(T.allocated), "with ownership + overhead"),
+    kpi("Operating result", moneyK(op), op<0?"loss":"profit", op<0),
     kpi("Load factor", (R.lf*100).toFixed(1)+"%",
         `ceiling ${(R.ceiling*100).toFixed(1)}% unopposed`),
     kpi("RASM", R.rasm.toFixed(2)+"¢", "per available seat mile"),
@@ -80,15 +80,15 @@ function drawEcon(){
   const els = [["fuel","Fuel"],["crew","Crew"],["maint","Maintenance"],
                ["landing","Landing fees"],["handling","Ground handling"],
                ["own","Ownership"]];
-  let h = `<table><thead><tr><th>Cost element</th><th class="num">$/day</th>`
+  let h = `<table><thead><tr><th>Cost element</th><th class="num">Per day</th>`
     + `<th class="num">¢/ASM</th><th class="num">Share</th></tr></thead><tbody>`;
   for(const [k,label] of els)
-    h += `<tr><td>${label}</td><td class="num mono">${fmt(Math.round(T[k]))}</td>`
+    h += `<tr><td>${label}</td><td class="num mono">${moneyK(T[k])}</td>`
       + `<td class="num mono">${(T[k]/T.asm*100).toFixed(2)}</td>`
       + `<td class="num mono dim">${Math.round(T[k]/T.allocated*100)}%</td></tr>`;
-  h += `<tr><td><b>Direct</b></td><td class="num mono"><b>${fmt(Math.round(T.direct))}</b></td>`
+  h += `<tr><td><b>Direct</b></td><td class="num mono"><b>${moneyK(T.direct)}</b></td>`
     + `<td class="num mono"><b>${(T.direct/T.asm*100).toFixed(2)}</b></td><td></td></tr>`;
-  h += `<tr><td><b>Fully allocated</b></td><td class="num mono"><b>${fmt(Math.round(T.allocated))}</b></td>`
+  h += `<tr><td><b>Fully allocated</b></td><td class="num mono"><b>${moneyK(T.allocated)}</b></td>`
     + `<td class="num mono"><b>${C.casm.toFixed(2)}</b></td><td></td></tr></tbody></table>`;
   $("#econCost").innerHTML = h;
 
@@ -119,7 +119,7 @@ function drawEcon(){
     const r = econRate(t);
     h += `<tr><td class="mono">${t}</td><td class="num mono">${fmt(a.deps)}</td>`
       + `<td class="num mono">${fmt(Math.round(a.nm/a.deps))}</td>`
-      + `<td class="num mono">${(a.blk/a.deps).toFixed(2)}</td>`
+      + `<td class="num mono">${hrsHM(a.blk/a.deps)}</td>`
       + `<td class="num mono">${fmt(Math.round(a.allocated/a.deps))}</td>`
       + `<td class="num mono">${(a.allocated/a.asm*100).toFixed(2)}</td>`
       + `<td class="dim">${r?esc(r.f41):"—"}`
@@ -142,7 +142,7 @@ function drawEcon(){
     + `<td class="num mono">${fmt(Math.round(r.rev/r.deps))}</td>`
     + `<td class="num mono">${fmt(Math.round(r.direct/r.deps))}</td>`
     + `<td class="num mono"${r.contrib<0?' style="color:var(--bad)"':""}>`
-    + `${money(r.contrib)}</td>`
+    + `${moneyK(r.contrib)}</td>`
     + `<td class="dim">${[...r.types].join(", ")}`
     + (r.estimated?` <span class="chip bad" title="More than a quarter of this route's revenue comes from markets with no measured demand, so this number is an estimate.">est</span>`:"")
     + `</td></tr>`).join("");

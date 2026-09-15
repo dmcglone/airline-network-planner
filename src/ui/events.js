@@ -98,7 +98,7 @@ $("#btnAirline").addEventListener("click", ()=>{
   airlineOpen = !airlineOpen; drawAirline();
   if(airlineOpen){ const f=$("#alName"); if(f) f.focus(); }
 });
-$("#btnHelp").addEventListener("click", ()=>{ dismissHint(true); goTab("model"); });
+if($("#btnHelp")) $("#btnHelp").addEventListener("click", ()=>{ dismissHint(true); goTab("model"); });
 
 /* A single line pointing at Help, shown only to someone who has never opened it.
    Not a tour and not a modal: the picker has already taken one full screen of
@@ -389,13 +389,6 @@ function routeAnalysis(o, d, t, freq){
   return A;
 }
 
-const moneyK = n => {
-  const a = Math.abs(n), s = n < 0 ? "−" : "";
-  if(a >= 1e6) return `${s}$${(a/1e6).toFixed(1)}m`;
-  if(a >= 1e4) return `${s}$${(a/1e3).toFixed(1)}k`;
-  return s + "$" + fmt(Math.round(a));
-};
-const durHM = min => `${Math.floor(min/60)}h${String(Math.round(min)%60).padStart(2,"0")}`;
 
 /* Answer first, then the three numbers that decide it, then the one picture that
    puts local and connecting traffic on the same axis. Colour comes from the

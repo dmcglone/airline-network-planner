@@ -14,6 +14,7 @@
    start cold. */
 
 let welcomeOpen = false;
+let welcomeFirst = false;     // opened because nothing was saved: the full example is what is loaded
 
 function welcomeCards(){
   const cards = (typeof STARTERS !== "undefined" ? STARTERS : []).map(s => ({
@@ -25,9 +26,12 @@ function welcomeCards(){
   cards.push({
     id: "__example", name: "The full example network",
     blurb: "The airline this planner was built around: three hubs, two focus cities, "
-         + "three point-to-point bases. Far too big to take in at once, which is why it "
-         + "is not the default. It is, though, what the tool looks like at scale.",
-    facts: "404 routes · 366 aircraft · 213 gates"
+         + "three point-to-point bases. It is a lot to take in at once, so the smaller "
+         + "ones are the gentler start, but this is what the tool looks like at scale.",
+    // Read from the network itself so the card cannot go stale.
+    facts: (() => { const b = baseline();
+      const n = (b.stations || []).length, t = (b.fleet || []).length;
+      return `${fmt(b.routes.length)} routes · ${fmt(n)} bases · ${fmt(t)} type${t===1?"":"s"}`; })()
   });
   cards.push({
     id: "__empty", name: "Nothing at all",
@@ -47,7 +51,7 @@ function drawWelcome(){
       `<div class="welcome-inner" role="dialog" aria-modal="true" aria-labelledby="welcomeH">`
     + `<h2 id="welcomeH">${esc(SITE.name)}</h2>`
     + `<p class="note">Build and schedule an airline network. Pick one to start from. Give it your own name and code, add and `
-    + `cut routes, move the gauges around, and the planner rebuilds the whole day every time `
+    + `cut routes, move the gauges around, and the planner rebuilds the whole day every time you do. `
     + `It then checks its own work against ten rules and tells you when it has broken one. `
     + `Nothing here is a forecast of any real airline.</p>`
     + `<div class="welcome-grid">`
@@ -58,7 +62,8 @@ function drawWelcome(){
         + `<span class="wc-blurb">${esc(c.blurb)}</span></button>`).join("")
     + `</div>`
     + `<div class="toolbar" style="padding-left:0">`
-    + `<button class="btn sm" data-welclose="1">Keep what I have</button>`
+    + `<button class="btn sm" data-welclose="1">${welcomeFirst
+        ? "Explore the full example" : "Keep what I have"}</button>`
     + `<span class="dim" style="font-size:12.5px">You can start over from the Airline panel. `
     + `Switching replaces the whole airline: routes, bases and aircraft types. Undo `
     + `brings the old one back.</span>`
@@ -68,7 +73,7 @@ function drawWelcome(){
 
 function welcomeEvent(t){
   if(!t || !t.dataset) return false;
-  if(t.dataset.welclose){ welcomeOpen = false; drawWelcome(); return true; }
+  if(t.dataset.welclose){ welcomeOpen = false; welcomeFirst = false; drawWelcome(); return true; }
   if(!t.dataset.starter) return false;
   const id = t.dataset.starter;
   if(id === "__example"){
@@ -86,7 +91,7 @@ function welcomeEvent(t){
   } else if(!loadStarter(id)){
     return true;
   }
-  welcomeOpen = false; drawWelcome();
+  welcomeOpen = false; welcomeFirst = false; drawWelcome();
   // swapNetwork pushes the undo snapshot after the swap, which is the only order
   // that works: it stores the state as of the last finished build.
   swapNetwork(() => {}, "starting over");

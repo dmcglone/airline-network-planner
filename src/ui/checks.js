@@ -59,8 +59,9 @@ function drawChecks(){
 
 function sgCard(x){
   return `<div class="sg ${x.sev||""}"><h4>${x.title}</h4><div class="why">${x.why}</div>`
-    + (x.action?`<div class="act"><b>${x.action}</b><span class="imp">${x.impact||""}</span>`
-        + (x.apply?`<button class="btn sm" data-apply="${x._i}">Apply</button>`:"")
+    + (x.action?`<div class="act"><b>${x.action}</b><span class="imp${x.worse?" worse":""}">${x.impact||""}</span>`
+        // A change that tested worse is still available, but not offered as the fix.
+        + (x.apply?`<button class="btn sm${x.worse?" quiet":""}" data-apply="${x._i}">${x.worse?"Apply anyway":"Apply"}</button>`:"")
     + (x.search?`<button class="btn sm" data-search="${x._i}">Search</button><span class="imp" id="sr${x._i}"></span>`:"")+`</div>`:"")
     + (x.options?x.options.map((o,j)=>`<div class="opt"><span class="m">${o.txt}</span>`
         + `<button class="btn sm" data-apply="${x._i}" data-opt="${j}">Add</button></div>`).join(""):"")

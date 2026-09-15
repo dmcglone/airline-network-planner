@@ -132,7 +132,7 @@ function drawMapSide(){
   if(!mapSel){
     const top=M.markets.slice().sort((a,b)=>b.freq-a.freq).slice(0,14);
     box.innerHTML=`<h3>Busiest markets</h3><p class="note" style="margin:0 0 9px">Click any airport on the map to see its markets and open its board.</p>`
-      + top.map(m=>`<div class="mkt"><span class="m">${m.a}–${m.b}</span><span>${m.freq}×<span class="dim"> · ${fmt(m.nm)} nm</span></span></div>`).join("");
+      + top.map(m=>`<div class="mkt"><span class="m">${m.a}–${m.b}</span><span>${m.freq} a day<span class="dim"> · ${fmt(m.nm)} nm</span></span></div>`).join("");
     return;
   }
   const A=AP[mapSel], st=M.apStats[mapSel]||{dep:0,arr:0};
@@ -146,7 +146,7 @@ function drawMapSide(){
     +`<button class="btn sm" id="goBoard">Open airport board</button>`
     +`<button class="btn sm" id="clrSel">Clear</button></div>`
     + mine.map(m=>{const o=m.a===mapSel?m.b:m.a;
-        return `<div class="mkt"><span class="m">${o}</span><span>${m.freq}×<span class="dim"> · ${fmt(m.nm)} nm</span></span></div>`;}).join("");
+        return `<div class="mkt"><span class="m">${o}</span><span>${m.freq} a day<span class="dim"> · ${fmt(m.nm)} nm</span></span></div>`;}).join("");
   $("#goBoard").onclick=()=>{ boardAp=mapSel; $("#bAp").value=mapSel+" — "+AP[mapSel][0];
     tab="board"; drawTabs(); TABS.forEach(([x])=>$("#pane-"+x).hidden=x!=="board"); draw(); };
   $("#clrSel").onclick=()=>{ mapSel=null; drawMap(); };
@@ -248,7 +248,7 @@ function liveStart(){ clearInterval(LIVE.timer); LIVE.timer=setInterval(liveTick
         $("#mapside").innerHTML=`<h3>${esc(flightNo(f.fn))}</h3>`
           +`<p class="note" style="margin:0 0 8px">${f.o} → ${f.d} · ${f.t}<br>${esc(cityName(f.o))} to ${esc(cityName(f.d))}</p>`
           +(rot?`<div class="mkt"><span>Rotation</span><span class="m">${rot.id}</span></div>`
-            +`<div class="mkt"><span>Block hours today</span><span class="m">${rot.block.toFixed(2)}</span></div>`
+            +`<div class="mkt"><span>Block hours today</span><span class="m">${hrsHM(rot.block)}</span></div>`
             +`<div class="mkt"><span>Legs</span><span class="m">${rot.legs}</span></div>`
             +`<div class="mkt"><span>Overnights at</span><span class="m">${rot.ron}</span></div>`
             +`<p class="note" style="margin-top:9px"><span class="mono">${rot.path}</span></p>`:"")

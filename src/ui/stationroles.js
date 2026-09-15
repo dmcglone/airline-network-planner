@@ -43,7 +43,7 @@ function drawStationRoles(){
       + `</select></td>`
       + `<td class="num dim">${banks ? fmt(banks)+" banks/day" : "rolling"}</td>`
       + `<td class="num dim">${fmt(n)}${(()=>{const sp=stationSpokeRoutes(code);
-          return sp?` <span style="opacity:.6">+${fmt(sp)} inbound</span>`:"";})()}</td>`
+          return sp?` <span style="opacity:.6" title="Routes based elsewhere that fly in here">+${fmt(sp)} flown in</span>`:"";})()}</td>`
       + `<td><button class="btn sm" data-strdel="${esc(code)}"`
       + (n ? ` disabled title="${fmt(n)} route${n===1?"":"s"} are based at ${esc(code)}. Remove them first."`
            : ` title="Stop basing aircraft here. Routes flown INTO it are unaffected."`)
@@ -58,7 +58,7 @@ function drawStationRoles(){
   // rebuilt on every draw, so the typeahead has to be re-attached each time
   host.innerHTML =
       `<div class="scroll"><table><thead><tr><th>Code</th><th>Airport</th><th>Role</th>`
-    + `<th class="r">Schedule</th><th class="r">Based here</th><th></th></tr></thead>`
+    + `<th class="r">Schedule</th><th class="r">Routes based here</th><th></th></tr></thead>`
     + `<tbody>${rows}</tbody></table></div>`
     + `<div class="toolbar" style="flex-wrap:wrap">`
       + `<span class="dim" style="font-size:12.5px">Add a station</span>`
