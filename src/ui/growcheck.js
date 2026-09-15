@@ -12,24 +12,26 @@
 
 let growGen = 0;
 let GROW = [];                 // [{base, items}] as last drawn
+let FILL_SPECS = [];           // Fill's proposed routes, checked after Grow's
+
+/* The network verdict for one proposed route, as a pill and a short reason. */
+function netPillHTML(R){
+  if(!R) return `<span class="gi-pill pending">checking…</span>`;
+  if(R.err) return `<span class="gi-pill">not checked</span>`;
+  const tone = netTone(R);
+  const v = `${R.net < 0 ? "−" : "+"}${netK(R.net)}/day`;
+  const why = [];
+  if(R.moreShort > 0) why.push(`needs ${fmt(R.moreShort)} more ${esc(R.type)} than you own`);
+  else if(R.net >= 0 && R.netAlloc < 0) why.push(`doesn't cover ownership and overhead`);
+  if(R.restRev < -250) why.push(`takes ${netK(-R.restRev)} from your flights`);
+  else if(R.restRev > 250) why.push(`feeds ${netK(R.restRev)} onto your flights`);
+  return `<span class="gi-pill ${tone}">Network ${v}</span>`
+    + (why.length ? `<span class="gi-why">${why.join("; ")}</span>` : "");
+}
 
 function growItemHTML(it, i){
   const R = netCached(it.spec), F = it.facts;
-  let net;
-  if(!R) net = `<span class="gi-pill pending">checking…</span>`;
-  else if(R.err) net = `<span class="gi-pill">not checked</span>`;
-  else {
-    const tone = netTone(R);
-    const v = `${R.net < 0 ? "−" : "+"}${netK(R.net)}/day`;
-    // The reason for the colour first, then the network effect.
-    const why = [];
-    if(R.moreShort > 0) why.push(`needs ${fmt(R.moreShort)} more ${esc(R.type)} than you own`);
-    else if(R.net >= 0 && R.netAlloc < 0) why.push(`doesn't cover ownership and overhead`);
-    if(R.restRev < -250) why.push(`takes ${netK(-R.restRev)} from your flights`);
-    else if(R.restRev > 250) why.push(`feeds ${netK(R.restRev)} onto your flights`);
-    net = `<span class="gi-pill ${tone}">Network ${v}</span>`
-      + (why.length ? `<span class="gi-why">${why.join("; ")}</span>` : "");
-  }
+  const net = netPillHTML(R);
   const alone = it.contrib != null
     ? `on its own ${it.contrib < 0 ? "−" : "+"}${netK(it.contrib)}/day `
       + `(${netK(F.rev)} rev, ${netK(F.cost)} direct cost)` : "";
@@ -71,13 +73,28 @@ function growBaseHTML(g){
     + ranked.map(it => growItemHTML(it, it._i)).join("");
 }
 
+/* Once Fill is checked, say what it found in a sentence rather than leaving it to
+   eighteen red pills. An idle aircraft costs its ownership whether it flies or not;
+   a thin route on top of that can cost more than the idleness does. */
+function fillSummary(){
+  const host = $("#fillSummary"); if(!host) return;
+  const rs = FILL_SPECS.map(sp => netCached(sp)).filter(R => R && !R.err);
+  if(!FILL_SPECS.length || rs.length < FILL_SPECS.length){ host.innerHTML = ""; return; }
+  const good = rs.filter(R => R.net >= 0).length;
+  host.innerHTML = good
+    ? `<b>${fmt(good)} of these ${fmt(rs.length)}</b> would earn your network money. The rest cost more than leaving the aircraft idle.`
+    : `<b>None of these would earn your network money.</b> Each costs more to fly than leaving the aircraft idle, `
+      + `so the idle time is cheaper as it is, or better spent on a Grow pick for that base.`;
+}
+
 function growProgress(){
-  const all = GROW.flatMap(g => g.items);
-  const done = all.filter(it => netCached(it.spec)).length;
+  fillSummary();
+  const all = GROW.flatMap(g => g.items).map(it => it.spec).concat(FILL_SPECS);
+  const done = all.filter(sp => netCached(sp)).length;
   const host = $("#growProgress"); if(!host) return;
   host.innerHTML = done < all.length
     ? `<span class="rv-checking">Checking against your network… ${fmt(done)} of ${fmt(all.length)}</span>`
-    : `Each pick is checked against your whole network and ranked by what it adds there, `
+    : `Each pick, here and under Fill, is checked against your whole network and ranked by what it adds there, `
       + `not by the route alone. Profitable picks your fleet can fly come first, then ones that need more aircraft, then ones that lose money. `
       + `<b>Review</b> opens one in Add route with the full breakdown.`;
 }
@@ -101,17 +118,33 @@ function startGrowChecks(){
   const depth = Math.max(0, ...GROW.map(g => g.items.length));
   for(let r = 0; r < depth; r++)
     for(const g of GROW){ const it = g.items.find(x => x.rank === r); if(it) queue.push({g, it}); }
+  for(const sp of FILL_SPECS) queue.push({spec: sp});
   const tick = () => {
     if(gen !== growGen || tab !== "suggest") return;          // redrawn or left the tab
-    const next = queue.find(q => !netCached(q.it.spec));
+    const next = queue.find(q => !netCached(q.spec || q.it.spec));
     if(!next){ growProgress(); return; }
-    computeNetCheck(next.it.spec);
-    const box = document.querySelector(`[data-growbase="${CSS.escape(next.g.base)}"]`);
-    if(box) box.innerHTML = growBaseHTML(next.g);
+    computeNetCheck(next.spec || next.it.spec);
+    if(next.g){
+      const box = document.querySelector(`[data-growbase="${CSS.escape(next.g.base)}"]`);
+      if(box) box.innerHTML = growBaseHTML(next.g);
+    } else paintFill(next.spec);
     growProgress();
     setTimeout(tick, 60);
   };
   setTimeout(tick, 150);
+}
+
+/* A Fill option's verdict, and its Add button: a route that loses the network money
+   is still there, but not offered as the answer. */
+function fillNetHTML(spec){ return netPillHTML(netCached(spec)); }
+function paintFill(spec){
+  const sig = netSig(spec), R = netCached(spec);
+  document.querySelectorAll(`[data-fillsig="${CSS.escape(sig)}"]`).forEach(n => { n.innerHTML = fillNetHTML(spec); });
+  document.querySelectorAll(`[data-fillbtn="${CSS.escape(sig)}"]`).forEach(b => {
+    const worse = R && !R.err && R.net < 0;
+    b.classList.toggle("quiet", !!worse);
+    b.textContent = worse ? "Add anyway" : "Add";
+  });
 }
 
 /* Open a suggestion in Add route, where the full breakdown lives. */

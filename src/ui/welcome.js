@@ -55,16 +55,20 @@ function drawWelcome(){
     + `It then checks its own work against ten rules and tells you when it has broken one. `
     + `Nothing here is a forecast of any real airline.</p>`
     + `<div class="welcome-grid">`
-    + welcomeCards().map(c =>
-        `<button class="welcome-card" data-starter="${esc(c.id)}">`
-        + `<span class="wc-name">${esc(c.name)}</span>`
+    + welcomeCards().map(c => {
+        // Say which one is open behind this window. A first visit has the full
+        // example loaded without anyone having chosen it.
+        const now = c.id === (state.origin || (welcomeFirst ? "__example" : ""));
+        return `<button class="welcome-card${now ? " now" : ""}" data-starter="${esc(c.id)}"`
+        + (now ? ` aria-label="${esc(c.name)}, open now. Choosing it starts it again from scratch."` : "") + `>`
+        + `<span class="wc-name">${esc(c.name)}${now ? ` <span class="wc-now">Open now</span>` : ""}</span>`
         + (c.facts ? `<span class="wc-facts">${esc(c.facts)}</span>` : "")
-        + `<span class="wc-blurb">${esc(c.blurb)}</span></button>`).join("")
+        + `<span class="wc-blurb">${esc(c.blurb)}</span></button>`; }).join("")
     + `</div>`
     + `<div class="toolbar" style="padding-left:0">`
     + `<button class="btn sm" data-welclose="1">${welcomeFirst
         ? "Explore the full example" : "Keep what I have"}</button>`
-    + `<span class="dim" style="font-size:12.5px">You can start over from the Airline panel. `
+    + `<span class="dim" style="font-size:12.5px">You can start over from Settings. `
     + `Switching replaces the whole airline: routes, bases and aircraft types. Undo `
     + `brings the old one back.</span>`
     + `</div></div>`;
@@ -91,12 +95,13 @@ function welcomeEvent(t){
   } else if(!loadStarter(id)){
     return true;
   }
+  state.origin = id;            // which card this airline came from, for the "open now" tag
   welcomeOpen = false; welcomeFirst = false; drawWelcome();
   // swapNetwork pushes the undo snapshot after the swap, which is the only order
   // that works: it stores the state as of the last finished build.
   swapNetwork(() => {}, "starting over");
   const s = (typeof STARTERS !== "undefined" ? STARTERS : []).find(x => x.id === id);
-  toast(s ? `Started from ${s.name.toLowerCase()}. Rename it in the Airline panel`
+  toast(s ? `Started from ${s.name.toLowerCase()}. Rename it under Settings`
           : "Network loaded");
   if(typeof drawHint === "function") drawHint();
   return true;

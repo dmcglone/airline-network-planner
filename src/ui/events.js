@@ -1,3 +1,16 @@
+/* Commit an edit now, with an undo step. Every edit that changes the airline goes
+   through here or through rebuild(); one that did neither left Undo pointing at
+   the edit before it, so a single Undo after changing the fleet could revert a
+   whole airline switch. `priced` is for edits that change what the money is
+   computed on but not the schedule (the demand source): the cached economics
+   must go. */
+function commitNow(label, priced){
+  pushUndo(label);
+  M=build();
+  if(priced && typeof netCache!=="undefined") netCache={m:null, map:new Map()};
+  save(); draw();
+  if(typeof markCommitted==="function") markCommitted();
+}
 /* ---------- events ---------- */
 function guard(fn){                                   // never let one bad interaction kill the page
   try { fn(); }
@@ -52,21 +65,21 @@ document.addEventListener("input", e=>{
   }
   if(t.dataset && t.dataset.red!==undefined){
     guard(()=>{ const r=state.routes[+t.dataset.red];
-      if(r){ if(t.checked) r.red=1; else delete r.red; M=build(); save(); draw(); } });
+      if(r){ if(t.checked) r.red=1; else delete r.red; commitNow("red-eye"); } });
     return; }
   if(t.dataset && t.dataset.w){ const r=state.routes[+t.dataset.i];
     if(r){ r.dow=Math.max(1,Math.min(7,Math.round(+t.value||7))); rebuild(); } return; }
   if(t.dataset && t.dataset.roster){
     guard(()=>{ state.roster=state.roster||{}; state.roster[t.dataset.roster]=Math.max(0,Math.round(+t.value||0));
-      M=build(); save(); draw(); }); return; }
-  if(t.id==="spareIn"){ state.spare=Math.max(0,Math.min(0.5,(+t.value||0)/100)); M=build(); save(); draw(); return; }
+      commitNow("fleet owned"); }); return; }
+  if(t.id==="spareIn"){ state.spare=Math.max(0,Math.min(0.5,(+t.value||0)/100)); commitNow("spare ratio"); return; }
   if(t.id==="demSel"){ guard(()=>{ state.demand=Object.assign({},state.demand,{source:t.value});
-      if(t.value==="gravity") delete state.demand.rows; save(); draw(); }); return; }
-  if(t.id==="redeyeChk"){ guard(()=>{ state.redeye=t.checked?1:0; M=build(); save(); draw(); }); return; }
-  if(t.id==="spacingSel"){ guard(()=>{ state.spacing=t.value; M=build(); save(); draw(); }); return; }
+      if(t.value==="gravity") delete state.demand.rows; commitNow("demand source", true); }); return; }
+  if(t.id==="redeyeChk"){ guard(()=>{ state.redeye=t.checked?1:0; commitNow("red-eyes"); }); return; }
+  if(t.id==="spacingSel"){ guard(()=>{ state.spacing=t.value; commitNow("spacing"); }); return; }
   if(t.dataset && t.dataset.feed){
     guard(()=>{ state.feed=state.feed||{}; state.feed[t.dataset.feed]=t.checked?1:0;
-      M=build(); save(); draw(); }); return; }
+      commitNow("bank feed"); }); return; }
   if(typeof stationEvent==="function" && stationEvent(t)) return;
   if(typeof smEvent==="function" && smEvent(t)) return;
   if(t.dataset && t.dataset.f!==undefined && t.dataset.k){
@@ -78,12 +91,11 @@ document.addEventListener("input", e=>{
   if(["q","fStation","fType","fRed"].includes(t.id)) drawRoutes();
   else if(["sq","sStation","sType","sRon"].includes(t.id)) drawSched();
   else if(["rq","rStation","rType"].includes(t.id)) drawRot();
-  else if(t.id==="spacingSel"){ state.spacing=t.value; M=build(); save(); draw(); }
 });
 document.addEventListener("change", e=>{
   const id=e.target.id;
   if(id==="demSel"){ state.demand=Object.assign({},state.demand,{source:e.target.value});
-    if(e.target.value==="gravity") delete state.demand.rows; save(); draw(); return; }
+    if(e.target.value==="gravity") delete state.demand.rows; commitNow("demand source", true); return; }
   if(["fStation","fType","fRed","fSort"].includes(id)) drawRoutes();
   else if(["sStation","sType","sRon"].includes(id)) drawSched();
   else if(["rStation","rType"].includes(id)) drawRot();
@@ -94,10 +106,7 @@ $("#btnStartOver") && $("#btnStartOver").addEventListener("click", ()=>{ welcome
 $("#btnShare").addEventListener("click", ()=>{ doShare(); });
 $("#schedModeList").addEventListener("click", ()=>{ schedMode="list"; drawSched(); });
 $("#schedModeBanks").addEventListener("click", ()=>{ schedMode="banks"; drawSched(); });
-$("#btnAirline").addEventListener("click", ()=>{
-  airlineOpen = !airlineOpen; drawAirline();
-  if(airlineOpen){ const f=$("#alName"); if(f) f.focus(); }
-});
+$("#btnSettings").addEventListener("click", ()=>{ goTab("settings"); });
 if($("#btnHelp")) $("#btnHelp").addEventListener("click", ()=>{ dismissHint(true); goTab("model"); });
 
 /* A single line pointing at Help, shown only to someone who has never opened it.
@@ -176,7 +185,7 @@ document.addEventListener("click",e=>{
       const oi=e.target.dataset.opt;
       const fn = (oi!==undefined && x.options) ? x.options[+oi].apply : x.apply;
       if(!fn) return;
-      fn(); M=build(); save(); draw(); toast("Applied. Schedule rebuilt"); });
+      fn(); commitNow("suggestion"); toast("Applied. Undo takes it back"); });
     return;
   }
   const si=e.target.dataset && e.target.dataset.search;
@@ -207,7 +216,7 @@ document.addEventListener("click",e=>{
     return;
   }
   if(e.target.id==="btnImportDemand"){ const b=$("#importBox"); b.hidden=!b.hidden; }
-  if(e.target.id==="btnClearDem"){ guard(()=>{ state.demand={source:"gravity"}; M=build(); save(); draw(); toast("Back to the gravity model"); }); }
+  if(e.target.id==="btnClearDem"){ guard(()=>{ state.demand={source:"gravity"}; commitNow("demand source", true); toast("Back to the gravity model"); }); }
   if(e.target.id==="btnDoImport"){
     guard(()=>{
       const txt=$("#demCsv").value.trim(); if(!txt){ $("#demStatus").textContent="Nothing pasted."; return; }
@@ -229,12 +238,12 @@ document.addEventListener("click",e=>{
       }
       if(!n){ $("#demStatus").textContent="No usable rows found."; return; }
       state.demand={source:"dot",rows};
-      M=build(); save(); draw();
+      commitNow("demand import", true);
       toast(fmt(n)+" markets imported");
     });
   }
-  if(e.target.id==="btnMatch"){ state.roster={}; M.fleet.forEach(f=>state.roster[f.t]=f.total); M=build(); save(); draw(); toast("Roster matched to the current requirement"); }
-  if(e.target.id==="btnPinReset"){ state.roster=Object.assign({},FLEET_PINNED); M=build(); save(); draw(); toast("Roster reset to the baseline fleet"); }
+  if(e.target.id==="btnMatch"){ state.roster={}; M.fleet.forEach(f=>state.roster[f.t]=f.total); commitNow("fleet owned"); toast("Fleet matched to what the schedule needs"); }
+  if(e.target.id==="btnPinReset"){ state.roster=Object.assign({},FLEET_PINNED); commitNow("fleet owned"); toast("Fleet reset to the baseline"); }
 });
 $("#btnTheme").onclick=()=>{
   const cur=document.documentElement.getAttribute("data-theme");
@@ -682,7 +691,7 @@ $("#btnAddGo").onclick=()=>{
   const dw=r ? (r.dow||7) : a.w;
   addDest=null; $("#nD").value=""; $("#nRed").checked=false; $("#addRow").hidden=true;
   clearTimeout(netTimer); resetAddDays();
-  M=build(); save(); draw();
+  commitNow(`add ${a.o}–${a.d}`);
   toast(`${a.o}–${a.d} now ${per} a day, ${dw} day${dw===1?"":"s"} a week`);
 };
 
@@ -802,7 +811,9 @@ $("#btnImport").onclick = ()=>{
   $("#fileImport").onchange = safe(async (ev)=>{
     const f = ev.target.files && ev.target.files[0]; if(!f) return;
     let r;
-    try{ r = importState(await f.text()); }
+    const text = await f.text();
+    // Through swapNetwork like the paste import, so Undo can bring the old airline back.
+    try{ swapNetwork(() => { r = importState(text); }, "import"); }
     catch(err){ toast("Import failed. "+(err.message||err)); ev.target.value=""; return; }
     ev.target.value="";
     toast(r.want && r.diff.length

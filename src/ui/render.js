@@ -16,7 +16,7 @@ const cityName = a => AP[a] ? tc(AP[a][1]) : a;
    judge the result. */
 const TABS=[["network","Network"],["map","Map"],["suggest","Suggestions"],["gap"],
             ["schedule","Schedule"],["rot","Rotations"],["board","Board"],["stations","Stations"],["gap"],
-            ["fleet","Fleet"],["econ","Economics"],["gap"],["checks","Checks"],["model","Help"]];
+            ["fleet","Fleet"],["econ","Economics"],["gap"],["checks","Checks"],["settings","Settings"],["model","Help"]];
 let tab="network";
 /* Somewhere to send people from outside the bar -- the Checks metric, a link. */
 function goTab(id){
@@ -26,7 +26,7 @@ function goTab(id){
   ALL_PANES.forEach(x=>{ const p=$("#pane-"+x); if(p) p.hidden = x!==id; });
   draw();
 }
-const ALL_PANES=["network","map","board","schedule","rot","stations","fleet","econ","suggest","checks","model"];
+const ALL_PANES=["network","map","board","schedule","rot","stations","fleet","econ","suggest","checks","settings","model"];
 /* A tablist is a single tab stop: Tab moves past it, arrows move within it.
    Without this the bar was nine separate tab stops and the roles promised a
    pattern the keyboard did not deliver. */

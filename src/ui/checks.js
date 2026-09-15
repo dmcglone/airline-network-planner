@@ -31,7 +31,7 @@ function drawChecks(){
   h+=`<p class="note" style="margin-top:12px"><b>Departure spacing:</b> ${F.tight} same-market pairs depart within 40 minutes of each other; `
    + `${F.nightOdd} short flights sit outside 05:30–23:30; ${F.noAft} spoke cities with three or more departures have nothing after 15:00. `
    + `${F.redeyes} true red-eyes operate (depart 21:00–23:00, land 05:00–09:00). `
-   + `Adjust under Schedule strategy on the Fleet tab.</p>`;
+   + `Adjust under Schedule strategy on the <button class="linkbtn" data-goto="settings">Settings</button> tab.</p>`;
   h+=`<p class="note" style="margin-top:12px"><b>Bank feed:</b> ${F.fed} of ${F.planned} planned spokes got an overnight aircraft; `
    + `${F.early} of ${F.spokes} spoke cities now depart before 07:00. `
    + (F.late ? `${F.late} still have no departure before 09:00: ` + F.lateList.join(", ")
@@ -63,27 +63,44 @@ function sgCard(x){
         // A change that tested worse is still available, but not offered as the fix.
         + (x.apply?`<button class="btn sm${x.worse?" quiet":""}" data-apply="${x._i}">${x.worse?"Apply anyway":"Apply"}</button>`:"")
     + (x.search?`<button class="btn sm" data-search="${x._i}">Search</button><span class="imp" id="sr${x._i}"></span>`:"")+`</div>`:"")
-    + (x.options?x.options.map((o,j)=>`<div class="opt"><span class="m">${o.txt}</span>`
-        + `<button class="btn sm" data-apply="${x._i}" data-opt="${j}">Add</button></div>`).join(""):"")
+    + (x.options?x.options.map((o,j)=>{
+        if(!o.spec) return `<div class="opt"><span class="m">${o.txt}</span>`
+          + `<button class="btn sm" data-apply="${x._i}" data-opt="${j}">Add</button></div>`;
+        const sig=netSig(o.spec), R=netCached(o.spec), worse=R&&!R.err&&R.net<0;
+        return `<div class="opt"><span><span class="m">${o.txt}</span>`
+          + `<span class="gi-net" data-fillsig="${esc(sig)}">${fillNetHTML(o.spec)}</span></span>`
+          + `<button class="btn sm${worse?" quiet":""}" data-fillbtn="${esc(sig)}" data-apply="${x._i}" data-opt="${j}">${worse?"Add anyway":"Add"}</button></div>`;
+      }).join(""):"")
     + `</div>`;
 }
 let SUGG=[];
-function drawSuggest(){
+function drawDemandSource(){
   const src=demandSource(), meta=DEMAND_SOURCES[src];
   $("#demSel").innerHTML=Object.keys(DEMAND_SOURCES).map(k=>
     `<option value="${k}"${src===k?" selected":""}>${esc(DEMAND_SOURCES[k].label)}</option>`).join("");
   const rows=demandRows();
   $("#demNote").innerHTML=esc(meta.note)+(rows?` <b>${fmt(Object.keys(rows).length)} markets loaded.</b>`:"");
   $("#btnClearDem").hidden=!rows;
+}
+/* Everything the planner is set to, in one place. */
+function drawSettings(){
+  if(typeof drawAirline==="function") drawAirline();
+  drawFeed();
+  $("#spareIn").value=Math.round((state.spare===undefined?0.08:state.spare)*100);
+  drawDemandSource();
+}
+function drawSuggest(){
+  const src=demandSource();
   SUGG=[];
   const fix=suggestFix(), fill=suggestFill(), grow=suggestGrow();
+  FILL_SPECS = fill.flatMap(x=>(x.options||[]).map(o=>o.spec).filter(Boolean));
   [...fix,...fill].forEach(x=>{ x._i=SUGG.length; SUGG.push(x); });
   $("#sFix").innerHTML=fix.length?fix.map(sgCard).join("")
     :`<p class="note">Nothing to fix. Every gauge is covered, no leg is out of range, and no rotation is stranded.</p>`;
-  $("#sFill").innerHTML=fill.length?fill.map(sgCard).join("")
+  $("#sFill").innerHTML=fill.length?`<p class="note" id="fillSummary"></p>`+fill.map(sgCard).join("")
     :`<p class="note">No under-used rotations with a route that fits their idle window.</p>`;
   if(!grow.length && !Object.keys(DEM.size||{}).length){
-    $("#sGrow").innerHTML=`<p class="note"><b>No demand data in this version of the page.</b> Grow ranks unserved markets by passenger demand, and this build's data block has no demand table, so it has nothing to rank. Reload the latest published version, or paste your own market data in the box above.</p>`;
+    $("#sGrow").innerHTML=`<p class="note"><b>No demand data in this version of the page.</b> Grow ranks unserved markets by passenger demand, and this build's data block has no demand table, so it has nothing to rank. Reload the latest published version, or import your own market data under <button class="linkbtn" data-goto="settings">Settings</button>.</p>`;
     return;
   }
   renderGrow(grow, `<p class="note">Candidates are unserved US markets ${src==="gravity"?"(modelled demand)":"(imported demand)"}, within range of a gauge you fly and at least ${MIN_SUGG_NM} nm, so the route competes with airlines rather than with driving. Cities already served from that station are excluded. <b>US destinations only</b>: the demand model is calibrated on US scheduled service.</p>`);
@@ -100,6 +117,7 @@ function draw(){
   else if(tab==="map"){ drawMap(); requestAnimationFrame(()=>{restyle(); drawPlanes();}); }
   else if(tab==="suggest") drawSuggest();
   else if(tab==="board") drawBoard();
+  else if(tab==="settings") drawSettings();
   else if(tab==="model") drawModel();
   else drawChecks();
   if(typeof linkGlossary === "function") linkGlossary();

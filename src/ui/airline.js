@@ -16,8 +16,7 @@ function codeIsUntouched(){
 
 function drawAirline(){
   const host = $("#airlinePanel"); if(!host) return;
-  host.hidden = !airlineOpen;
-  if(!airlineOpen){ host.innerHTML = ""; return; }
+  // Lives on the Settings tab now, so it is always drawn there; the Done button went with the header panel.
   const code = state.code || BRAND.code;
   host.innerHTML =
       `<div class="row">`
@@ -27,7 +26,6 @@ function drawAirline(){
     + ` value="${esc(code)}"></label>`
     + `<label>Design day label<input id="alDay" maxlength="24" style="width:170px"`
     + ` value="${esc(state.designDay || BRAND.designDay || "")}"></label>`
-    + `<button class="btn" id="alDone">Done</button>`
     + `<button class="btn sm" id="btnStartOver">Start a different airline</button>`
     + `<span class="dim" style="font-size:12.5px;padding-bottom:6px">`
     + `The code prefixes every flight number. It follows the name until you change it,`
@@ -56,7 +54,6 @@ function drawAirline(){
     $("#designday").textContent = state.designDay ? "Design day · "+state.designDay : "";
     save();
   });
-  $("#alDone").addEventListener("click", ()=>{ airlineOpen = false; drawAirline(); });
   $("#btnStartOver").addEventListener("click", ()=>{
-    airlineOpen = false; drawAirline(); welcomeOpen = true; drawWelcome(); });
+    welcomeOpen = true; drawWelcome(); });
 }

@@ -488,3 +488,7 @@ tfoot td{padding:8px 10px;border-top:1px solid var(--line);font-weight:600;backg
 .cutv{white-space:nowrap}
 .cutv .gi-why{white-space:normal}
 .cuta{white-space:nowrap;text-align:right}
+
+/* welcome: which airline is open behind the window */
+.welcome-card.now{border-color:var(--accent)}
+.wc-now{display:inline-block;vertical-align:middle;margin-left:6px;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:1px 7px}

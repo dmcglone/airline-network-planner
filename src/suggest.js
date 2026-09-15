@@ -112,9 +112,9 @@ function suggestFill(){
     const best=cands.slice(0,3);
     out.push({kind:"fill",sev:"med",rot:st,
       title:`${article(T)[0].toUpperCase()+article(T).slice(1)} ${T} at ${B} flies ${hrsHM(st.block)} and sits idle for ${hrsHM(idle)}`,
-      why:`${st.path} — a ${T} at ${B} with most of its day free.`,
-      options:best.map(o=>({code:o.c, txt:`${B}–${o.c} · ${esc(cityName(o.c))} · ${fmt(dist(B,o.c))} nm · ${hrsHM(o.rt)} round trip · ${fmt(o.dem)} pax/day · flown from ${o.others} of your stations`,
-        apply:()=>{ state.routes.push({o:B,d:o.c,dow:7,mix:{[T]:1}}); state.routes.sort((a,b)=>a.o<b.o?-1:a.o>b.o?1:(a.d<b.d?-1:1)); }}))});
+      why:`${st.path} — ${article(T)} ${T} at ${B} with most of its day free.`,
+      options:best.map(o=>({code:o.c, spec:{o:B, d:o.c, t:T, n:1, w:7, red:false}, txt:`${B}–${o.c} · ${esc(cityName(o.c))} · ${fmt(dist(B,o.c))} nm · ${hrsHM(o.rt)} round trip · ${fmt(o.dem)} pax/day · flown from ${o.others} of your stations`,
+        apply:()=>{ applyAddRoute(state.routes, {o:B, d:o.c, t:T, n:1, w:7, red:false}); }}))});
   }
   return out;
 }
