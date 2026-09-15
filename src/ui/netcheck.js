@@ -11,9 +11,11 @@
 
 /* Adding a route, exactly as the Add button does it. One function for both, so a
    check always tests the change you would actually make. */
+const existingRoute = (routes, o, d) => routes.find(r => r.o === o && r.d === d) || null;
+
 function applyAddRoute(routes, a){
   const {o, d, t, n, w, red} = a;
-  const ex = routes.find(r => r.o === o && r.d === d);
+  const ex = existingRoute(routes, o, d);
   if(ex){ ex.mix[t] = (+ex.mix[t] || 0) + n; ex.dow = w; if(red) ex.red = 1; }
   else routes.push(Object.assign({o, d, dow: w, mix: {[t]: n}}, red ? {red: 1} : {}));
   if(STA.includes(d)){                       // trunk: mirror the other direction

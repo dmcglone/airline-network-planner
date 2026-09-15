@@ -445,3 +445,12 @@ tfoot td{padding:8px 10px;border-top:1px solid var(--line);font-weight:600;backg
 .rv-n.bad{color:var(--bad)}
 .rv-v.dim{color:var(--ink-3)}
 .rv-local.local,.rv-sw.local{background:var(--ink-2)}
+
+/* adding to a route you already fly */
+.rv-exist,.rv-days{display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:12.5px;line-height:1.55;color:var(--ink-2)}
+.rv-exist b{color:var(--ink);font-weight:600}
+.rv-exist-i{width:14px;text-align:center;flex:none}
+.rv-days{margin-top:8px;padding:7px 10px;border-radius:8px;background:var(--warn-soft);border:1px solid var(--warn);color:var(--warn)}
+.linkbtn{background:none;border:0;padding:0;font:inherit;color:inherit;text-decoration:underline;cursor:pointer}
+.warnfield{color:var(--warn)!important}
+.warnfield input{border-color:var(--warn)!important;box-shadow:0 0 0 1px var(--warn)}

@@ -137,6 +137,7 @@ document.addEventListener("click", e=>{
     if(b && b.dataset && b.dataset.hint){
     dismissHint(true); if(b.dataset.hint === "open") goTab("model"); return;
   }
+  if(b && b.dataset && b.dataset.keepdays){ const w=$("#nW"); if(w){ w.value=b.dataset.keepdays; addInfo(); } return; }
   if(b && b.dataset && b.dataset.fit){ const g=$("#nT"); if(g){ g.value=b.dataset.fit; addInfo(); } return; }
   if(b && b.dataset && b.dataset.bank){ bankStation = b.dataset.bank; drawBanks(); return; }
   if(b && b.dataset && b.dataset.gloss){ showGlossTerm(b.dataset.gloss); return; }
@@ -520,9 +521,52 @@ function verdictHTML(A, net){
   return banner + metrics + bar + fit + (R && !R.err ? netBreakdown(R, A) : "");
 }
 
+/* Days per week belong to the whole route: every flight on it shares them. So
+   when the market already exists the form starts from the route's own days, says
+   plainly that it is adding to that route, and spells out what changing the days
+   would do to the flights already there. */
+let addMarket = "";           // the market the form last described
+let addDaysTouched = false;   // the person typed a days value themselves
+
+function syncAddForm(o, d){
+  const ex = d ? existingRoute(state.routes, o, d) : null;
+  const key = d ? o + "|" + d : "";
+  const w = $("#nW");
+  if(key !== addMarket){
+    addMarket = key;
+    if(!addDaysTouched && w) w.value = ex ? (ex.dow || 7) : 7;
+  }
+  const set = (id, txt) => { const e = $(id); if(e) e.textContent = txt; };
+  set("#nNLbl", ex ? "Add flights/day" : "Flights/day");
+  set("#nWLbl", ex ? "Days/week, whole route" : "Days/week");
+  $("#btnAddGo").textContent = ex ? `Add to ${o}–${d}` : "Add to network";
+  const days = Math.max(1, Math.min(7, Math.round(+(w && w.value) || 7)));
+  const changes = !!ex && days !== (ex.dow || 7);
+  const wrap = $("#nWWrap");
+  if(wrap) wrap.classList.toggle("warnfield", changes);
+  return {ex, days, changes};
+}
+
+function existingLine(o, d, ex, days, changes){
+  if(!ex) return "";
+  const parts = TYPES.filter(x => +ex.mix[x] > 0).map(x => `${fmt(+ex.mix[x])} × ${esc(x)}`);
+  const per = TYPES.reduce((a, x) => a + (+ex.mix[x] || 0), 0);
+  const was = ex.dow || 7;
+  const add = Math.max(1, Math.round(+$("#nN").value || 1));
+  const line = `<div class="rv-exist"><span class="rv-exist-i" aria-hidden="true">⇢</span><div>`
+    + `You already fly ${esc(o)}–${esc(d)}: <b>${parts.join(" + ") || "no flights"} a day, `
+    + `${fmt(was)} day${was === 1 ? "" : "s"} a week</b>. This adds to it.</div></div>`;
+  if(!changes) return line;
+  return line + `<div class="rv-days">`
+    + `<span class="rv-exist-i" aria-hidden="true">▦</span><div>Changes all ${fmt(per + add)} daily flight`
+    + `${per + add === 1 ? "" : "s"} from ${fmt(was)} to ${fmt(days)} day${days === 1 ? "" : "s"} a week. `
+    + `<button class="linkbtn" data-keepdays="${was}">Keep ${fmt(was)}</button></div></div>`;
+}
+
 function addInfo(){
   const o=$("#nO").value, d=addDest;
   const box=$("#addInfo");
+  const form = syncAddForm(o, d && AP[d] ? d : null);
   if(!d||!AP[d]){ box.innerHTML='<span class="dim">Pick a destination to see distance, block time and whether the route is worth flying.</span>'; return; }
   const nm=dist(o,d), t=$("#nT").value;
   const ok=TYPES.filter(x=>nm<=SPEC[x].rng);
@@ -562,7 +606,6 @@ function addInfo(){
     + ` <span class="dim">in range for ${fmt(ok.length)} type${ok.length===1?"":"s"}</span></summary>`
     + `<div>${fmt(nm)} nm (${fmt(nm*SM)} statute miles), block ${durHM(blk(o,d,t))} on ${esc(t)}.<br>`
     + `In range: ${ok.length ? esc(ok.join(", ")) : "none of your fleet"}.`
-    + (exists ? `<br>You already fly this market, so adding merges into it.` : "")
     + (rv.ok ? "" : `<br>No red-eye: ${esc(rv.why)}.`)
     + `</div></details>`;
   const red = rv.ok
@@ -571,16 +614,18 @@ function addInfo(){
   // Keep the details panel open across the re-render that the check triggers.
   const wasOpen = !!(box.querySelector(".rv-details") || {}).open;
   const howOpen = !!(box.querySelector(".nc-how") || {}).open;
-  box.innerHTML = `<div class="rv-card">${header}${body}`
+  box.innerHTML = `<div class="rv-card">${header}`
+    + existingLine(o, d, form.ex, form.days, form.changes) + `${body}`
     + `<div class="rv-foot">${details}${red}</div></div>`;
   if(wasOpen) box.querySelector(".rv-details").open = true;
   if(howOpen && box.querySelector(".nc-how")) box.querySelector(".nc-how").open = true;
 }
-$("#btnAdd").onclick=()=>{ $("#addRow").hidden=false; $("#nD").focus(); addInfo(); };
-$("#btnAddCancel").onclick=()=>{ $("#addRow").hidden=true; addDest=null; $("#nD").value=""; };
+function resetAddDays(){ addDaysTouched=false; addMarket=""; const w=$("#nW"); if(w) w.value=7; }
+$("#btnAdd").onclick=()=>{ resetAddDays(); $("#addRow").hidden=false; $("#nD").focus(); addInfo(); };
+$("#btnAddCancel").onclick=()=>{ $("#addRow").hidden=true; addDest=null; $("#nD").value=""; resetAddDays(); };
 $("#nO").onchange=addInfo; $("#nT").onchange=addInfo;
 if($("#nN")) $("#nN").addEventListener("input", addInfo);
-if($("#nW")) $("#nW").addEventListener("input", addInfo);
+if($("#nW")) $("#nW").addEventListener("input", ()=>{ addDaysTouched=true; addInfo(); });
 if($("#nRed")) $("#nRed").addEventListener("change", addInfo);   // seats offered move with frequency
 /* Airport typeahead, shared.
 
@@ -631,10 +676,13 @@ $("#btnAddGo").onclick=()=>{
   if(!a.d||!AP[a.d]){ toast("Pick a destination airport from the list"); return; }
   if(a.d===a.o){ toast("Origin and destination are the same airport"); return; }
   applyAddRoute(state.routes, a);
-  const {o, d, t, n}=a;
+  const r=existingRoute(state.routes, a.o, a.d);
+  const per=r ? TYPES.reduce((x,t)=>x+(+r.mix[t]||0),0) : a.n;
+  const dw=r ? (r.dow||7) : a.w;
   addDest=null; $("#nD").value=""; $("#nRed").checked=false; $("#addRow").hidden=true;
-  clearTimeout(netTimer);
-  M=build(); save(); draw(); toast("Added "+o+"–"+d+" · "+n+"× "+t);
+  clearTimeout(netTimer); resetAddDays();
+  M=build(); save(); draw();
+  toast(`${a.o}–${a.d} now ${per} a day, ${dw} day${dw===1?"":"s"} a week`);
 };
 
 /* ----- export / import state ----- */

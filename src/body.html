@@ -59,9 +59,9 @@
             <span class="ac"><input type="text" id="nD" placeholder="Type a code or city — e.g. BOI, Nashville" autocomplete="off"></span></label>
           <label style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-2)">Gauge
             <select id="nT"></select></label>
-          <label style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-2)">Flights/day
+          <label style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-2)"><span id="nNLbl">Flights/day</span>
             <input type="number" id="nN" value="2" min="1" max="20"></label>
-          <label style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-2)">Days/week
+          <label id="nWWrap" style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-2)"><span id="nWLbl">Days/week</span>
             <input type="number" id="nW" value="7" min="1" max="7"></label>
           <label id="nRedWrap" hidden style="display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--ink-2);padding-bottom:6px">
             <input type="checkbox" id="nRed"> Fly overnight <span class="mono" id="nRedLbl"></span></label>
