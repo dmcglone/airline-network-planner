@@ -367,3 +367,9 @@ tfoot td{padding:8px 10px;border-top:1px solid var(--line);font-weight:600;backg
 .verdict{ margin-top:7px; padding-top:7px; border-top:1px solid var(--line-2);
   font-size:12.5px; line-height:1.85; color:var(--ink-2); }
 .verdict b{ color:var(--ink); }
+
+
+/* what a hub is actually connecting, under its row */
+.connrow td{ padding-top:0; padding-bottom:10px; font-size:12.5px; line-height:1.6;
+  color:var(--ink-2); border-top:0; }
+.connrow b{ color:var(--ink); }

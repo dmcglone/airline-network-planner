@@ -47,7 +47,11 @@ function drawStationRoles(){
       + `<td><button class="btn sm" data-strdel="${esc(code)}"`
       + (n ? ` disabled title="${fmt(n)} route${n===1?"":"s"} are based at ${esc(code)}. Remove them first."`
            : ` title="Stop basing aircraft here. Routes flown INTO it are unaffected."`)
-      + `>Remove</button></td></tr>`;
+      + `>Remove</button></td></tr>`
+      + (() => {
+          const line = (typeof connectivityLine === "function") ? connectivityLine(code) : "";
+          return line ? `<tr class="connrow"><td></td><td colspan="5">${line}</td></tr>` : "";
+        })();
   }).join("");
 
   const cands = stationCandidates();

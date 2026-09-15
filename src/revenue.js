@@ -216,6 +216,10 @@ function allocateDemand(F, itins, competition, prem){
   for(const m of perMarket) for(const i of m.opts){
     let k = 1; for(const f of i.legs) k = Math.min(k, keep.get(f.id));
     const flown = i.pax*k;
+    // Kept on the itinerary so the planning surfaces can ask which connections
+    // the schedule actually realised, rather than only how many there were.
+    // Numerically inert: nothing downstream reads it.
+    i.flown = flown;
     st.spilled += i.pax - flown;
     st.pax += flown;
     if(i.stops) st.conn += flown;
@@ -258,6 +262,7 @@ function revenueModel(M){
   let nonstop=0, onestop=0;
   for(const opts of itins.values()) for(const i of opts) i.stops ? onestop++ : nonstop++;
   return Object.assign(r, {
+    itins,                       // for connectivity analysis; see ui/connectivity.js
     itineraries:{nonstop, onestop}, seats, asm, rpm, ceiling,
     lf: seats ? [...r.boarded.values()].reduce((a,b)=>a+b,0)/seats : 0,
     rasm: asm ? r.stats.rev/asm*100 : 0,

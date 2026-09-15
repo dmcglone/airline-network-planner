@@ -24,6 +24,7 @@
  "src/ui/fleet.js",
  "src/ui/seatmap.js",
  "src/ui/economics.js",
+ "src/ui/connectivity.js",
  "src/ui/stationroles.js",
  "src/ui/share.js",
  "src/ui/welcome.js",

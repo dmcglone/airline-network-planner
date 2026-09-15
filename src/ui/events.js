@@ -425,6 +425,19 @@ function routeVerdict(o, d, t, freq){
     flags.push(`<span class="chip">${esc(fits[0].t)} fits closer</span> `
       + `${fmt(fits[0].seats)} seats against demand of ${fmt(Math.round(each))}`);
 
+  // A spoke on a hub is worth its own traffic plus what it connects to.
+  const opened = (typeof connectionsOpened === "function") ? connectionsOpened(o, d) : null;
+  if(opened && opened.markets){
+    flags.push(`<span class="chip ok">opens ${fmt(opened.markets)} connecting market`
+      + `${opened.markets === 1 ? "" : "s"}</span> about `
+      + `${fmt(Math.round(opened.pax))} more passengers a day could reach your network `
+      + `through ${esc(o)}, biggest ${opened.top.map(x => esc(x.s)).join(", ")}`);
+  } else if((ROLE[o] === "Hub" || ROLE[o] === "Focus") && (state.routes || []).length > 2){
+    flags.push(`<span class="chip warn">no connections</span> nothing you already fly from `
+      + `${esc(o)} can route through it to ${esc(d)} without a detour, so this is worth only `
+      + `its own traffic`);
+  }
+
   if(!dem.real)
     flags.push(`<span class="dim">The gravity model is typically off by about seven times, `
       + `so read this as an ordering rather than a number.</span>`);
