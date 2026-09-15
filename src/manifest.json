@@ -34,6 +34,7 @@
  "src/ui/model.js",
  "src/ui/checks.js",
  "src/ui/undo.js",
+ "src/ui/netcheck.js",
  "src/ui/events.js",
  "src/ui/map.js",
  "src/ui/board.js",

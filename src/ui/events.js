@@ -137,6 +137,7 @@ document.addEventListener("click", e=>{
     if(b && b.dataset && b.dataset.hint){
     dismissHint(true); if(b.dataset.hint === "open") goTab("model"); return;
   }
+  if(b && b.dataset && b.dataset.netcheck){ runNetCheck(); return; }
   if(b && b.dataset && b.dataset.fit){ const g=$("#nT"); if(g){ g.value=b.dataset.fit; addInfo(); } return; }
   if(b && b.dataset && b.dataset.bank){ bankStation = b.dataset.bank; drawBanks(); return; }
   if(b && b.dataset && b.dataset.gloss){ showGlossTerm(b.dataset.gloss); return; }
@@ -551,7 +552,19 @@ function addInfo(){
   const red = rv.ok
     ? `<span class="rv-red">Red-eye viable, ${hhmm(rv.dep)} to ${hhmm(rv.arr)}</span>` : "";
 
-  box.innerHTML = `<div class="rv-card">${header}${body}`
+  // The full check is a rebuild, so it runs on request, and a result is only
+  // shown while the form still describes the route it was run for.
+  const canCheck = ok.length && !short && typeof runNetCheck === "function";
+  const sig = canCheck ? netSig(addFormValues()) : "";
+  const kept = netCheck && netCheck.sig === sig ? netCheck.html : "";
+  const check = canCheck
+    ? `<div class="nc"><div class="nc-bar"><button class="btn sm" data-netcheck="1">`
+      + `${kept ? "Check again" : "Check against my network"}</button>`
+      + `<span class="dim">Rebuilds your whole schedule with this route and compares.</span></div>`
+      + `<div id="netCheck">${kept}</div></div>`
+    : "";
+
+  box.innerHTML = `<div class="rv-card">${header}${body}${check}`
     + `<div class="rv-foot">${details}${red}</div></div>`;
 
   const rb=$("#nRedWrap");
@@ -560,7 +573,9 @@ function addInfo(){
 $("#btnAdd").onclick=()=>{ $("#addRow").hidden=false; $("#nD").focus(); addInfo(); };
 $("#btnAddCancel").onclick=()=>{ $("#addRow").hidden=true; addDest=null; $("#nD").value=""; };
 $("#nO").onchange=addInfo; $("#nT").onchange=addInfo;
-if($("#nN")) $("#nN").addEventListener("input", addInfo);   // seats offered move with frequency
+if($("#nN")) $("#nN").addEventListener("input", addInfo);
+if($("#nW")) $("#nW").addEventListener("input", addInfo);
+if($("#nRed")) $("#nRed").addEventListener("change", addInfo);   // seats offered move with frequency
 /* Airport typeahead, shared.
 
    This was written once for the Add route destination and nowhere else, so the
@@ -606,21 +621,13 @@ attachAirportAC($("#nD"), (code, input) => {
 });
 $("#nD").addEventListener("input", () => { addDest = null; addInfo(); });
 $("#btnAddGo").onclick=()=>{
-  const o=$("#nO").value, d=addDest, t=$("#nT").value;
-  const n=Math.max(1,Math.round(+$("#nN").value||1)), w=Math.max(1,Math.min(7,Math.round(+$("#nW").value||7)));
-  if(!d||!AP[d]){ toast("Pick a destination airport from the list"); return; }
-  if(d===o){ toast("Origin and destination are the same airport"); return; }
-  const ex=state.routes.find(r=>r.o===o&&r.d===d);
-  const wantRed=$("#nRed").checked && !$("#nRedWrap").hidden;
-  if(ex){ ex.mix[t]=(+ex.mix[t]||0)+n; ex.dow=w; if(wantRed) ex.red=1; }
-  else state.routes.push(Object.assign({o,d,dow:w,mix:{[t]:n}}, wantRed?{red:1}:{}));
-  if(STA.includes(d)){                       // trunk: mirror the other direction
-    const back=state.routes.find(r=>r.o===d&&r.d===o);
-    if(back){ back.mix[t]=(+back.mix[t]||0)+n; back.dow=w; }
-    else state.routes.push({o:d,d:o,dow:w,mix:{[t]:n}});
-  }
-  state.routes.sort((a,b)=> a.o<b.o?-1:a.o>b.o?1:(a.d<b.d?-1:1));
+  const a=addFormValues();
+  if(!a.d||!AP[a.d]){ toast("Pick a destination airport from the list"); return; }
+  if(a.d===a.o){ toast("Origin and destination are the same airport"); return; }
+  applyAddRoute(state.routes, a);
+  const {o, d, t, n}=a;
   addDest=null; $("#nD").value=""; $("#nRed").checked=false; $("#addRow").hidden=true;
+  netCheck=null;
   M=build(); save(); draw(); toast("Added "+o+"–"+d+" · "+n+"× "+t);
 };
 
