@@ -1,0 +1,26 @@
+{
+  // Preview servers for Claude Code on desktop. Ask Claude to "open the planner"
+  // (or use the Browser pane) and it starts the first one.
+  "version": "0.0.1",
+  // Auto-verify screenshots the page after edits. Useful here: most bugs in this
+  // project were rendering bugs a diff could not show. It is not verify.py.
+  "autoVerify": true,
+  "configurations": [
+    {
+      // Builds src/ into dist/, serves it at the site root like Cloudflare does,
+      // and rebuilds whenever src/, network.json or build.py changes.
+      "name": "planner",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["serve.py"],
+      "port": 8787,
+      "autoPort": true
+    },
+    {
+      // The deployed site. Opening it asks for permission the first time.
+      // Its saved state lives in that origin's localStorage, separate from the
+      // local server's, so edits made in one never appear in the other.
+      "name": "live",
+      "url": "https://airline-network-planner.daniel-mcglone.workers.dev"
+    }
+  ]
+}

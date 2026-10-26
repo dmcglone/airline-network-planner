@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(python build.py*)",
+      "Bash(python3 build.py*)",
+      "Bash(python verify.py)",
+      "Bash(python3 verify.py)",
+      "Bash(python preview.py*)",
+      "Bash(python3 preview.py*)",
+      "Bash(python make_legs.py)",
+      "Bash(python3 make_legs.py)",
+      "Bash(python engine.py)",
+      "Bash(python3 engine.py)",
+      "Bash(python validate.py)",
+      "Bash(python3 validate.py)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard.py", "dist"],
+            "timeout": 20
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git push*)",
+            "command": "python",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard.py", "ship"],
+            "timeout": 600
+          },
+          {
+            "type": "command",
+            "if": "Bash(npx wrangler deploy*)",
+            "command": "python",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard.py", "ship"],
+            "timeout": 600
+          },
+          {
+            "type": "command",
+            "if": "Bash(wrangler deploy*)",
+            "command": "python",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard.py", "ship"],
+            "timeout": 600
+          },
+          {
+            "type": "command",
+            "if": "Bash(npm run deploy*)",
+            "command": "python",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard.py", "ship"],
+            "timeout": 600
+          }
+        ]
+      }
+    ]
+  }
+}

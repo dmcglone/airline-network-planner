@@ -16,8 +16,13 @@ It is a static page. All the compute runs in the browser, so it needs no server.
 ```sh
 python3 build.py                 # src/ -> dist/index.html + dist/artifact.html
 python3 verify.py                # acceptance test: metrics + the ten checks
-open dist/index.html
+python3 serve.py                 # build, serve at http://127.0.0.1:8787/, rebuild on change
 ```
+
+`serve.py` is stdlib only. It is also what Claude Code's preview runs
+(`.claude/launch.json`), and `CLAUDE.md` holds the working rules for Claude
+sessions. Opening `dist/index.html` from disk mostly works, but `file://` hides
+the charset bug described below, so prefer the server.
 
 Two outputs, because they are served differently:
 

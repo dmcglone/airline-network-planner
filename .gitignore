@@ -10,3 +10,7 @@ lines.json
 node_modules/
 rev_py.json
 revenue.json
+
+# Claude Code: personal, per-machine
+CLAUDE.local.md
+.claude/settings.local.json
