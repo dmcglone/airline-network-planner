@@ -28,9 +28,25 @@ ROOT = pathlib.Path(os.environ.get("CLAUDE_PROJECT_DIR") or
 
 SHIP = re.compile(r"(^|[\s;&|(])(git\s+push\b|(npx\s+)?wrangler\s+deploy\b|npm\s+run\s+deploy\b)")
 
+# A hook that crashes exits 1, which Claude Code treats as a NON-blocking error:
+# the command goes ahead. The first version of this file did exactly that on
+# Windows, where printing verify.py's "FAIL — do not publish" to a cp1252 or
+# cp437 stderr raised UnicodeEncodeError, so a failing test let the push
+# through. Hence: never crash on output, and in ship mode fail closed.
+for _s in (sys.stdout, sys.stderr):
+    try:
+        _s.reconfigure(errors="replace")
+    except (AttributeError, ValueError):
+        pass
+
+CHILD_ENV = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
+
 
 def block(reason):
-    print(reason, file=sys.stderr)
+    try:
+        print(reason, file=sys.stderr)
+    except Exception:
+        pass                      # the block matters more than the message
     sys.exit(2)
 
 
@@ -61,7 +77,7 @@ def guard_dist(data):
 def run(script, *args):
     """Run a repo script and return (exit code, last lines of output).
     Never piped: the exit code is the script's own."""
-    r = subprocess.run([sys.executable, str(ROOT / script), *args], cwd=ROOT,
+    r = subprocess.run([sys.executable, str(ROOT / script), *args], cwd=ROOT, env=CHILD_ENV,
                        capture_output=True, text=True, encoding="utf-8", errors="replace")
     tail = "\n".join((r.stdout + r.stderr).strip().splitlines()[-30:])
     return r.returncode, tail
@@ -108,7 +124,14 @@ def main():
     if mode == "dist":
         guard_dist(data)
     elif mode == "ship":
-        guard_ship(data)
+        try:
+            guard_ship(data)
+        except SystemExit:
+            raise
+        except Exception as e:            # fail closed: an unverified push is the worst case
+            block(f"Blocked: the push gate itself crashed ({type(e).__name__}: {e}), "
+                  "so nothing was verified. Fix .claude/hooks/guard.py rather than "
+                  "pushing around it.")
     sys.exit(0)
 
 

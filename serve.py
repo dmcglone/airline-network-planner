@@ -38,6 +38,18 @@ import threading
 import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
+# Windows: when the preview launches this, stdout may not be able to encode
+# the em dash build.py prints, and a UnicodeEncodeError on startup kills the
+# server. Replace what cannot be encoded instead of crashing.
+for _s in (sys.stdout, sys.stderr):
+    try:
+        _s.reconfigure(errors="replace")
+    except (AttributeError, ValueError):
+        pass
+
+# Children write UTF-8 regardless of the console's code page.
+CHILD_ENV = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
+
 ROOT = pathlib.Path(__file__).resolve().parent
 DIST = ROOT / "dist"
 WATCHED = [ROOT / "src", ROOT / "network.json", ROOT / "build.py"]
@@ -54,7 +66,7 @@ def build():
     The return code is checked directly. Nothing here is piped, so a failed
     build can never read as a pass."""
     r = subprocess.run([sys.executable, str(ROOT / "build.py"), "--target", "web"],
-                       cwd=ROOT, capture_output=True, text=True,
+                       cwd=ROOT, env=CHILD_ENV, capture_output=True, text=True,
                        encoding="utf-8", errors="replace")
     if r.returncode != 0:
         log(f"BUILD FAILED (exit {r.returncode}). Still serving the last good page.")

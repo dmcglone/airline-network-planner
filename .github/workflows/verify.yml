@@ -29,6 +29,9 @@ jobs:
         run: python3 verify.py
 
       - name: Python reference engine agrees with the JS engine
+        # Explicit bash turns on pipefail. The default shell does not, so a crash
+        # in engine.py was hidden by `| tee` and the step carried on.
+        shell: bash
         run: |
           python3 make_legs.py
           python3 engine.py | tee /tmp/engine.out
