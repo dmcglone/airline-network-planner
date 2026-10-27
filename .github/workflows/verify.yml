@@ -40,9 +40,17 @@ jobs:
           import json, re
           from collections import Counter
           lines = json.load(open("lines.json"))["lines"]
-          want = {"A319":129, "A320":61, "A320E":17, "A321":66, "E175":76, "E145":17}
+          # Changed 26 Oct 2026, for the A320E retirement (84f0ae4, 13 Sep 2026).
+          # Its routes and pinned tails moved to the A320 and verify.py went to 365
+          # tails, but this split stayed at 366 and failed every push after that.
+          #   A320 61 + A320E 17 -> 76, A321 66 -> 67, total 366 -> 365
+          # On 45-minute turns the A320 work packs into two fewer aircraft and the
+          # A321 gains one. This is the JS engine's split, tail for tail, and
+          # engine.py gives the same when it has time zone data. Without it (Windows
+          # with no tzdata package) every UTC offset falls back to 0 and it builds 366.
+          want = {"A319":129, "A320":76, "A321":67, "E175":76, "E145":17}
           got = dict(Counter(l["type"] for l in lines))
           assert got == want, f"rotation split changed: {got} != {want}"
-          assert len(lines) == 366, f"{len(lines)} rotations, expected 366"
-          print("python engine: 366 rotations, split matches")
+          assert len(lines) == 365, f"{len(lines)} rotations, expected 365"
+          print("python engine: 365 rotations, split matches")
           EOF
