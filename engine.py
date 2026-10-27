@@ -1,4 +1,4 @@
-import csv,json,math
+import csv,json,math,sys
 from collections import defaultdict
 from zoneinfo import ZoneInfo
 from datetime import datetime,timedelta
@@ -29,7 +29,7 @@ REDEYE_IN={("PIT","SJC"),("RDU","SJC"),("MCO","SJC"),("RDU","LAS"),("PIT","LAS")
            ("PIT","SEA"),("RDU","PHX"),("MCO","LIM")}
 # OUTBOUND: the base->outstation leg flies overnight, because the far end has no base of its
 # own. The aircraft turns straight round and works its base's afternoon. (base, outstation)
-REDEYE_OUT={("SJC","BOS"),("SJC","EWR")}
+REDEYE_OUT={("SJC","BOS"),("SJC","EWR"),("SJC","JFK")}
 RED_DEP=(1260,1380)         # a red-eye departs between 21:00 and 23:00 local
 RED_ARR_TARGET=405          # and aims to land about 06:45 local
 SPOKE_EARLIEST=330          # no spoke pushes before 05:30 local
@@ -46,7 +46,7 @@ for row in csv.reader(open('airports.dat',encoding='utf-8')):
 OFF={}
 for a in coords:
     try: OFF[a]=int(ZoneInfo(tzs[a]).utcoffset(DATE).total_seconds()//60)
-    except Exception: OFF[a]=0
+    except Exception: pass      # no fallback offset: see the network check after legs.json loads
 
 def gc(a,b):
     la1,lo1=map(math.radians,coords[a]); la2,lo2=map(math.radians,coords[b])
@@ -64,6 +64,14 @@ def hhmm(m):
     d,m=divmod(int(round(m)),1440); return f"{m//60:02d}:{m%60:02d}",d
 
 D=json.load(open('legs.json'))
+# Every airport the network touches needs its real UTC offset. A missing one used to fall
+# back to 0 in silence, so a Python with no time zone data put every airport on UTC and
+# built a different airline (366 rotations against the JS engine's 365) with no error.
+missing=sorted({x for k in D['legs'] for x in k.split('|')[:2]}-OFF.keys())
+if missing:
+    sys.exit(f"engine.py: no UTC offset for {len(missing)} airport(s) in the network: "
+             f"{' '.join(missing[:12])}{' ...' if len(missing)>12 else ''}"
+             + ("\nPython has no time zone data. Install it: python -m pip install tzdata" if not OFF else ""))
 legs=defaultdict(int)
 for k,v in D['legs'].items():
     o,d,t=k.split('|'); legs[(o,d,t)]=v
