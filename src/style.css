@@ -222,6 +222,7 @@ tfoot td{padding:8px 10px;border-top:1px solid var(--line);font-weight:600;backg
 /* seatmap designer */
 .btn.sm.on{ border-color:var(--accent); color:var(--accent); }
 #seatmapPanel svg{ background:transparent; }
+.growscope{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin:0 0 10px; }
 
 
 /* the airline name is editable in place */

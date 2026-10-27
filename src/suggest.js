@@ -142,22 +142,31 @@ function growEconomics(o,d,t,dem,fare){
   return {rev, cost, pax, contrib: rev-cost};
 }
 
-function suggestGrow(){
+/* scope: "all", "us" or "intl", from the switch on the Grow panel. */
+function suggestGrow(scope="all"){
   const out=[];
+  // Gravity sizes cover the US and the larger foreign airports. The OAG and MIDT
+  // sheet's pairs bring their own airports, so those join the pool too.
   const pool=new Set(Object.keys(DEM.size).filter(a=>AP[a]));
+  if(DEM.intlPax) for(const k in DEM.intlPax.rows)
+    for(const a of [k.slice(0,3), k.slice(3)]) if(AP[a]) pool.add(a);
   for(const B of STA){
     const served=new Set(state.routes.filter(r=>r.o===B).map(r=>r.d));
     const gauges=M.fleet.filter(f=>f.surplus>0).map(f=>f.t);
     const cands=[];
     for(const c of pool){
       if(c===B||served.has(c)||STA.includes(c)) continue;
-      if(!isUS(c)) continue;            // the demand model is calibrated on US service only
+      const us=isUS(c);
+      if((scope==="us" && !us) || (scope==="intl" && us)) continue;
       const nm=dist(B,c); if(nm<MIN_SUGG_NM) continue;
       const fits=TYPES.filter(t=>nm<=SPEC[t].rng);
       if(!fits.length) continue;
       const dd=demandOf(B,c); const dem=dd.v; if(dem<=0) continue;
+      // Abroad, only a pair the sheet lists. The gravity estimate there is
+      // typically off by several times, too far to rank a route on.
+      if(!us && dd.src!=="intl") continue;
       const g=gauges.find(t=>fits.includes(t))||fits[fits.length-1];
-      cands.push(Object.assign({c,nm,dem,fare:dd.fare,season:seasonCurve(dd.season),g,
+      cands.push(Object.assign({c,nm,dem,fare:dd.fare,src:dd.src||"",season:seasonCurve(dd.season),g,
         others:stationsServing(c).length,spare:gauges.includes(g)},
         growEconomics(B,c,g,dem,dd.fare)));
     }
@@ -174,7 +183,7 @@ function suggestGrow(){
       code:o.c, rank, contrib:o.contrib,
       // Structured facts, so the card can lead with the network verdict and keep
       // the route-alone estimate as small print.
-      facts:{base:B, city:cityName(o.c), nm:o.nm, dem:o.dem, fare:o.fare, rev:o.rev, cost:o.cost,
+      facts:{base:B, city:cityName(o.c), nm:o.nm, dem:o.dem, src:o.src, fare:o.fare, rev:o.rev, cost:o.cost,
              season:o.season, others:o.others, spare:o.spare, g:o.g},
       spec:{o:B, d:o.c, t:o.g, n:1, w:7, red:false},
       txt:`${B}–${o.c} · ${esc(cityName(o.c))} · ${fmt(o.nm)} nm · ${fmt(o.dem)} ${demandUnit()}`

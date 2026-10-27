@@ -92,7 +92,7 @@ function drawSettings(){
 function drawSuggest(){
   const src=demandSource();
   SUGG=[];
-  const fix=suggestFix(), fill=suggestFill(), grow=suggestGrow();
+  const fix=suggestFix(), fill=suggestFill(), grow=suggestGrow(growScope);
   FILL_SPECS = fill.flatMap(x=>(x.options||[]).map(o=>o.spec).filter(Boolean));
   [...fix,...fill].forEach(x=>{ x._i=SUGG.length; SUGG.push(x); });
   $("#sFix").innerHTML=fix.length?fix.map(sgCard).join("")
@@ -103,7 +103,14 @@ function drawSuggest(){
     $("#sGrow").innerHTML=`<p class="note"><b>No demand data in this version of the page.</b> Grow ranks unserved markets by passenger demand, and this build's data block has no demand table, so it has nothing to rank. Reload the latest published version, or import your own market data under <button class="linkbtn" data-goto="settings">Settings</button>.</p>`;
     return;
   }
-  renderGrow(grow, `<p class="note">Candidates are unserved US markets ${src==="gravity"?"(modelled demand)":"(imported demand)"}, within range of a gauge you fly and at least ${MIN_SUGG_NM} nm, so the route competes with airlines rather than with driving. Cities already served from that station are excluded. <b>US destinations only</b>: the demand model is calibrated on US scheduled service.</p>`);
+  const scope = [["all","All"],["us","US"],["intl","International"]].map(([k,l]) =>
+    `<button class="btn sm${growScope===k?" on":""}" data-growscope="${k}" aria-pressed="${growScope===k}">${l}</button>`).join("");
+  renderGrow(grow, `<div class="growscope" role="group" aria-label="Destinations"><span class="dim">Destinations</span> ${scope}</div>`
+    + `<p class="note">Candidates are unserved markets within range of a gauge you fly and at least ${MIN_SUGG_NM} nm, so the route competes with airlines rather than with driving. Cities already served from that station are excluded. `
+    + `US destinations use ${src==="gravity"?"the gravity model":"DB1C"}. International ones appear only where the OAG and MIDT sheet lists the pair, because the gravity estimate abroad is too rough to rank on.`
+    + (src==="gravity" && growScope!=="us" ? ` With the gravity model selected under Settings, that sheet is switched off too, so there are no international candidates.` : "")
+    + `</p>`
+    + (!grow.length ? `<p class="note">No candidates for this choice of destinations.</p>` : ""));
 }
 function draw(){
   drawKpis();

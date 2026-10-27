@@ -11,6 +11,7 @@
    for the network. Results share Add route's cache, so Review opens instantly. */
 
 let growGen = 0;
+let growScope = "all";         // destinations shown: "all", "us" or "intl"
 let GROW = [];                 // [{base, items}] as last drawn
 let FILL_SPECS = [];           // Fill's proposed routes, checked after Grow's
 
@@ -36,7 +37,7 @@ function growItemHTML(it, i){
     ? `on its own ${it.contrib < 0 ? "−" : "+"}${netK(it.contrib)}/day `
       + `(${netK(F.rev)} rev, ${netK(F.cost)} direct cost)` : "";
   const facts = [
-    `${fmt(F.dem)} ${demandUnit()}`,
+    `${fmt(F.dem)} ${demandUnit()}${F.src === "intl" ? " (OAG and MIDT)" : ""}`,
     F.fare ? `$${fmt(F.fare)} avg fare` : "",
     alone
   ].filter(Boolean).join(" · ");

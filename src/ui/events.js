@@ -156,6 +156,7 @@ document.addEventListener("click", e=>{
   if(b && b.dataset && b.dataset.keepdays){ const w=$("#nW"); if(w){ w.value=b.dataset.keepdays; addInfo(); } return; }
   if(b && b.dataset && b.dataset.fit){ const g=$("#nT"); if(g){ g.value=b.dataset.fit; addInfo(); } return; }
   if(b && b.dataset && b.dataset.bank){ bankStation = b.dataset.bank; drawBanks(); return; }
+  if(b && b.dataset && b.dataset.growscope){ growScope = b.dataset.growscope; drawSuggest(); return; }
   if(b && b.dataset && b.dataset.gloss){ showGlossTerm(b.dataset.gloss); return; }
   if(b && b.dataset && b.dataset.help){ helpSection = b.dataset.help; drawModel(); return; }
   if(typeof welcomeEvent==="function" && welcomeEvent(b)) return;
