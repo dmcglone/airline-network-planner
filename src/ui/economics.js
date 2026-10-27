@@ -168,6 +168,8 @@ function drawEcon(){
     + `different question, and the fully allocated line above answers it.`;
 
   const cal = (INTL.calibration||{});
+  const ip = DEM.intlPax || {}, chk = ip.checkAgainstDB1C;
+  const pctRev = v => Math.round(v/R.stats.rev*100);
   $("#econProvenance").innerHTML =
     `<b>Where the numbers come from.</b> Costs are US DOT Form 41 Schedule `
     + `P-5.2 and P-6 joined to T-100, calendar 2025, domestic entities only, `
@@ -178,13 +180,25 @@ function drawEcon(){
     + `measured and only the shape is assumed, through `
     + `<span class="mono">cycleEquivHours</span>.<br><br>`
     + `<b>Demand.</b> ${fmt(R.stats.real)} markets carry measured DB1C `
-    + `origin-and-destination demand. ${fmt(R.stats.estMarkets)} international `
-    + `markets are estimated: gravity demand scaled ×${INTL.demandFactor} from `
+    + `origin-and-destination demand. `
+    + (R.stats.intlMarkets
+        ? `${fmt(R.stats.intlMarkets)} international markets use OAG and MIDT `
+          + `ticketing records for 2025–26, as compiled in the published sheet `
+          + (ip.url ? `<a href="${esc(ip.url)}" target="_blank" rel="noopener">PAX_DATA_2025-26</a>`
+                    : `PAX_DATA_2025-26`)
+          + `, and ${pctRev(R.stats.intlRev)}% of revenue rests on them. `
+          + (chk ? `They are third-party figures. On the ${fmt(chk.markets)} US markets both `
+                 + `sources cover, the sheet's passengers match DB1C at a median of `
+                 + `×${chk.paxRatioMedian.toFixed(2)} and its fares run `
+                 + `${Math.round((1-chk.fareRatioMedian)*100)}% lower. `
+                 : "")
+        : "")
+    + `${fmt(R.stats.estMarkets)} international markets `
+    + (R.stats.intlMarkets ? `the sheet does not list ` : "")
+    + `are estimated: gravity demand scaled ×${INTL.demandFactor} from `
     + `${fmt((cal.markets)||0)} real Caribbean markets that DB1C counts as `
     + `domestic. Those routes are marked <span class="chip bad">est</span> and `
-    + `${Math.round(R.stats.estRev/R.stats.rev*100)}% of revenue rests on them. `
-    + `Real data backfills through the overrides table in `
-    + `<span class="mono">intl_demand.json</span>.<br><br>`
+    + `${pctRev(R.stats.estRev)}% of revenue rests on them.<br><br>`
     + `<b>Connections.</b> The schedule offers ${fmt(R.itineraries.nonstop)} `
     + `nonstop and ${fmt(R.itineraries.onestop)} one-stop itineraries. Each `
     + `fare is prorated across the legs that carried it by distance, so a `

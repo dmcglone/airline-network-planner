@@ -57,6 +57,7 @@ src/
   data/
     airports.json   2,198 airports: name, city, lat/lon, UTC offset, country
     dot_db1c.json   12,241 US markets from DOT DB1C + gravity-model sizes
+    intl_pax.json   8,395 international pairs from the OAG/MIDT sheet (tools/intl_pax.py)
     stations.json   the bases
     fleet.json      aircraft types and the pinned roster
     config.json     hubs, banks, curfews, feed modes, spacing, red-eye seeds
@@ -174,7 +175,18 @@ miles. Spares are 8% of rotations, rounded up. Gates come from interval-graph
 colouring over ground periods.
 
 US demand is real: DOT DB1C Market data, the O&D product that replaced DB1B in
-July 2025, 40% ticket sample, eleven months (Jul 2025 – May 2026). Everything
-else uses a gravity model. Against real DB1C the gravity model scores r² = 0.52
-and ranks market pairs correctly about 75% of the time, typically off by ~7× —
-good enough to order candidates, not to size them.
+July 2025, 40% ticket sample, eleven months (Jul 2025 – May 2026).
+
+International demand comes from OAG and MIDT ticketing records for 2025–26, as
+compiled in the published sheet PAX_DATA_2025-26. `tools/intl_pax.py` fetches it
+and keeps only pairs DB1C does not cover, so DB1C stays the domestic source. On
+the 8,270 US pairs both carry, the sheet matches DB1C at a median ratio of 1.00
+(log r² 0.95) with fares about 7% lower, but 1,360 of DB1C's 6,941 markets above
+10 passengers a day are missing from it. These are third-party figures this
+project cannot audit; the planner tags them `intl`, separately from `db1c`.
+
+Anything neither source lists uses a gravity model, scaled internationally by a
+factor calibrated on the Caribbean markets DB1C counts as domestic. Against real
+DB1C the gravity model scores r² = 0.52 and ranks market pairs correctly about
+75% of the time, typically off by ~7× — good enough to order candidates, not to
+size them.

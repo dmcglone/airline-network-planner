@@ -44,8 +44,9 @@ function loadDemand(){
 const dotNote = D => `Real origin-and-destination passengers and fares from the US DOT DB1C `
   + `Market files covering ${D.period} — ${fmt(D.sampled)} sampled tickets at a 40% sample rate, `
   + `grossed up and expressed per direction per day across ${fmt(D.markets)} markets, with a `
-  + `monthly demand curve for each. Where a market is not in the sample (international, or under `
-  + `about 3 passengers a day) the gravity model fills in.`;
+  + `monthly demand curve for each. International pairs use OAG and MIDT ticketing records for `
+  + `2025–26 where a published compilation lists them. Anything else outside the sample, including `
+  + `US markets under about 3 passengers a day, falls back to the gravity model.`;
 const DEMAND_SOURCES = {
   dot:     {label: DOT?`US DOT DB1C — ${DOT.period}`:"US DOT — loading…", unit:"pax/day",
             note: DOT ? dotNote(DOT)
@@ -64,6 +65,10 @@ function demandOf(o,d){
   if(DOT && demandSource()!=="gravity"){
     const k = o<d ? o+d : d+o, r=DOT.rows[k];
     if(r) return {v:r[0], fare:r[1]||null, season:r[2]||null, real:true};
+    // International pairs DB1C does not cover: OAG and MIDT figures from a
+    // published sheet (tools/intl_pax.py). Tagged so nothing labels them DB1C.
+    const ir = DEM.intlPax && DEM.intlPax.rows[k];
+    if(ir) return {v:ir[0], fare:ir[1]||null, real:true, src:"intl"};
   }
   const so=DEM.size[o], sd=DEM.size[d];
   if(!so||!sd) return {v:0, fare:null, real:false};

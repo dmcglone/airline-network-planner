@@ -476,7 +476,10 @@ Still open from before this list:
 
 - The public multi-user website. The explicit end game, deliberately deferred.
 - Non-US demand data. The Kaggle international dataset and the live DOT portal
-  were both evaluated and set aside.
+  were both evaluated and set aside. International pairs now come from the
+  published OAG/MIDT sheet PAX_DATA_2025-26 (`tools/intl_pax.py`, October 2026).
+  Still open: its licence is unverified, pairs it does not list fall back to the
+  gravity estimate, and Grow still proposes US destinations only.
 - Editable curfews. `CURFEW` is a per-station map in the config with no UI, so a
   station the user adds cannot be given a night restriction and SJC's cannot be
   changed. Curfew is one of the ten checks, which means the model currently

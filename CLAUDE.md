@@ -31,6 +31,7 @@ python make_legs.py          network.json -> legs.json for the Python engine
 python engine.py             reference engine;  python validate.py  its checks
 python economics.py --json   then  node tools/econ_parity.js   (cost, Python vs JS)
 python revenue.py            then  node tools/rev_parity.js    (revenue, Python vs JS)
+python tools/intl_pax.py     refetch the OAG/MIDT sheet -> src/data/intl_pax.json
 npm run deploy               build + wrangler deploy (manual; see below)
 ```
 
@@ -92,8 +93,10 @@ The parity tools read `lines.json`, so run `make_legs.py` and `engine.py` first.
 - Gates by interval-graph colouring over ground periods. Spares are 8% of
   rotations, rounded up.
 - All distances are nautical miles. Block = ground manoeuvre + distance/cruise.
-- US demand is DOT DB1C (Jul 2025 to May 2026). Elsewhere a gravity model that
-  orders candidates well and sizes them badly (r² 0.52, typically off ~7x).
+- US demand is DOT DB1C (Jul 2025 to May 2026). International pairs DB1C does
+  not cover come from a published OAG/MIDT sheet (`src/data/intl_pax.json`,
+  tagged `intl`). Anything else is a gravity model that orders candidates well
+  and sizes them badly (r² 0.52, typically off ~7x).
 - Every Fix suggestion is checked with `trialBuild()`, a full rebuild, before
   it is offered.
 

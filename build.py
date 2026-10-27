@@ -45,13 +45,21 @@ def gen_net(defer_demand=False):
     if defer_demand:
         net["demandUrl"] = "demand.json"
     else:
-        net["demand"] = load("dot_db1c.json")
+        net["demand"] = demand()
     return "\n".join([block("net", net), block("cfg", load("config.json")),
                       block("fleet", load("fleet.json")),
                       block("frames", load("airframes.json")),
                       block("starters", load("starters.json")),
                       block("econ", load("economics.json")),
                       block("intl", load("intl_demand.json"))])
+
+def demand():
+    """DB1C for US markets, with the international rows from tools/intl_pax.py
+    beside it. One object, so the web fetch, the inlined artifact and a saved
+    page all carry both or neither."""
+    d = load("dot_db1c.json")
+    d["intlPax"] = load("intl_pax.json")
+    return d
 
 def gen_geo():
     return "</script>\n" + block("geo", load("geo.json"))
@@ -141,7 +149,7 @@ def main():
         # configured site address.
         shutil.copyfile(ROOT / "src/assets/og.png", ROOT / "dist" / "og.png")
         (ROOT / "dist" / "demand.json").write_text(
-            json.dumps(load("dot_db1c.json"), separators=(",", ":")), encoding="utf-8")
+            json.dumps(demand(), separators=(",", ":")), encoding="utf-8")
         targets.append(("dist/index.html", inject_site_urls(wrap_standalone(web))))
     if args.target in ("artifact", "both"):
         targets.append(("dist/artifact.html", html))

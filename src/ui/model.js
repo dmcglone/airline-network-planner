@@ -94,8 +94,15 @@ const MODEL_SECTIONS = [
          ticket sample. Eleven months, July 2025 to May 2026, processed into
          12,241 markets with passengers per day, average fare and a monthly
          seasonality profile.`,
-        `Everywhere else uses a gravity model: size times size over distance,
-         with a term for whether people would drive instead.`]
+        `International markets use OAG and MIDT ticketing records for 2025–26,
+         as compiled in a published sheet, PAX_DATA_2025-26: passengers and
+         average fare for city pairs above 1,000 passengers a year. On the 8,270
+         US markets it shares with DB1C, its passengers match at a median ratio
+         of 1.00 and its fares run about 7% lower.`,
+        `A market neither source lists uses a gravity model: size times size over
+         distance, with a term for whether people would drive instead.
+         Internationally that is scaled by a factor calibrated on the Caribbean
+         markets DB1C counts as domestic.`]
   },
   {
     h: "Where it is wrong",
@@ -107,6 +114,14 @@ const MODEL_SECTIONS = [
         for ordering candidates and useless for sizing them. An early AUC of
         0.966 was oversold: market size alone scored 0.939, so most of it was
         circular.`],
+      [`International demand is someone else's compilation`,
+       `The OAG and MIDT figures come from a published spreadsheet this project
+        cannot audit. The sheet itself warns that split tickets can overstate or
+        understate a pair. MIDT counts tickets sold through booking systems, so an
+        airline selling mostly on its own website may be undercounted: 1,360 of
+        the 6,941 DB1C markets above 10 passengers a day are missing from the
+        sheet. Matching DB1C on US markets says the US rows are sound and says
+        less about the rest.`],
       [`Competition is a single constant`,
        `Every market is modelled as having one equally attractive rival,
         regardless of whether anyone else actually flies it. Frequency buys seats
@@ -152,8 +167,10 @@ const MODEL_SECTIONS = [
   },
   {
     h: "How to read a number",
-    p: [`Anything drawn from DB1C or Form 41 is measured. Anything else is
-         estimated, and the planner marks it where it can. The Economics tab
+    p: [`Anything drawn from DB1C or Form 41 is measured. International demand
+         from the OAG and MIDT sheet is measured by someone else and checked here
+         only against DB1C. Anything else is estimated, and the planner marks it
+         where it can. The Economics tab
          names the aircraft types it cannot cost, and route-level findings
          separate the measured ones from the estimate-dependent ones.`,
         `When a figure looks too precise for its inputs, it probably is. The
@@ -164,6 +181,8 @@ const MODEL_SECTIONS = [
     p: [`Passenger and fare data: US DOT Bureau of Transportation Statistics,
          DB1C Market. Operating cost data: US DOT Form 41, schedules P-5.2, P-6
          and T-2. Both are United States government publications.`,
+        `International passenger and fare data: OAG and MIDT ticketing records,
+         2025–26, as compiled in the published Google Sheet PAX_DATA_2025-26.`,
         `Aircraft type names are used descriptively and the manufacturers have no
          involvement in this. Cabin regulations cited are 14 CFR 25.807, 25.813
          and 121.391.`]

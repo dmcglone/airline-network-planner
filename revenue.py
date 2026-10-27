@@ -45,13 +45,15 @@ FOUR MODELLING CHOICES, all of them assumptions rather than measurements:
      revenue on tight markets rather than flattering it. Applied over a few
      passes, since capping one flight frees demand on another.
 
-DATA PROVENANCE. Every market is tagged. `db1c` is measured US O&D. `estimated`
-is international, where gravity demand is scaled by a factor calibrated on the
+DATA PROVENANCE. Every market is tagged. `db1c` is measured US O&D. `intl` is
+international from OAG and MIDT ticketing records as compiled in a published
+sheet (src/data/intl_pax.json, written by tools/intl_pax.py), which only holds
+pairs DB1C does not cover. `estimated` is international the sheet does not
+list, where gravity demand is scaled by a factor calibrated on the
 DB1C-domestic Caribbean (see tools/intl_calibrate.py) and fares come from a
 curve fitted on the same markets. Totals are reported both ways, because an
 estimated route showing a loss is a statement about the estimate, not about
-the route. Real international data backfills through the `overrides` table in
-src/data/intl_demand.json without touching this file.
+the route.
 
 CABIN FARES reconcile down to the observed DB1C average rather than building
 up from it: multipliers are normalised so the seat-weighted mean equals 1.0,
@@ -76,6 +78,7 @@ INTL = load("src/data/intl_demand.json")
 INTL_OVERRIDE = INTL.get("overrides", {})
 INTL_FACTOR = INTL.get("demandFactor", 1.0)
 INTL_FARE = INTL.get("fareCurve", {})
+INTL_ROWS = load("src/data/intl_pax.json")["rows"]
 STA = set(load("src/data/stations.json"))
 LINES = load("lines.json")["lines"]
 
@@ -181,8 +184,9 @@ FARE_A, FARE_B, FARE_R2, FARE_N = fare_curve()
 def market(o, d):
     """Passengers per direction per day, average fare, and where they came from.
 
-    Returns provenance as well as numbers: "db1c" measured, "estimated" for
-    international, "none" where the market cannot be sized at all.
+    Returns provenance as well as numbers: "db1c" measured, "intl" for
+    international from the OAG and MIDT sheet, "estimated" for international
+    it does not list, "none" where the market cannot be sized at all.
     """
     k = o + d if o < d else d + o
     ov = INTL_OVERRIDE.get(k)
@@ -193,6 +197,12 @@ def market(o, d):
         return r[0], (r[1] or FARE_A * dist(o, d) ** FARE_B), "db1c"
     so, sd = SIZE.get(o), SIZE.get(d)
     nm = dist(o, d)
+    # The sheet only holds pairs DB1C does not cover, so looking it up second
+    # can never displace a domestic market.
+    r = INTL_ROWS.get(k)
+    if r:
+        return (r[0], (r[1] or INTL_FARE.get("a", FARE_A) * nm ** INTL_FARE.get("b", FARE_B)),
+                "intl")
     if not so or not sd or nm < 50:
         return 0.0, 0.0, "none"
     air = 1 / (1 + math.exp(-(nm - 190) / 55))
@@ -300,7 +310,8 @@ def allocate(itins, competition, prem):
     estrev = defaultdict(float)           # of which from estimated markets
     stats = dict(pax=0.0, conn=0.0, rev=0.0, spilled=0.0,
                  markets=0, real=0, nonstopOnly=0,
-                 estPax=0.0, estRev=0.0, estMarkets=0)
+                 estPax=0.0, estRev=0.0, estMarkets=0,
+                 intlMarkets=0, intlRev=0.0)
     src_of = {}
     per_market = []
     for (o, d), opts in itins.items():
@@ -316,6 +327,7 @@ def allocate(itins, competition, prem):
         stats["markets"] += 1
         stats["real"] += 1 if src == "db1c" else 0
         stats["estMarkets"] += 1 if src == "estimated" else 0
+        stats["intlMarkets"] += 1 if src == "intl" else 0
         if all(i["stops"] == 0 for i in opts):
             stats["nonstopOnly"] += 1
         share = tq / (tq + competition)
@@ -357,6 +369,8 @@ def allocate(itins, competition, prem):
             if src == "estimated":
                 stats["estPax"] += flown
                 stats["estRev"] += rev
+            if src == "intl":
+                stats["intlRev"] += rev
             for f in i["legs"]:
                 boarded[f["id"]] += flown
                 # straight distance proration
@@ -399,8 +413,8 @@ def main():
     print(f"\nitineraries: {nonstop:,} nonstop, {onestop:,} one-stop over "
           f"{len(STA)} stations")
     print(f"markets served: {st['markets']:,} "
-          f"({st['real']:,} measured DB1C, {st['estMarkets']:,} estimated "
-          f"international at x{INTL_FACTOR})")
+          f"({st['real']:,} measured DB1C, {st['intlMarkets']:,} international "
+          f"from OAG/MIDT, {st['estMarkets']:,} estimated international at x{INTL_FACTOR})")
     print(f"\npassengers/day   {st['pax']:12,.0f}")
     print(f"  connecting     {st['conn']:12,.0f}  "
           f"({st['conn']/st['pax']*100:.0f}% of passengers)")
@@ -408,6 +422,8 @@ def main():
     print(f"revenue/day      {st['rev']:12,.0f}")
     print(f"  measured       {st['rev']-st['estRev']:12,.0f}  "
           f"({(1-st['estRev']/st['rev'])*100:.0f}%)")
+    print(f"    of which intl{st['intlRev']:12,.0f}  "
+          f"({st['intlRev']/st['rev']*100:.0f}%, OAG/MIDT sheet)")
     print(f"  estimated      {st['estRev']:12,.0f}  "
           f"({st['estRev']/st['rev']*100:.0f}%, international)")
     print(f"seats/day        {seats:12,.0f}")
@@ -434,6 +450,7 @@ def main():
                "spilled": st["spilled"], "estRev": st["estRev"],
                "estPax": st["estPax"], "markets": st["markets"],
                "real": st["real"], "estMarkets": st["estMarkets"],
+               "intlMarkets": st["intlMarkets"], "intlRev": st["intlRev"],
                "seats": seats, "asm": asm, "rpm": rpm, "ceiling": ceiling,
                "nonstop": nonstop, "onestop": onestop,
                "lf": sum(boarded.values())/seats}

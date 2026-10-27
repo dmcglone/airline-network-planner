@@ -92,7 +92,8 @@ const FARE_FIT = (()=>{
 })();
 
 /* Passengers per direction per day, average fare, and where they came from:
-   "db1c" measured, "estimated" international, "subthreshold" a US market too
+   "db1c" measured, "intl" international from the OAG and MIDT sheet,
+   "estimated" international it does not list, "subthreshold" a US market too
    small for the DB1C sample, "none" unsizeable. Provenance travels with the
    number so an estimate is never reported as a measurement. */
 function marketOf(o,d){
@@ -102,6 +103,11 @@ function marketOf(o,d){
   const r = DOT && DOT.rows ? DOT.rows[k] : null;
   const nm = dist(o,d);
   if(r) return {pax:r[0], fare:r[1] || FARE_FIT.a*Math.pow(nm,FARE_FIT.b), src:"db1c"};
+  // The sheet only holds pairs DB1C does not cover (tools/intl_pax.py), so
+  // looking it up second can never displace a domestic market.
+  const ir = DEM.intlPax && DEM.intlPax.rows ? DEM.intlPax.rows[k] : null;
+  if(ir) return {pax:ir[0], src:"intl",
+    fare: ir[1] || (INTL_FARE.a || FARE_FIT.a)*Math.pow(nm, INTL_FARE.b != null ? INTL_FARE.b : FARE_FIT.b)};
   const so=DEM.size[o], sd=DEM.size[d];
   if(!so || !sd || nm<50) return {pax:0, fare:0, src:"none"};
   const air = 1/(1+Math.exp(-(nm-190)/55));
@@ -180,7 +186,7 @@ function flightPremiums(F){
 function allocateDemand(F, itins, competition, prem){
   const boarded=new Map(), legrev=new Map(), estrev=new Map(), perMarket=[];
   const st={pax:0, conn:0, rev:0, spilled:0, markets:0, real:0,
-            estMarkets:0, estPax:0, estRev:0};
+            estMarkets:0, estPax:0, estRev:0, intlMarkets:0, intlRev:0};
   for(const [key, opts] of itins){
     const [o,d] = key.split("|");
     const m = marketOf(o,d);
@@ -197,6 +203,7 @@ function allocateDemand(F, itins, competition, prem){
     st.markets++;
     if(m.src === "db1c") st.real++;
     if(m.src === "estimated") st.estMarkets++;
+    if(m.src === "intl") st.intlMarkets++;
     perMarket.push({o, d, fare:m.fare, src:m.src, opts});
   }
   // Spill. Capping one flight frees demand on another, so a few passes.
@@ -234,6 +241,7 @@ function allocateDemand(F, itins, competition, prem){
     const rev = flown*m.fare*im;
     st.rev += rev;
     if(m.src === "estimated"){ st.estPax += flown; st.estRev += rev; }
+    if(m.src === "intl") st.intlRev += rev;
     for(const f of i.legs){
       boarded.set(f.id, (boarded.get(f.id)||0) + flown);
       const share = rev*f.nm/i.nm;                 // straight distance proration

@@ -16,7 +16,9 @@ const ROOT = path.resolve(__dirname, "..");
 const read = p => JSON.parse(fs.readFileSync(path.join(ROOT, p), "utf8"));
 
 const AP = read("src/data/airports.json");
-const DEMFILE = read("src/data/dot_db1c.json");
+// The page gets the international rows inside the same demand object (build.py)
+const DEMFILE = Object.assign(read("src/data/dot_db1c.json"),
+                              { intlPax: read("src/data/intl_pax.json") });
 const INTL = read("src/data/intl_demand.json");
 const CFG = read("src/data/config.json");
 const fleetData = read("src/data/fleet.json");
@@ -68,6 +70,7 @@ const js = {
   spilled: out.stats.spilled, estRev: out.stats.estRev,
   estPax: out.stats.estPax, markets: out.stats.markets,
   real: out.stats.real, estMarkets: out.stats.estMarkets,
+  intlMarkets: out.stats.intlMarkets, intlRev: out.stats.intlRev,
   seats: out.seats, asm: out.asm, rpm: out.rpm, ceiling: out.ceiling,
   nonstop: out.itineraries.nonstop, onestop: out.itineraries.onestop,
   lf: out.lf

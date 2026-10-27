@@ -366,7 +366,7 @@ function routeAnalysis(o, d, t, freq){
     }
   }
   const offered = already + adding;
-  const A = {o, d, t, nm, seats, offered, already, curDesc, real: !!dem.real, has: !!dem.v};
+  const A = {o, d, t, nm, seats, offered, already, curDesc, real: !!dem.real, src: dem.src || "", has: !!dem.v};
   if(!dem.v) return A;
 
   // Demand is a market total in both directions; a departure carries one way.
@@ -490,8 +490,8 @@ function verdictHTML(A, net){
   const metrics = `<div class="rv-metrics">`
     + `<div class="rv-m"><div class="rv-l">Local demand</div>`
       + `<div class="rv-v">${fmt(Math.round(A.each))}<small>/day</small></div>`
-      + `<div class="rv-n${A.real ? "" : " warn"}">${A.real ? "Measured, DB1C"
-          : "Estimated, often off 7×"}</div></div>`
+      + `<div class="rv-n${A.real ? "" : " warn"}">${!A.real ? "Estimated, often off 7×"
+          : A.src === "intl" ? "OAG and MIDT, 2025–26" : "Measured, DB1C"}</div></div>`
     + `<div class="rv-m"><div class="rv-l">Load factor</div>`
       + `<div class="rv-v${lfTone}">${pct(A.lf)}</div>`
       + `<div class="rv-n">${A.spilled >= 1 ? `turns away ${fmt(Math.round(A.spilled))} a day` : seatsNote}</div></div>`
