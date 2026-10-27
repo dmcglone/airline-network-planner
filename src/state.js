@@ -46,18 +46,22 @@ function baseline(){
    export has no `geom` at all. Both cases fall out of the same rule.
 
    `pitch` is merged rather than replaced, so a type gaining a cabin picks up a
-   sensible default for it without disturbing the two the user already set. */
+   sensible default for it without disturbing the two the user already set.
+
+   Every load path comes through here, so this is also where geometry from a
+   file or a Share link is made safe to compute with and to draw (cleanGeom). */
 function reconcileGeom(fleet){
   if(!Array.isArray(fleet)) return fleet;
   for(const f of fleet){
     // A type the user added has no shipped airframe behind it, so its geometry
-    // is its own and nothing here may touch it.
-    if(f.origin === "user") continue;
-    const base = FLEET_BASE.find(b=>b.t===f.t);
-    if(!base || !base.geom) continue;
-    const keptPitch = f.geom && f.geom.pitch;
-    f.geom = JSON.parse(JSON.stringify(base.geom));
-    if(keptPitch) f.geom.pitch = Object.assign({}, f.geom.pitch, keptPitch);
+    // is its own: it is cleaned, never replaced.
+    const base = f.origin === "user" ? null : FLEET_BASE.find(b=>b.t===f.t);
+    if(base && base.geom){
+      const keptPitch = f.geom && f.geom.pitch;
+      f.geom = JSON.parse(JSON.stringify(base.geom));
+      if(keptPitch) f.geom.pitch = Object.assign({}, f.geom.pitch, keptPitch);
+    }
+    if(f.geom) f.geom = cleanGeom(f.geom);
   }
   return fleet;
 }

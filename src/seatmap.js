@@ -101,6 +101,37 @@ function exitLimit(geom){
   return {limit: geom && geom.certifiedMax || 0, exits: ex};
 }
 
+/* Geometry that arrives with a file or a Share link is somebody else's data,
+   and it goes into arithmetic and into markup. A string cabin length
+   concatenates where it should add, and a string pitch went into the pitch
+   input's value attribute as written, which let a link run script. So every
+   number is made a number before anything reads it, a key that is missing
+   stays missing, and an exit keeps only a type the regulation has. Shipped
+   geometry is already numbers and passes through unchanged. */
+function cleanGeom(g){
+  if(!g || typeof g !== "object") return undefined;
+  const num = v => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
+  const per = o => { const out = {};
+    if(o && typeof o === "object") for(const c of CABINS) if(c in o) out[c] = num(o[c]);
+    return out; };
+  const out = {};
+  for(const k of ["cabinLength", "certifiedMax"]) if(k in g) out[k] = num(g[k]);
+  for(const k of ["abreast", "pitch"]) if(k in g) out[k] = per(g[k]);
+  if("exits" in g) out.exits = (Array.isArray(g.exits) ? g.exits : [])
+    .filter(e => e && Object.prototype.hasOwnProperty.call(EXIT_RATING, e.type))
+    .map(e => ({type: e.type, x: num(e.x)}));
+  if("monuments" in g) out.monuments = (Array.isArray(g.monuments) ? g.monuments : [])
+    .filter(m => m && typeof m === "object")
+    .map(m => { const o = {kind: typeof m.kind === "string" ? m.kind : "galley"};
+      for(const k of ["x", "len", "lavs"]) if(k in m) o[k] = num(m[k]);
+      return o; });
+  if(g.seat && typeof g.seat === "object"){        // only the kinds a cabin may be
+    out.seat = {};
+    for(const c of CABINS) if((CABIN_KINDS[c] || []).includes(g.seat[c])) out.seat[c] = g.seat[c];
+  }
+  return out;
+}
+
 /* A floor-level exit needs a clear passageway from the aisle, so seating has
    to break at it. An overwing Type III does not: it sits at a seat row, which
    is why that row needs the extra pitch instead. 14 CFR 25.813 puts the

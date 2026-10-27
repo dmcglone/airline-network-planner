@@ -92,6 +92,55 @@ def check_starters(pg):
     return out
 
 
+# Strings where the planner expects a number or a short code, each written to
+# close the attribute or tag it lands in and open a handler of its own.
+HOSTILE_ATTR = '1000" onload="window.__xss=1" data-x="'
+HOSTILE_TAG = '"><img src=x onerror="window.__xss=1">'
+
+def check_shared_link(b, pg, page_url):
+    """Open a crafted Share link and prove nothing in it runs.
+
+    A Share link is somebody else's data. reconcileGeom() leaves a user-added
+    type's geometry alone, so whatever a link says about it reaches the side
+    view and the seatmap as written. Before 21b7b38 a string cabin length made
+    the side view throw, which blanked Settings and the Fleet seatmap for that
+    link, and an exit's type went into the seatmap unescaped, which ran script.
+    A string pitch, kept for every type, went into the pitch input's value and
+    ran script until cleanGeom(). Marking the A320 as user-added is how a link
+    gets past reconcileGeom(), and the Settings preview draws the A320, so both
+    views see the hostile values.
+    """
+    link = pg.evaluate("""async ([a, t]) => {
+        const st = JSON.parse(JSON.stringify(state));
+        const f = st.fleet.find(x => x.t === 'A320');
+        f.origin = 'user'; f.name = t;
+        f.geom = Object.assign({}, f.geom, {cabinLength: a, certifiedMax: a,
+            abreast: {F: a, PE: t, Y: a}, pitch: {F: a, PE: t, Y: a},
+            exits: [{type: t, x: 0}, {type: 'III', x: a}, {type: 'C', x: 1}]});
+        return '#n=z' + b64urlEncode(await gzipBytes(JSON.stringify(st))); }""",
+        [HOSTILE_ATTR, HOSTILE_TAG])
+    sp = b.new_page(viewport={"width":1480,"height":1050})
+    errs = []; sp.on("pageerror", lambda e: errs.append(str(e)))
+    sp.goto(page_url + link); sp.wait_for_timeout(3000)
+    r = sp.evaluate("""() => {
+        const f = state.fleet.find(x => x.t === 'A320') || {}, thrown = [];
+        smType = 'A320';
+        for(const t of ['settings', 'fleet']){ try{ goTab(t); }catch(e){ thrown.push(t + ': ' + e.message); } }
+        return {opened: f.origin === 'user', thrown,      // the shipped A320 has no origin
+                views: document.querySelectorAll('#airlinePanel .sideview, #seatmapPanel .sideview').length,
+                handlers: [...document.querySelectorAll('*')]
+                  .filter(el => [...el.attributes].some(x => /^on/i.test(x.name))).length,
+                imgs: document.querySelectorAll('img[src="x"]').length}; }""")
+    sp.wait_for_timeout(800)   # long enough for an onload or onerror to have fired
+    r["ran"] = sp.evaluate("()=>!!window.__xss")
+    sp.close()
+    good = r["opened"] and not r["thrown"] and r["views"] == 2 and not r["handlers"] \
+        and not r["imgs"] and not r["ran"] and not errs
+    note = (f"link opened, both side views drawn, no handler in the page, nothing ran"
+            if good else json.dumps(r) + (f" page errors: {errs[:2]}" if errs else ""))
+    return [("crafted geometry", good, note)]
+
+
 def main():
     # Serve dist/ over HTTP and load the ROOT URL, because that is how Cloudflare
     # will serve it — not file://. The difference is not cosmetic: a missing
@@ -116,6 +165,7 @@ def main():
             pg.evaluate("(t)=>{document.querySelectorAll('.tab').forEach(b=>{if(b.textContent.trim()===t)b.click();})}", t)
             pg.wait_for_timeout(400)
         starter_report = check_starters(pg)
+        shared_report = check_shared_link(b, pg, page_url)
         b.close()
     srv.shutdown()
 
@@ -132,6 +182,10 @@ def main():
         print(f"  {c:<14}{checks.get(c)}  {'ok' if good else '<-- FAIL'}")
     print("\nstarting networks (each must build and pass all ten checks):")
     for name, good, note in starter_report:
+        ok &= good
+        print(f"  {name:<24}{'ok  ' if good else 'FAIL'}  {note}")
+    print("\nshared links (somebody else's data must not run here):")
+    for name, good, note in shared_report:
         ok &= good
         print(f"  {name:<24}{'ok  ' if good else 'FAIL'}  {note}")
 
