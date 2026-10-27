@@ -113,8 +113,85 @@ function drawMission(){
   }).join("");
   host.innerHTML = `<h2>${esc(mi.title)} <span class="sub">Mission</span>${S ? starsHTML(S.stars, of) : ""}</h2>`
     + `<div class="pad"><p class="note">${esc(mi.brief)}</p><ul class="mission-obj">${rows}</ul>`
+    + (S && S.stars === of ? `<p class="mission-play">${PLAY_BUTTON}`
+        + `<span class="dim">Your schedule on the map, one day in about a minute.</span></p>` : "")
     + `<p class="note dim mission-foot">`
     + (S && !S.checksOk ? `<b>No stars while a check is failing.</b> Fix it on the Checks tab first. ` : "")
     + `Best so far: ${fmt(best)} of ${fmt(of)} stars. Every mission is checked to be winnable `
     + `each time the planner is built.</p></div>`;
+  const pb = host.querySelector("[data-playday]"); if(pb) pb.onclick = playMissionDay;
+}
+
+/* ----- the day, played back -----
+   A network holding every star can be watched: one day on the map from 03:00 at
+   the base, at 1,440 times, so about a minute. A mission about one station
+   narrows the map to it. This moves the map's clock and filter and nothing else;
+   Done puts both back as they were. */
+const PLAY_SPEED = 1440;
+const PLAY_BUTTON = `<button class="btn sm primary" type="button" data-playday="1">Watch the day</button>`;
+let PLAY = null;            // {mi, at, base, done, prev: the map as it was}
+
+function playMissionDay(){
+  const mi = activeMission(); if(!mi) return;
+  const at = (mi.objectives.find(o => o.at) || {}).at || "";
+  if(!PLAY) PLAY = {prev: {st: $("#mStation").value, speed: LIVE.speed, clock: LIVE.clock, on: LIVE.on}};
+  Object.assign(PLAY, {mi, at, base: at || STA[0], done: false});
+  hideReadout();
+  $("#mStation").value = at; LIVE.on = true; $("#liveOn").checked = true;
+  LIVE.sel = null; mapSel = null; VIEW = null;
+  LIVE.clock = mod(utc(PLAY.base, 180), 1440); LIVE.speed = PLAY_SPEED; LIVE.left = 1440;
+  LIVE.onEnd = () => { PLAY.done = true; drawPlayStrip(); };
+  LIVE.onTick = tickPlayStrip;
+  // the replay owns the clock: the speed menu would claim 120× and Now would stop it
+  $("#liveSpeed").disabled = $("#liveNow").disabled = true;
+  liveStart(0.1);
+  drawPlayStrip();
+  goTab("map");
+}
+
+function stopMissionDay(){
+  if(!PLAY) return;
+  const p = PLAY.prev; PLAY = null;
+  Object.assign(LIVE, {left: null, onEnd: null, onTick: null, speed: p.speed, clock: p.clock, on: p.on});
+  $("#liveOn").checked = p.on; $("#mStation").value = p.st;
+  $("#liveSpeed").disabled = $("#liveNow").disabled = false;
+  liveStart();
+  drawPlayStrip();
+  if(tab === "map") drawMap();
+}
+
+/* The strip's buttons are drawn here, at the start and at the end. Each frame
+   only updates its numbers, so a click never lands on a button just redrawn. */
+function drawPlayStrip(){
+  const h = $("#playStrip"); if(!h) return;
+  h.hidden = !PLAY;
+  if(!PLAY){ h.innerHTML = ""; return; }
+  const of = PLAY.mi.objectives.length, E = econReady(), S = E ? missionScore(M, E, PLAY.mi) : null;
+  const head = `${starsHTML(S ? S.stars : of, of)}<b>${esc(PLAY.mi.title)}</b>`;
+  if(PLAY.done){
+    const parts = [`${fmt(M.totals.deps)} departures flown by ${fmt(M.totals.tails)} aircraft`];
+    for(const r of (S ? S.results : [])){
+      if(r.o.kind === "connections") parts.push(`${fmt(Math.round(r.value))} connections through ${esc(r.o.at)}`);
+      if(r.o.kind === "profitMeasured") parts.push(`${objectiveShown(r.o, r.value)} on measured demand`);
+    }
+    h.innerHTML = `${head}<span>Your day: ${parts.join(", ")}.</span>`
+      + `<span class="ps-btns"><button class="btn sm" type="button" data-playday="1">Replay</button>`
+      + `<button class="btn sm" type="button" data-playdone="1">Done</button></span>`;
+    const lr = $("#live"); if(lr) lr.textContent = `Your day: ${parts.join(", ")}.`;
+  } else {
+    h.innerHTML = `${head}<span class="dim">Playing the day</span>`
+      + `<span class="ps-v" id="playTime"></span><span class="ps-v dim" id="playAir"></span>`
+      + `<span class="ps-btns"><button class="btn sm" type="button" data-playdone="1">Stop</button></span>`
+      + `<i class="ps-bar" aria-hidden="true"><i id="playBar"></i></i>`;
+  }
+  h.querySelectorAll("[data-playday]").forEach(b => b.onclick = playMissionDay);
+  h.querySelectorAll("[data-playdone]").forEach(b => b.onclick = stopMissionDay);
+  tickPlayStrip();
+}
+function tickPlayStrip(){
+  if(!PLAY || PLAY.done || LIVE.left === null) return;
+  const t = $("#playTime"), a = $("#playAir"), bar = $("#playBar"); if(!t) return;
+  t.textContent = `${hhmm(loc(PLAY.base, LIVE.clock))} at ${PLAY.base}`;
+  a.textContent = `${fmt(airborne(LIVE.clock, PLAY.at ? {st: PLAY.at, ty: ""} : null).length)} airborne`;
+  bar.style.width = `${(100 * (1440 - LIVE.left) / 1440).toFixed(1)}%`;
 }

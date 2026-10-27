@@ -396,10 +396,15 @@ measured.
   accent. Semantic colours and first class stay fixed. Any colour is given
   tones that stay readable in light and dark mode. Shared links and opened files
   are untrusted, so a livery that is not ours is dropped.
+- **Watch the day** (`src/ui/missions.js`, October 2026). A network holding
+  every star offers it on the mission card and on the readout that says
+  Mission complete. It plays one day on the map from 03:00 at the base at
+  1,440 times, narrowed to the station a mission is about, then gives a
+  one-line summary. It moves the map's clock and filter only, and Done puts
+  them back.
 
-**Still open.** A logbook of planning firsts; playing the day back on the map
-when a mission is won; a readout for non-route edits; more missions;
-leaderboards, which need the public site. One
+**Still open.** A logbook of planning firsts; a readout for non-route edits;
+more missions; leaderboards, which need the public site. One
 honest caveat: mission objectives score the network as rebuilt, so a lucky
 reshuffle counts toward a star even though the readout never credits it to an
 edit. The schedule is real either way, but a player can feel it as noise.

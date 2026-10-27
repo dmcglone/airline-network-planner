@@ -152,7 +152,9 @@ function drawMapSide(){
   $("#clrSel").onclick=()=>{ mapSel=null; drawMap(); };
 }
 /* ---------- live traffic ---------- */
-let LIVE={on:true, speed:1, clock:null, timer:null, sel:null};
+// left: minutes of simulated time still to play, for a run that stops itself
+// (a won mission's day); null runs for ever. onEnd and onTick are its hooks.
+let LIVE={on:true, speed:1, clock:null, timer:null, sel:null, dt:0.25, left:null, onEnd:null, onTick:null};
 function utcNowMin(){ const d=new Date(); return d.getUTCHours()*60+d.getUTCMinutes()+d.getUTCSeconds()/60; }
 function liveClock(){ return LIVE.clock===null ? utcNowMin() : LIVE.clock; }
 function airborne(now,filt){
@@ -195,10 +197,17 @@ function drawPlanes(){
     + `${fmt(list.reduce((s,a)=>s+a.f.nm,0))} nm in the air`;
 }
 function liveTick(){
-  if(LIVE.clock!==null && LIVE.speed>0) LIVE.clock=mod(LIVE.clock+LIVE.speed*0.25/60,1440);
+  if(LIVE.clock!==null && LIVE.speed>0){
+    let step=LIVE.speed*LIVE.dt/60;
+    if(LIVE.left!==null){ step=Math.min(step,LIVE.left); LIVE.left-=step; }
+    LIVE.clock=mod(LIVE.clock+step,1440);
+    if(LIVE.left===0){ LIVE.left=null; LIVE.speed=0; if(LIVE.onEnd) LIVE.onEnd(); }
+  }
   if(tab==="map") drawPlanes();
+  if(LIVE.onTick) LIVE.onTick();
 }
-function liveStart(){ clearInterval(LIVE.timer); LIVE.timer=setInterval(liveTick,250); }
+// dt is seconds between frames: a quarter second normally, finer for a fast replay
+function liveStart(dt){ LIVE.dt=dt||0.25; clearInterval(LIVE.timer); LIVE.timer=setInterval(liveTick,LIVE.dt*1000); }
 /* map interaction */
 (function(){
   const wrap=$("#mapwrap"), svg=$("#map");

@@ -287,6 +287,16 @@ td.code .fin{ margin-right:5px }
 .mission-obj li.met .mo-mark{ color:var(--ok); font-weight:700 }
 .mo-v{ font-family:var(--mono); font-size:12.5px; color:var(--ink-2); font-variant-numeric:tabular-nums }
 .mission-foot{ margin-top:10px }
+.mission-play{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:12px 0 0; font-size:12.5px }
+/* a won mission's day, played on the map: one strip under the map's toolbar */
+.playstrip{ position:relative; display:flex; align-items:center; gap:8px 14px; flex-wrap:wrap; padding:9px 16px;
+  border-bottom:1px solid var(--line-2); background:var(--accent-soft); font-size:13px; color:var(--ink-2) }
+.playstrip .stars{ margin-left:0; font-size:16px }
+.playstrip b{ font-family:var(--disp); font-size:16px; color:var(--ink); letter-spacing:.01em }
+.playstrip .ps-v{ font-family:var(--mono); font-size:12.5px; font-variant-numeric:tabular-nums }
+.playstrip .ps-btns{ margin-left:auto; display:flex; gap:6px }
+.ps-bar{ position:absolute; left:0; right:0; bottom:-1px; height:2px }
+.ps-bar i{ display:block; height:100%; width:0; background:var(--accent) }
 .wc-mission{ display:flex; align-items:baseline; gap:8px; font-size:12px; color:var(--ink-2) }
 .wc-mission .stars{ margin-left:0; font-size:14px; letter-spacing:1px }
 

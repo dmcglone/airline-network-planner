@@ -137,9 +137,11 @@ function paintReadout(R){
       if(r.met && !b.results[i].met) lines.push(`Objective met: ${objectiveLabel(r.o)}.`);
       if(!r.met && b.results[i].met) lines.push(`Objective lost: ${objectiveLabel(r.o)}.`);
     });
-    if(a.stars === of && b.stars < of) lines.unshift(`<b>Mission complete.</b>`);
+    const won = a.stars === of && b.stars < of;
+    if(won) lines.unshift(`<b>Mission complete.</b>`);
     if(lines.length || a.stars !== b.stars)
-      mission = `<div class="ro-mission">${starsHTML(a.stars, of)} ${lines.join(" ")}</div>`;
+      mission = `<div class="ro-mission">${starsHTML(a.stars, of)} ${lines.join(" ")}`
+        + (won ? ` ${PLAY_BUTTON}` : "") + `</div>`;
   }
   h.innerHTML = `<div class="ro-head"><span>${head}</span>`
     + `<button class="ro-x" type="button" aria-label="Dismiss">×</button></div>`
@@ -148,6 +150,7 @@ function paintReadout(R){
     + mission;
   h.hidden = false;
   h.querySelector(".ro-x").onclick = hideReadout;
+  const pb = h.querySelector("[data-playday]"); if(pb) pb.onclick = playMissionDay;
   const lr = $("#live");
   if(lr){ lr.textContent = ""; setTimeout(() => { lr.textContent = h.innerText.replace(/\s+/g, " ").replace("×", ""); }, 30); }
 }
