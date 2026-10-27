@@ -247,88 +247,46 @@ its 473 nm stage length, its maintenance accounting — the whole E175 basis.
 
 ## 10. Fleet type creation, cabin constraints, and a seatmap builder
 
-Let a user add a fleet type rather than edit the six that ship, constrain the
-cabin to what the airframe can physically hold, and give them a seatmap to do it
-on.
+**Built**, 12 and 13 September 2026: fccf0ea (seatmap designer, fleet types,
+cabin revenue, airline identity) and eedbb6c (fare multipliers by seat kind).
+The rules are in `src/seatmap.js`, the designer in `src/ui/seatmap.js`.
 
-**Prerequisite: cabin mix must reach revenue first.** `cabinMultipliers()` in
-`revenue.js` computes F/PE/Y fare multipliers, normalises them so the
-seat-weighted mean is 1.0, returns them as `cabins` — and nothing multiplies by
-them. Revenue is `flown × m.fare` at the DB1C market average regardless of which
-cabin anyone sat in. So the three cabin columns currently affect total seats and
-nothing else.
+- **Cabin mix reaches revenue.** This was the prerequisite. `cabinMultipliers()`
+  computed F/PE/Y multipliers that nothing used, so densifying was free money.
+  Revenue now prices each flight by cabin and seat kind (`SEAT_MULT`, with a
+  stage taper for lie-flat), normalised so the seat-weighted fleet mean is 1.0.
+  Item 12 covers where those ratios came from.
+- **Constraints.** Cabin length (rows × pitch plus the galley and lavatory
+  monuments), the seat limit, and one flight attendant per 50 seats (14 CFR
+  121.391), with the next step shown. A row at an overwing Type III gets 34
+  inches. Violations are reported in the designer rather than refused.
+- **The seat limit is the airframe's published `certifiedMax`, not a sum of
+  25.807(g) exit ratings.** The sum does not reproduce published figures: the
+  A320's two Type IIIs at consecutive rows cap at 65 under 25.807(g)(7), which
+  gives 175 against a certificated 180, because its doors exceed the book Type
+  C credit. Making the sum reach 180 meant moving the overwing exits in the
+  data. So the published maximum is the input, and the exits are geometry that
+  places the passageways and exit rows.
+- **Seat kinds.** Lie-flat suite, recliner or standard per cabin. Abreast is
+  derived from the kind rather than stored, so the two cannot disagree.
+- **Fleet types.** An 18-airframe library (`src/data/airframes.json`), with
+  add, rename and delete. The cost basis is one `f41` type. A type can be left
+  uncosted: it flies but never reaches the P&L, and the form says so.
+- **The designer** shows seats, exit-limit headroom, cabin length used, flight
+  attendants, cost per seat-mile at the type's own stage, and a fare index
+  against the fleet average. Three presets (ultra-dense, standard, comfort) set
+  the cabin in one click.
 
-Build a seatmap on that and every session ends identically: strip out First,
-cram economy, watch CASM fall, ship it. Densification would be free money
-because the model has no way to price what was given up. Fix the revenue side
-first, using the same normalisation already written but applied per flight —
-split each itinerary's allocated passengers across cabins by availability, price
-at the multipliers, keep the seat-weighted mean pinned to the observed DB1C
-fare. The measured number still constrains the answer; only its distribution
-across cabins is assumed.
+**Still open.**
 
-**The constraints, in order of how often they will bind.**
+*Payload-range.* Adding seats does not yet cost range. The Assumptions tooltip
+says range is a conservative full-payload figure. A linear giveback, so many nm
+per additional seat at MTOW, would make densification cost something, and it
+would feed the existing range check. Cram the A319 and watch a transcon go red.
 
-*Cabin length.* `Σ(rows × pitch) ≤ usable cabin length`. This is the one that
-actually stops people. Needs two new per-type fields: `cabinLength` in inches
-and `abreast` (6 for the A320 family, 4 for the E175, 3 for the E145). Rows are
-`ceil(seats / abreast)`, and a premium cabin at 4-abreast consumes floor twice
-as fast per seat.
-
-*Exit limits.* 14 CFR 25.807(g) caps passenger seats by the type and number of
-exits installed in each side of the fuselage: Type A 110, Type B 75, Type C 55,
-Type I 45, Type II 40, Type III 35, Type IV 9. Two further rules are worth
-encoding because they are the ones that catch people out — all Type III exits
-combined are capped at 70 seats, and two Type IIIs per side separated by fewer
-than three seat rows are capped at 65. A type therefore needs an `exits` array,
-and total seats may not exceed the sum.
-
-This would bind on nothing in the current roster: the A319 sits at 126 against a
-real-world 156, the A321 at 190 against roughly 220. That is correct behaviour.
-A ceiling should be silent until somebody reaches for it.
-
-*Flight attendants.* 14 CFR 121.391 is one FA per 50 seats, so crew cost steps
-at 51, 101, 151 and 201. The A319 at 126 needs three; densified to 156 it buys a
-fourth. This makes seat count lumpy rather than smooth, which is the more
-interesting decision and which the cost model can already express.
-
-*Payload-range.* The Assumptions tooltip already says range is a conservative
-full-payload figure. A linear giveback — so many nm per additional seat at MTOW
-— makes densification cost something, and it feeds the existing range check.
-Cram the A319 and watch a transcon go red.
-
-**What creating a type requires.** The eight existing columns plus `abreast`,
-`cabinLength` and `exits` — and a cost basis, `f41` with `f41Peers`, which after
-item 9 is a first-class field rather than an afterthought.
-
-Do not block creation of an uncosted type. `econRate()` returns null and the
-Economics tab already names the types it cannot cost, which is the honest
-failure mode; a silent zero would not be. Make the field prominent in the form
-instead, so nobody builds a type and then wonders why it never reaches the P&L.
-
-Adding a type is safe for the invariants. The range check reads `SPEC.rng`,
-gauge matching keys on type identity, and the acceptance metrics move only if
-the pinned roster changes. A new type at zero tails changes nothing.
-
-**The seatmap.** Fuselage as a horizontal strip, exits at fixed stations, cabin
-dividers draggable, abreast and pitch set per cabin. Live down the side: seats
-by cabin and total; cabin length used against available as a fill bar;
-exit-limit headroom per the 25.807 sum; FA count with the next threshold
-visible so the cliff is seen coming; and CASM against RASM, which is the entire
-point of the exercise.
-
-Report violations inline rather than refusing the edit — the same philosophy as
-`validate.js`, which reports what it finds instead of preventing it. Let someone
-build a 260-seat A321 and tell them plainly that it is forty seats past its
-exits and nine hundred inches past its cabin.
-
-Two details that are cheap and carry most of the feel: rows adjacent to a Type
-III exit need extra pitch, and a few presets — ultra-dense all-economy at 28
-inches, two-class at 32/31, comfort at 34 — so the trade is one click rather
-than twenty drags.
-
-Output is F/PE/Y written back into the Assumptions table. The builder is pure UI
-over state that already exists; nothing in the engine changes.
+*`f41Peers`.* A type is costed from one `f41` type, blended across every carrier
+that reports it. Costing from named carriers is item 9's `f41Peers` field, and
+it waits on item 9.
 
 ---
 
@@ -444,10 +402,8 @@ rather than a placeholder — the note that called it a placeholder was wrong, a
 item 9 explains why. Do it after launch, and expect to re-read the regional
 route-level findings when it lands.
 
-**10** is really two items. The cabin-revenue half is small, belongs with 2, 3
-and 4 in the revenue layer, and is worth doing on its own merits. The seatmap
-half is the largest piece of UI on this list and should not start until the
-first half is in, or it will be a tool for discovering that seats are free.
+**10** is built, both halves, with cabin revenue first as planned. What is left
+of it is small: payload-range, and `f41Peers` once item 9 lands.
 
 ## Known limitation: the schedule reshuffles
 
