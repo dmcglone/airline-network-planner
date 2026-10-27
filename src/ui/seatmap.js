@@ -259,7 +259,7 @@ function smSvg(L, f){
         + ` rx="2" fill="var(--ok)" stroke="var(--surface)" stroke-width="1"/>`);
     }
     p.push(`<text x="${ex.toFixed(1)}" y="${yExit().toFixed(1)}" text-anchor="middle"`
-      + ` font-size="8.5" fill="var(--ok)" class="mono">${e.type}</text>`
+      + ` font-size="8.5" fill="var(--ok)" class="mono">${esc(String(e.type))}</text>`
       + `<text x="${ex.toFixed(1)}" y="${yRate().toFixed(1)}" text-anchor="middle"`
       + ` font-size="7.5" fill="var(--ink-3)" class="mono">${EXIT_RATING[e.type]}</text>`);
   }

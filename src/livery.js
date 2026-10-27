@@ -128,9 +128,13 @@ function finInline(L, code, px){
    abreast set its depth. Cheatline, tail cone and fin wear the livery. */
 function liverySideView(f, px){
   const g = (f && f.geom) || {};
-  const ab = (g.abreast && g.abreast.Y) || 6;
+  // A user-added type's geometry can arrive in somebody else's shared link, and
+  // these numbers go into markup: make them numbers first. With a string, "+"
+  // would concatenate and carry the string into the SVG.
+  const num = (v, lo, hi, d) => { const n = Number(v); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
+  const ab = num(g.abreast && g.abreast.Y, 1, 10, 6);
   const D = ab >= 5 ? 156 : ab >= 4 ? 118 : 92;           // fuselage depth, inches
-  const L = (g.cabinLength || 1000) + D * 2.6;            // nose and tail cones beyond the cabin
+  const L = num(g.cabinLength, 200, 3000, 1000) + D * 2.6; // nose and tail cones beyond the cabin
   const Ln = D * 1.05, Lt = D * 1.9;
   const body = `M0 ${D * 0.62} C0 ${D * 0.22} ${Ln * 0.45} 0 ${Ln} 0 L${L - Lt * 0.35} 0 L${L} ${D * 0.1} `
     + `L${L} ${D * 0.3} C${L - Lt * 0.3} ${D * 0.42} ${L - Lt * 0.75} ${D} ${L - Lt} ${D} L${Ln * 0.85} ${D} `
