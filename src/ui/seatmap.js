@@ -15,7 +15,9 @@ let smType = null;                       // which type is on the drawing board
 
 
 const SM_MAX_SEAT_GROWTH = 1.6;   // a First seat is wider, not twice as wide
-const SM_CABIN_FILL = {F:"var(--accent)", PE:"var(--steel)", Y:"var(--ink-3)"};
+// First has its own colour: the accent follows the airline's livery, and a cabin
+// should not turn red because the airline did.
+const SM_CABIN_FILL = {F:"var(--cabin-f)", PE:"var(--steel)", Y:"var(--ink-3)"};
 
 function smFleet(){ return state.fleet.find(f=>f.t===smType) || state.fleet[0]; }
 
@@ -79,14 +81,21 @@ function smSvg(L, f){
 
   // --- fuselage
   const noseR = 30, tailR = 46;
-  p.push(`<path d="M${x0-noseR} ${cy}`
+  const hull = `M${x0-noseR} ${cy}`
     + ` C${x0-noseR} ${cy-bodyH/2} ${x0-14} ${cy-bodyH/2} ${x0+6} ${cy-bodyH/2}`
     + ` L${x0+capLen-6} ${cy-bodyH/2}`
     + ` C${x0+capLen+tailR*0.6} ${cy-bodyH/2} ${x0+capLen+tailR} ${cy-bodyH*0.18} ${x0+capLen+tailR} ${cy}`
     + ` C${x0+capLen+tailR} ${cy+bodyH*0.18} ${x0+capLen+tailR*0.6} ${cy+bodyH/2} ${x0+capLen-6} ${cy+bodyH/2}`
     + ` L${x0+6} ${cy+bodyH/2}`
-    + ` C${x0-14} ${cy+bodyH/2} ${x0-noseR} ${cy+bodyH/2} ${x0-noseR} ${cy}Z"`
-    + ` fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>`);
+    + ` C${x0-14} ${cy+bodyH/2} ${x0-noseR} ${cy+bodyH/2} ${x0-noseR} ${cy}Z`;
+  p.push(`<path d="${hull}" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>`);
+  // The livery, seen from above: a painted tail cone and a cheatline down each
+  // side. Drawn before the cabin, so seats, monuments and exits sit on top.
+  const hid = "smHull" + (++lvClipN), span = capLen + noseR + tailR;
+  p.push(`<clipPath id="${hid}"><path d="${hull}"/></clipPath><g clip-path="url(#${hid})">`
+    + `<rect x="${x0+capLen-4}" y="${cy-bodyH/2}" width="${tailR+8}" height="${bodyH}" style="fill:var(--livery);opacity:.9"/>`
+    + `<rect x="${x0-noseR}" y="${cy-bodyH/2}" width="${span}" height="3.5" style="fill:var(--livery)"/>`
+    + `<rect x="${x0-noseR}" y="${cy+bodyH/2-3.5}" width="${span}" height="3.5" style="fill:var(--livery)"/></g>`);
 
   // --- blockers: monuments as quiet neutral blocks, passageways marked.
   // An earlier version split each monument into coloured lavatory and galley
@@ -578,6 +587,7 @@ function drawSeatmap(){
 
   host.innerHTML =
       `<div class="toolbar" style="flex-wrap:wrap">${chips}</div>`
+    + `<div class="pad sm-side">${liverySideView(f, 440)}</div>`
     + `<div class="pad" style="overflow-x:auto">${smSvg(L, f)}${smLegend(L)}</div>`
     + `<div class="pad">${smReadout(L, f)}</div>`
     + `<div class="toolbar" style="flex-wrap:wrap"><span class="dim" style="font-size:12.5px">Presets</span>`

@@ -3,7 +3,8 @@
   "name": "Meridian Air",
   "code": "MA",
   "possessive": "Meridian",
-  "designDay": "Mon 8 Jun 2026"
+  "designDay": "Mon 8 Jun 2026",
+  "livery": {"color": "#C56A12", "mark": "band"}
  },
  "roles": {
   "SJC": "Hub",

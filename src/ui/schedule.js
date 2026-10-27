@@ -25,7 +25,7 @@ function drawSched(){
   t.innerHTML="<thead><tr><th>Flight</th><th>Rotation</th><th>Gauge</th><th>From</th><th>To</th><th>Destination</th>"
     +"<th class='r'>Dep</th><th class='r'>Arr</th><th></th><th class='r'>Block</th><th class='r'>Distance</th><th class='r'>Seats</th><th class='r'>Days/wk</th></tr></thead>";
   const tb=el("tbody");
-  tb.innerHTML = rows.map(f=>`<tr><td class="code">${esc(flightNo(f.fn))}</td><td class="mono dim">${f.line}</td>`
+  tb.innerHTML = rows.map(f=>`<tr><td class="code">${finUse(13)}${esc(flightNo(f.fn))}</td><td class="mono dim">${f.line}</td>`
     +`<td>${f.t}</td><td class="code">${f.o}</td><td class="code">${f.d}</td>`
     +`<td class="dim">${esc(AP[f.d]?AP[f.d][0]:f.d)}</td>`
     +`<td class="num">${hhmm(f.dep)}</td><td class="num">${hhmm(f.arr)}</td>`

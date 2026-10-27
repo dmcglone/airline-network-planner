@@ -110,9 +110,10 @@ fleet table and the pinned roster all live in `src/data/`. The end goal is a
 site where anyone plans their own network under their own airline's name; that
 only works if nothing about any particular airline is welded into the engine.
 
-To plan a different airline, edit `src/data/config.json` (start with `brand`),
-`fleet.json` and `stations.json`, put its routes in `network.json`, and
-rebuild. Nothing in `src/*.js` needs to change.
+To plan a different airline, edit `src/data/config.json` (start with `brand`,
+whose `livery` sets the starting colour and tail mark), `fleet.json` and
+`stations.json`, put its routes in `network.json`, and rebuild. Nothing in
+`src/*.js` needs to change. Players can change the livery in Settings.
 
 ## Verifying a change
 

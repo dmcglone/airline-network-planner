@@ -6,6 +6,7 @@
   "blurb": "one line on what this starter is for and what it teaches",
   "brand": "placeholder airline name, expected to be overwritten immediately",
   "code": "two-letter designator to match",
+  "livery": "starting colour (#RRGGBB) and tail mark (band, chevron, disc, star, code); the player can change both",
   "state": "partial state overlaid on baseline(): stations, roles, routes, roster, feed, spacing, redeye, spare",
   "expect": "metrics this starter must produce. verify.py asserts these and that all ten checks pass. A starter with no expect block is a starter that can rot silently.",
   "mission": "optional. A title, a brief, three objectives (connections at a station, aircraftMax, profitMeasured, deps, routes) and a reference solution (add or remove steps). verify.py plays the solution and fails unless the start earns fewer than all the stars and the solution earns all of them. Thresholds were set from a reference path searched on 27 Oct 2026; if one stops being reachable, behaviour changed: find the cause before moving the number."
@@ -17,6 +18,7 @@
    "blurb": "One base, fifteen markets, a single gauge. No banks and no connecting intent: every aircraft goes out and comes back. The simplest complete airline.",
    "brand": "Silver State Air",
    "code": "7S",
+   "livery": {"color": "#4A5A6A", "mark": "chevron"},
    "state": {
     "stations": [
      "LAS"
@@ -252,6 +254,7 @@
    "blurb": "One hub running banked complexes so connections work, with forty markets and three gauges. Bank times, gate contention and feed all start to matter.",
    "brand": "Front Range Airways",
    "code": "6F",
+   "livery": {"color": "#2F6B3A", "mark": "star"},
    "state": {
     "stations": [
      "DEN"

@@ -15,6 +15,7 @@ function baseline(){
     fleet: FLEET_BASE.map(f=>Object.assign({},f)),
     feed: {SJC:1, PIT:1, MCO:1, RDU:0, DEN:0}, spacing:'balanced', redeye: 1,
     roster: Object.assign({}, FLEETDATA.pinned), spare: 0.08, v: 2, brand: BRAND.name, code: BRAND.code,
+    livery: Object.assign({}, BRAND.livery),
     stations: SHIPPED_STATIONS.slice(), roles: Object.assign({}, SHIPPED_ROLES),
     pinned: Object.assign({}, FLEETDATA.pinned)};
   for(const r of rs){
@@ -27,6 +28,7 @@ function baseline(){
                           fleet: FLEET_BASE.map(f=>Object.assign({},f)),
                           feed: {SJC:1, PIT:1, MCO:1, RDU:0, DEN:0}, spacing:'balanced', redeye: 1,
                              roster: Object.assign({}, FLEETDATA.pinned), spare: 0.08, v: 2, brand: BRAND.name, code: BRAND.code,
+    livery: Object.assign({}, BRAND.livery),
     stations: SHIPPED_STATIONS.slice(), roles: Object.assign({}, SHIPPED_ROLES),
     pinned: Object.assign({}, FLEETDATA.pinned)}; }
 
@@ -88,6 +90,7 @@ function loadStarter(id){
   Object.assign(next, JSON.parse(JSON.stringify(s.state || {})));
   if(s.brand) next.brand = s.brand;
   if(s.code){ next.code = s.code; next.codeSetByUser = false; }
+  if(s.livery) next.livery = Object.assign({}, s.livery);
   // a starter names its own bases, so the roles and the feed follow from it
   next.stations = (next.stations || STA).slice();
   next.roles = Object.assign({}, next.roles);
@@ -169,6 +172,8 @@ function importState(obj){
   reconcileGeom(state.fleet);
   if(!state.brand) state.brand = BRAND.name;
   if(!state.code)  state.code  = BRAND.code;
+  // A shared link or a file is somebody else's data: keep only a livery we can trust.
+  state.livery = (typeof liveryOf === "function") ? liveryOf(state) : state.livery;
   applyStationConfig(state);
   if(!state.feed) state.feed={SJC:1,PIT:1,MCO:1,RDU:0,DEN:0};
   if(!state.spacing) state.spacing="balanced";

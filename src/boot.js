@@ -14,6 +14,10 @@ function pageSource(){
   {const e=c.querySelector("#pinbar"); if(e) e.classList.remove("stuck");}
   {const e=c.querySelector("#missionCard"); if(e){ e.innerHTML=""; e.hidden=true; }}
   {const e=c.querySelector("#readout"); if(e){ e.innerHTML=""; e.hidden=true; }}
+  // the livery is drawn from state at boot, like everything else above
+  {const e=c.querySelector("#liveryCss"); if(e) e.remove();}
+  {const e=c.querySelector("#liverySprite"); if(e) e.innerHTML="";}
+  {const e=c.querySelector("#brandFin"); if(e) e.innerHTML="";}
   {const e=c.querySelector("#tRoutes"); if(e) e.innerHTML="";}
   {const e=c.querySelector("#tSched"); if(e) e.innerHTML="";}
   {const e=c.querySelector("#tRot"); if(e) e.innerHTML="";}
@@ -53,6 +57,7 @@ function applyBrand(){
   document.title = n ? `${n} — ${SITE.name}` : SITE.name;
   $("#brandName").textContent = n;
   const cc = $("#brandCode"); if(cc) cc.textContent = c || "";
+  if(typeof applyLivery === "function") applyLivery();
 }
 $("#brandName").addEventListener("blur", ()=>{
   const n = $("#brandName").textContent.trim().slice(0,40) || BRAND.name;

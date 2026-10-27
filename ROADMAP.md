@@ -388,10 +388,18 @@ measured.
   objective, none while a check fails. Objectives use connections at a station,
   aircraft, departures, routes, and profit on measured demand only. `verify.py`
   plays each solution and requires all the stars.
+- **Livery** (`src/livery.js`, Settings, October 2026). A colour from eight
+  swatches or any colour, and a tail mark (band, chevron, disc, star, the
+  airline code, or an uploaded logo kept as a small PNG). It paints the header,
+  the map's planes, a fin beside every flight on the Board and Schedule, the
+  Rotations flight bars, a side view and the seatmap, and it becomes the app's
+  accent. Semantic colours and first class stay fixed. Any colour is given
+  tones that stay readable in light and dark mode. Shared links and opened files
+  are untrusted, so a livery that is not ours is dropped.
 
-**Still open.** A logbook of planning firsts; the player's livery on the map and
-the Board; playing the day back on the map when a mission is won; a readout for
-non-route edits; more missions; leaderboards, which need the public site. One
+**Still open.** A logbook of planning firsts; playing the day back on the map
+when a mission is won; a readout for non-route edits; more missions;
+leaderboards, which need the public site. One
 honest caveat: mission objectives score the network as rebuilt, so a lucky
 reshuffle counts toward a star even though the readout never credits it to an
 edit. The schedule is real either way, but a player can feel it as noise.
