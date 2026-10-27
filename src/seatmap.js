@@ -253,7 +253,7 @@ function seatmapLayout(f){
   if(placed < seatTotal){
     const missed = cabins.filter(c => c.placed < c.requested);
     violations.push({kind:"length",
-      msg:`${seatTotal - placed} seats do not fit — `
+      msg:`${seatTotal - placed} seats do not fit: `
         + missed.map(c => `${CABIN_NAME[c.c]} places ${c.placed} of ${c.requested}`).join(", ")
         + `. ${Math.round(seatable - used)} inches are left over, but in pieces too short for a row.`});
   }

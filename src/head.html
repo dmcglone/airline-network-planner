@@ -18,8 +18,8 @@
 <!-- No webfont requests. Three calls to fonts.googleapis.com and
      fonts.gstatic.com sat on the critical path before any text rendered, and
      they send every visitor's IP to a third party — which German courts have
-     treated as a GDPR problem in its own right. The stacks below use what the
-     machine already has, so text paints immediately and nothing leaves the
-     origin. Self-hosting Barlow Condensed (SIL OFL, free to redistribute) would
-     restore the original display face without bringing the third party back. -->
+     treated as a GDPR problem in its own right. Barlow Condensed, the display
+     face, now ships inside the stylesheet (build.py, @fonts; SIL OFL), so it
+     shows for everyone without bringing the third party back. IBM Plex still
+     uses whatever the machine has. -->
 <style>

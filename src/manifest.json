@@ -1,6 +1,7 @@
 [
  "src/head.html",
  "src/style.css",
+ "@fonts",
  "src/body.html",
  "@net",
  "src/pristine.js",

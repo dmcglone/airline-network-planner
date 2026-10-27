@@ -14,8 +14,8 @@
     <button class="btn" id="btnRedo" disabled title="Nothing to redo" aria-label="Redo">Redo</button>
     <span class="barsep" aria-hidden="true"></span>
     <button class="btn" id="btnShare">Share</button>
-    <button class="btn" id="btnExport">Export state</button>
-    <button class="btn" id="btnImport">Import state</button>
+    <button class="btn" id="btnExport">Save to file</button>
+    <button class="btn" id="btnImport">Open file</button>
     <span class="barsep" aria-hidden="true"></span>
     <details class="moremenu"><summary class="btn" title="Less common actions">More</summary>
       <div class="moremenu-list">
@@ -58,7 +58,7 @@
           <label style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-2)">From station
             <select id="nO"></select></label>
           <label style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-2);min-width:250px">To airport
-            <span class="ac"><input type="text" id="nD" placeholder="Type a code or city — e.g. BOI, Nashville" autocomplete="off"></span></label>
+            <span class="ac"><input type="text" id="nD" placeholder="Type a code or city, like BOI or Nashville" autocomplete="off"></span></label>
           <label style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-2)">Gauge
             <select id="nT"></select></label>
           <label style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-2)"><span id="nNLbl">Flights/day</span>
@@ -264,7 +264,7 @@
       <h2>Airport board <span class="sub">Every movement at one airport, with gates assigned from the real aircraft rotations</span></h2>
       <div class="toolbar">
         <label style="font-size:12.5px;color:var(--ink-2)">Airport</label>
-        <span class="ac" style="min-width:270px"><input type="text" id="bAp" class="grow" placeholder="Type a code or city — e.g. PHL, Nashville" autocomplete="off"></span>
+        <span class="ac" style="min-width:270px"><input type="text" id="bAp" class="grow" placeholder="Type a code or city, like PHL or Nashville" autocomplete="off"></span>
         <select id="bWhen"><option value="now">Starting from now</option><option value="all">Full day, 00:00 onward</option></select>
         <label style="font-size:12.5px;color:var(--ink-2);display:flex;gap:6px;align-items:center">
           <input type="checkbox" id="bIrr"> Simulate irregular ops</label>

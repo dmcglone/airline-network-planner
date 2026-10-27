@@ -35,7 +35,7 @@ function drawRoutes(){
   const t=$("#tRoutes");
   t.innerHTML = "<thead><tr><th>From</th><th>To</th><th class='r'>Distance</th>"
     + TYPES.map(x=>`<th class='r'>${x}</th>`).join("")
-    + "<th class='r'>Flights/day</th><th class='r' title='Passengers a day, each way. * marks an estimate from the gravity model, often off by several times.'>Pax/day</th><th class='r' title='Revenue less direct cost a day, for the market in both directions. Before aircraft ownership and overhead.'>Contribution/day</th><th>Season</th><th class='r'>Days/wk</th><th>Red-eye</th><th></th></tr></thead>";
+    + "<th class='r'>Flights/day</th><th class='r' title='Passengers a day, each way, from DB1C unless marked. † is international, from OAG and MIDT ticketing records via a published sheet. * is an estimate from the gravity model, often off by several times.'>Pax/day</th><th class='r' title='Revenue less direct cost a day, for the market in both directions. Before aircraft ownership and overhead.'>Contribution/day</th><th>Season</th><th class='r'>Days/wk</th><th>Red-eye</th><th></th></tr></thead>";
   const tb=el("tbody");
   for(const r of rows){
     const i=state.routes.indexOf(r), nm=dist(r.o,r.d), n=TYPES.reduce((a,x)=>a+(+r.mix[x]||0),0);
@@ -52,7 +52,8 @@ function drawRoutes(){
           + ` aria-label="${esc(x+" flights per day, "+r.o+" to "+r.d)}"`
           + ` value="${+r.mix[x]||""}"></td>`).join("")
       + `<td class="num"><b>${n}</b></td>`
-      + `<td class="num">${dd.v>0?fmt(dd.v)+(dd.real?"":`<span title="Estimated by the gravity model, not measured">*</span>`):"—"}</td>`
+      + `<td class="num">${dd.v>0?fmt(dd.v)+(!dd.real?`<span title="Estimated by the gravity model, not measured">*</span>`
+          : dd.src==="intl"?`<span class="srcmark" title="OAG and MIDT ticketing records, 2025–26, via a published sheet">†</span>`:""):"—"}</td>`
       + `<td class="num" data-money="${pairKey(r.o,r.d)}">${moneyCell(pairKey(r.o,r.d))}</td>`
       + `<td class="mono" style="font-size:13px" title="${sc?`Jul 2025 → May 2026 · peak ${sc.peak} ${sc.peakX.toFixed(1)}×, trough ${sc.trough} ${sc.troughX.toFixed(1)}×`:"no monthly data"}">${sc?sc.spark:""}</td>`
       + `<td class="num"><input type="number" min="1" max="7" data-i="${i}" data-w="1"`

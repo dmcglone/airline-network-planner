@@ -12,7 +12,7 @@ rather than copied:
   @geo  the coastline and border geometry
 Everything else is copied through verbatim.
 """
-import argparse, hashlib, shutil, json, pathlib, sys
+import argparse, base64, hashlib, shutil, json, pathlib, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent
 D = ROOT / "src/data"
@@ -73,7 +73,22 @@ def demand_file():
 def gen_geo():
     return "</script>\n" + block("geo", load("geo.json"))
 
-GENERATED = {"@net": gen_net, "@geo": gen_geo}
+def gen_fonts():
+    """The display face, Barlow Condensed (SIL OFL 1.1, src/assets/fonts/OFL.txt),
+    as data inside the stylesheet. The page then makes no font request and
+    nothing leaves the origin, which is why the Google Fonts links were removed,
+    and the single-file builds keep it too. Latin subset, only the two weights
+    the CSS uses; swap paints text at once in the fallback face."""
+    rules = []
+    for w in (600, 700):
+        data = base64.b64encode((ROOT / f"src/assets/fonts/barlow-condensed-latin-{w}.woff2")
+                                .read_bytes()).decode("ascii")
+        rules.append('@font-face{font-family:"Barlow Condensed";font-style:normal;'
+                     f'font-weight:{w};font-display:swap;'
+                     f'src:url(data:font/woff2;base64,{data}) format("woff2")}}')
+    return "\n".join(rules)
+
+GENERATED = {"@net": gen_net, "@geo": gen_geo, "@fonts": gen_fonts}
 
 def build(defer_demand=False):
     out = []

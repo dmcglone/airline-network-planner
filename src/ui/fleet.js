@@ -39,7 +39,7 @@ function drawRoster(){
   $("#rosterNote").innerHTML=`<p class="note"><b>${fmt(T.shortRots)} rotation${T.shortRots===1?"":"s"} cannot be flown</b>,
     covering ${fmt(T.shortFlights)} flights a day, with the aircraft you own. The least productive rotations of each short type are the ones that fall out first:
     they are listed below with the flying they carry, so you can see what you would actually be cancelling.</p>`
-    + short.map(f=>`<div style="margin-top:10px"><div class="k mono" style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--bad)">${f.t} — short ${f.short}</div>`
+    + short.map(f=>`<div style="margin-top:10px"><div class="k mono" style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--bad)">${f.t}, ${f.short} short</div>`
       + f.uncovered.map(r=>`<div class="mkt"><span class="m">${r.id}</span><span class="dim">${r.path}</span><span>${hrsHM(r.block)} · ${r.legs} legs</span></div>`).join("")
       + `</div>`).join("");
 }

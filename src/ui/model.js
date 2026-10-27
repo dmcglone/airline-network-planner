@@ -10,7 +10,7 @@
 
 const GETTING_STARTED = [
  ["Add a flight and watch the whole day change",
-  "On the Network tab, find a route and type a number into one of the aircraft columns \u2014 "
+  "On the Network tab, find a route and type a number into one of the aircraft columns, "
   + "say a second daily A320. Then look up at the metrics along the top. Aircraft, block hours, "
   + "gates and routes all move, because the planner rebuilds every rotation from scratch "
   + "rather than patching the old schedule. That is slower, and it is why the answer stays "
@@ -32,8 +32,8 @@ function gettingStartedHTML(){
     + `<span class="sub">Three things to try, in this order</span></h2>`
     + `<div class="pad"><p class="note">You are planning an airline. You choose which markets to `
     + `serve, how often, and with what aircraft; the planner works out every flight, which `
-    + `aircraft flies it, when it goes, and where each one spends the night \u2014 then checks its own `
-    + `work against ten rules.</p></div>`
+    + `aircraft flies it, when it goes, and where each one spends the night. Then it checks its `
+    + `own work against ten rules.</p></div>`
     + GETTING_STARTED.map(([h, d], i) =>
         `<div class="pad" style="border-top:1px solid var(--line-2);display:grid;`
         + `grid-template-columns:30px 1fr;gap:13px;align-items:start">`
@@ -48,7 +48,8 @@ function gettingStartedHTML(){
     + `Zero is the normal state, and you should be suspicious of a schedule that is not at zero.</p>`
     + `<p class="note"><b>Keeping your airline.</b> Your work is saved in this browser, which is `
     + `not permanent. Safari in particular discards it after about a week away. Share puts the `
-    + `whole airline in a link you can keep or send to somebody. Export saves it as a file. `
+    + `whole airline in a link you can keep or send to somebody. Save to file keeps a copy on `
+    + `your computer, and Open file brings it back. `
     + `Undo goes back twenty-five steps.</p>`
     + `<p class="note"><b>Words you do not recognise</b> are dotted in the notes on every page. `
     + `Click one for its definition, or read the Glossary here.</p></div></div>`;
@@ -185,7 +186,9 @@ const MODEL_SECTIONS = [
          2025–26, as compiled in the published Google Sheet PAX_DATA_2025-26.`,
         `Aircraft type names are used descriptively and the manufacturers have no
          involvement in this. Cabin regulations cited are 14 CFR 25.807, 25.813
-         and 121.391.`]
+         and 121.391.`,
+        `Display type: Barlow Condensed by Jeremy Tribby, under the SIL Open Font
+         License, served from this site.`]
   }
 ];
 

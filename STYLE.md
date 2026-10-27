@@ -41,5 +41,10 @@ Everything around them should be the plainest available English.
 
 ## Check before shipping
 
-    grep -n '—' src/body.html src/ui/*.js     # prose hits, not table placeholders
-    grep -niE '(worth noting|essentially|leverage|seamless|robust)' src/ui/*.js
+    grep -n '—' src/body.html src/*.js src/ui/*.js        # prose hits, not separators or comments
+    grep -n 'u2014' src/body.html src/*.js src/ui/*.js    # the same dash written as an escape
+    grep -niE '(worth noting|essentially|leverage|seamless|robust)' src/*.js src/ui/*.js
+
+The first check used to cover `src/ui/*.js` only, and a dash written as
+`—` never matched it. Both let sentences through: toasts and suggestion
+text in `src/*.js`, and the Getting started paragraph.

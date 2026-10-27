@@ -239,6 +239,9 @@ tfoot td{padding:8px 10px;border-top:1px solid var(--line);font-weight:600;backg
 #seatmapPanel svg{ background:transparent; }
 .growscope{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin:0 0 10px; }
 
+/* where a demand figure comes from, beside the figure: † the OAG and MIDT sheet */
+.srcmark{ color:var(--steel); margin-left:1px }
+
 /* missions: three objectives, a star each */
 .stars{ margin-left:auto; font-size:21px; letter-spacing:3px; color:var(--line); line-height:1 }
 .stars .on{ color:var(--accent) }

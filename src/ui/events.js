@@ -257,7 +257,7 @@ $("#btnTheme").onclick=()=>{
 /* Replacing the whole network, in one place.
 
    Several paths swap every route, station and aircraft type at once: the first-
-   run picker, Revert to baseline, Import state, Undo. Each one was doing its own
+   run picker, Revert to baseline, Open file, Undo. Each one was doing its own
    sequence of applyStationConfig / syncFeedModes / reconcileGeom / build / save /
    fillSelects / draw, and each one remembered a different subset. Revert forgot
    fillSelects, so the Add route dropdowns kept offering the PREVIOUS network's
@@ -754,13 +754,13 @@ $("#btnAddGo").onclick=()=>{
       + `<button class="btn sm" id="btnCloseExport">Close</button></div>`
       + `<div class="dim" id="exportStatus" style="font-size:12.5px;margin-top:6px">`
       + `Download saves a file. Copy puts the same JSON on the clipboard, which is `
-      + `what to use if downloads are blocked here. Import state takes a paste.</div></div>`;
+      + `what to use if downloads are blocked here. Open file takes a paste.</div></div>`;
     $("#btnCloseExport").onclick = ()=>{ h.hidden = true; };
     $("#btnDlState").onclick = safe(async ()=>{
       if(DL){
         try{ await DL.save({filename:name, data:json});
-             h.hidden = true; toast("Exported "+kb+" KB"); return; }
-        catch(err){ if(err && err.code==="declined"){ toast("Export cancelled"); return; } }
+             h.hidden = true; toast("Saved "+kb+" KB to file"); return; }
+        catch(err){ if(err && err.code==="declined"){ toast("Save cancelled"); return; } }
       }
       const url = URL.createObjectURL(new Blob([json], {type:"application/json"}));
       const a = el("a", {href:url, download:name});
@@ -771,7 +771,7 @@ $("#btnAddGo").onclick=()=>{
     });
     $("#btnCopyState").onclick = safe(async ()=>{
       try{ await navigator.clipboard.writeText(json);
-           h.hidden = true; toast(`Copied ${kb} KB. Paste it into Import state`); }
+           h.hidden = true; toast(`Copied ${kb} KB. Paste it into Open file`); }
       catch(err){ $("#exportStatus").textContent =
            "The clipboard is not available here. Use Download, or Share for a link."; }
     });
@@ -787,7 +787,7 @@ function drawStateImport(){
       `<div class="pad" style="border-top:1px solid var(--line-2)">`
     + `<div class="mkt" style="gap:9px;flex-wrap:wrap;align-items:center">`
     + `<button class="btn sm" id="btnPickFile">Choose a file…</button>`
-    + `<span class="dim" style="font-size:12.5px">or paste the JSON you exported:</span>`
+    + `<span class="dim" style="font-size:12.5px">or paste the JSON you saved:</span>`
     + `<button class="btn sm" id="btnPasteState">Load pasted state</button>`
     + `<button class="btn sm" id="btnCancelImport">Cancel</button></div>`
     + `<textarea id="stateJson" rows="4" spellcheck="false" placeholder='{"state":{...}}'`
@@ -803,7 +803,7 @@ function drawStateImport(){
     try{
       swapNetwork(() => importState(parsed), "import");
       $("#stateImport").hidden = true;
-      toast(`Imported ${state.routes.length} routes`);
+      toast(`Opened a network with ${state.routes.length} routes`);
     }catch(err){ $("#importStatus").textContent = String(err.message || err); }
   });
 }
@@ -818,11 +818,11 @@ $("#btnImport").onclick = ()=>{
     const text = await f.text();
     // Through swapNetwork like the paste import, so Undo can bring the old airline back.
     try{ swapNetwork(() => { r = importState(text); }, "import"); }
-    catch(err){ toast("Import failed. "+(err.message||err)); ev.target.value=""; return; }
+    catch(err){ toast("Couldn't open that file. "+(err.message||err)); ev.target.value=""; return; }
     ev.target.value="";
     toast(r.want && r.diff.length
-      ? "Imported, but "+r.diff.length+" metric"+(r.diff.length>1?"s":"")+" differ: "+r.diff.join(", ")
-      : "Imported "+fmt(r.got.routes)+" routes, "+fmt(r.got.tails)+" rotations");
+      ? "Opened, but "+r.diff.length+" metric"+(r.diff.length>1?"s":"")+" differ: "+r.diff.join(", ")
+      : "Opened a network with "+fmt(r.got.routes)+" routes and "+fmt(r.got.tails)+" rotations");
   });
 
   // The header is rearranged from time to time; a control that is not in this

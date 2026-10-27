@@ -37,14 +37,14 @@ function loadDemand(){
       demandFailed = true;
       console.warn("demand data unavailable", e);
       if(typeof toast === "function")
-        toast("Demand data did not load — showing gravity estimates instead");
+        toast("Demand data did not load. Showing gravity estimates instead");
       if(typeof draw === "function") draw();
       return false;
     });
 }
 
 const dotNote = D => `Real origin-and-destination passengers and fares from the US DOT DB1C `
-  + `Market files covering ${D.period} — ${fmt(D.sampled)} sampled tickets at a 40% sample rate, `
+  + `Market files covering ${D.period}: ${fmt(D.sampled)} sampled tickets at a 40% sample rate, `
   + `grossed up and expressed per direction per day across ${fmt(D.markets)} markets, with a `
   + `monthly demand curve for each. International pairs use OAG and MIDT ticketing records for `
   + `2025–26 where a published compilation lists them. Anything else outside the sample, including `

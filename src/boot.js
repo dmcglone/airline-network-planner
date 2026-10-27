@@ -96,7 +96,7 @@ if(typeof stateFromHash === "function"){
     save(); M = build();
     if(typeof fillSelects === "function") fillSelects();
     draw(); markCommitted(); paintUndo();
-    toast(`Opened a shared airline — ${state.brand || "unnamed"}`);
+    toast(`Opened a shared airline: ${state.brand || "unnamed"}`);
   });
 } else if(!sawSavedState){ welcomeOpen = true; welcomeFirst = true; drawWelcome(); }
 

@@ -37,7 +37,7 @@ function suggestFix(){
       title:`${f.t}: ${f.short} rotation${f.short===1?"":"s"} cannot be flown`,
       why:`You own ${fmt(f.roster)} ${f.t} against ${fmt(f.total)} required. `
         + M.fleet.filter(g=>g.surplus>0).map(g=>`${g.t} has ${g.surplus} spare`).join(", ")
-        + `. A frequency can often be moved onto metal you already own — but rotations are lumpy, so a swap only works on some routes.`,
+        + `. A frequency can often be moved onto metal you already own, but rotations are lumpy, so a swap only works on some routes.`,
       action:`Search for a swap that actually clears it`,
       impact:`every candidate is tested by rebuilding the whole schedule`,
       search:true, apply:null});
@@ -47,7 +47,7 @@ function suggestFix(){
     const fits=TYPES.filter(t=>rangeOK(b.o,b.d,t));
     out.push({kind:"fix",sev:"high",title:`${b.o}–${b.d} is beyond the ${b.t}'s range`,
       why:`${fmt(b.nm)} nm against ${fmt(b.rng)} nm.`,
-      action: fits.length?`Re-gauge to ${fits[0]}`:`No gauge in your fleet can fly it — cut the route or raise the range assumption`,
+      action: fits.length?`Re-gauge to ${fits[0]}`:`No gauge in your fleet can fly it. Cut the route or raise the range assumption`,
       impact: fits.length?`Route becomes flyable`:`—`,
       apply: fits.length?()=>{ const r=state.routes.find(x=>(x.o===b.o&&x.d===b.d)||(x.o===b.d&&x.d===b.o));
         if(r){ const n=+r.mix[b.t]||0; delete r.mix[b.t]; r.mix[fits[0]]=(+r.mix[fits[0]]||0)+n; } }:null});
@@ -82,8 +82,8 @@ function suggestFix(){
   const stubs=M.rots.filter(r=>r.block < 0.4*(SPEC[r.t]?SPEC[r.t].util:11));
   if(stubs.length) out.push({kind:"fix",sev:"med",
     title:`${stubs.length} rotation${stubs.length===1?"":"s"} fly under 40% of target`,
-    why:`Aircraft stranded on a single short out-and-back — ${stubs.slice(0,3).map(r=>r.path).join(", ")}.`,
-    action:`See the Fill suggestions below — each names routes that would absorb the idle time`,
+    why:`Aircraft stranded on a single short out-and-back: ${stubs.slice(0,3).map(r=>r.path).join(", ")}.`,
+    action:`See the Fill suggestions below. Each names routes that would absorb the idle time`,
     impact:`Up to ${fmt(stubs.reduce((a,r)=>a+((SPEC[r.t]?SPEC[r.t].util:11)-r.block),0))} idle block hours recoverable`,
     apply:null});
   return out;
@@ -112,7 +112,7 @@ function suggestFill(){
     const best=cands.slice(0,3);
     out.push({kind:"fill",sev:"med",rot:st,
       title:`${article(T)[0].toUpperCase()+article(T).slice(1)} ${T} at ${B} flies ${hrsHM(st.block)} and sits idle for ${hrsHM(idle)}`,
-      why:`${st.path} — ${article(T)} ${T} at ${B} with most of its day free.`,
+      why:`${st.path}: ${article(T)} ${T} at ${B} with most of its day free.`,
       options:best.map(o=>({code:o.c, spec:{o:B, d:o.c, t:T, n:1, w:7, red:false}, txt:`${B}–${o.c} · ${esc(cityName(o.c))} · ${fmt(dist(B,o.c))} nm · ${hrsHM(o.rt)} round trip · ${fmt(o.dem)} pax/day · flown from ${o.others} of your stations`,
         apply:()=>{ applyAddRoute(state.routes, {o:B, d:o.c, t:T, n:1, w:7, red:false}); }}))});
   }

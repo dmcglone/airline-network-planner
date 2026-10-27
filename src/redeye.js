@@ -5,7 +5,7 @@ function redeyeInfo(o,d,typ){
   const sp=SPEC[typ]||SPEC.A319||{gnd:35,kt:447};
   const blkm=sp.gnd+dist(o,d)/sp.kt*60;
   if(blkm<3.25*60) return {ok:false,blk:blkm/60,
-    why:`${(blkm/60).toFixed(1)} h block — too short to sell as an overnight`};
+    why:`${(blkm/60).toFixed(1)} h block, too short to sell as an overnight`};
   let nearest=null;
   for(const [a,b] of [[o,d],[d,o]]){
     const sh=off(b)-off(a); let best=null;
