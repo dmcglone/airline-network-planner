@@ -7,7 +7,7 @@ const LAND = parseRings(GEO.land), BORD = parseRings(GEO.lines);
 const merc = (lon,lat) => [lon, -(180/Math.PI)*Math.log(Math.tan(Math.PI/4 + Math.max(-84,Math.min(84,lat))*Math.PI/360))];
 const RAMP = ["#BCD3E4","#8FB6D2","#6698BF","#3F7BA8","#1E5F8C","#0E456B"];
 function rampColor(f,max){ const i=Math.min(RAMP.length-1, Math.floor((f-1)/Math.max(1,max-1)*RAMP.length)); return RAMP[Math.max(0,i)]; }
-let VIEW=null, mapSel=null, mapDrag=null;
+let VIEW=null, mapSel=null, mapMkt=null, mapDrag=null;   // mapMkt: the tapped route, "A|B"
 
 function gcPath(a,b){
   const A=AP[a], B=AP[b]; if(!A||!B) return "";
@@ -98,13 +98,17 @@ function drawMap(){
   const active = c => !fs || c===fs;
   let h = `<g>${LAND.map(r=>`<path class="land" d="${ringPath(r)}Z"/>`).join("")}</g>`
         + `<g>${BORD.map(r=>`<path class="bord" d="${ringPath(r)}"/>`).join("")}</g><g id="arcs">`;
+  // A route line is a pixel or three wide, too thin to tap on a phone, so each
+  // one gets a wide transparent twin on top that takes the hover and the tap.
+  let hits = "";
   for(const m of mkts){
     const on = (!fs || m.a===fs || m.b===fs) && (!mapSel || m.a===mapSel || m.b===mapSel);
-    const w = (0.55 + Math.min(m.freq,12)*0.22).toFixed(2);
-    h += `<path class="arc${on?"":" mute"}" d="${gcPath(m.a,m.b)}" stroke="${rampColor(m.freq,maxF)}"`
+    const w = (0.55 + Math.min(m.freq,12)*0.22).toFixed(2), d = gcPath(m.a,m.b);
+    h += `<path class="arc${on?"":" mute"}${mapMkt===m.a+"|"+m.b?" hot":""}" d="${d}" stroke="${rampColor(m.freq,maxF)}"`
        + ` stroke-width="${w}" data-a="${m.a}" data-b="${m.b}"/>`;
+    hits += `<path class="archit" d="${d}" data-a="${m.a}" data-b="${m.b}"/>`;
   }
-  h += `</g><g id="dots">`;
+  h += hits + `</g><g id="dots">`;
   const codes=Object.keys(M.apStats).sort((a,b)=>(M.apStats[b].dep+M.apStats[b].arr)-(M.apStats[a].dep+M.apStats[a].arr));
   for(const c of codes){
     const A=AP[c]; if(!A) continue;
@@ -127,8 +131,33 @@ function drawMap(){
   applyView();
   drawMapSide();
 }
+/* A tapped route: the market, both directions, with the day's departures. */
+function drawMarketSide(){
+  const box=$("#mapside"), [a,b]=mapMkt.split("|");
+  const m=M.markets.find(x=>x.a===a&&x.b===b);
+  if(!m){ mapMkt=null; drawMapSide(); return; }
+  const dd=demandOf(a,b);
+  const pax=dd.v>0 ? fmt(Math.round(dd.v))+(!dd.real?` <span class="dim">estimate</span>`
+    : dd.src==="intl"?` <span class="dim">OAG/MIDT sheet</span>`:"") : "—";
+  const mix=Object.entries(m.mix).sort((x,y)=>y[1]-x[1]).map(([k,v])=>v+"× "+k).join(", ");
+  const deps=(o,d)=>M.flights.filter(f=>f.o===o&&f.d===d).map(f=>mod(loc(o,f.depU),1440))
+    .sort((x,y)=>x-y).map(hhmm).join(" · ") || "—";
+  box.innerHTML=`<h3><span class="code">${a}–${b}</span></h3>`
+    +`<p class="note" style="margin:0 0 4px">${esc(cityName(a))} – ${esc(cityName(b))}</p>`
+    +`<div class="mkt"><span>Flights a day each way</span><span class="m">${m.freq}</span></div>`
+    +`<div class="mkt"><span>Gauges</span><span class="m">${esc(mix)}</span></div>`
+    +`<div class="mkt"><span>Distance</span><span class="m">${fmt(m.nm)} nm</span></div>`
+    +`<div class="mkt"><span>Passengers a day</span><span class="m">${pax}</span></div>`
+    +`<p class="note" style="margin:11px 0 2px"><b>${a} → ${b}</b> departs, local time</p>`
+    +`<p class="mono" style="margin:0;font-size:12.5px">${deps(a,b)}</p>`
+    +`<p class="note" style="margin:8px 0 2px"><b>${b} → ${a}</b> departs, local time</p>`
+    +`<p class="mono" style="margin:0;font-size:12.5px">${deps(b,a)}</p>`
+    +`<button class="btn sm" id="clrSel" style="margin-top:11px">Clear</button>`;
+  $("#clrSel").onclick=()=>{ mapMkt=null; drawMap(); };
+}
 function drawMapSide(){
   const box=$("#mapside");
+  if(mapMkt){ drawMarketSide(); return; }
   if(!mapSel){
     const top=M.markets.slice().sort((a,b)=>b.freq-a.freq).slice(0,14);
     box.innerHTML=`<h3>Busiest markets</h3><p class="note" style="margin:0 0 9px">Click any airport on the map to see its markets and open its board.</p>`
@@ -188,8 +217,9 @@ function drawPlanes(){
     return `<g transform="translate(${m1[0].toFixed(3)} ${m1[1].toFixed(3)}) rotate(${ang.toFixed(1)})" class="plane${on?" on":""}" data-fn="${a.f.fn}">`
       + `<path d="M0,${-sz} L${sz*0.62},${sz*0.8} L0,${sz*0.42} L${-sz*0.62},${sz*0.8} Z" vector-effect="non-scaling-stroke"/></g>`;
   }).join("");
-  const hh=Math.floor(mod(now,1440)/60), mm=Math.floor(mod(now,1440)%60);
-  $("#liveClock").textContent=String(hh).padStart(2,"0")+":"+String(mm).padStart(2,"0")+" UTC";
+  // Filtered to a station, the clock is that station's: banks are planned in local time.
+  const t=mod(fs ? loc(fs,now) : now,1440), hh=Math.floor(t/60), mm=Math.floor(t%60);
+  $("#liveClock").textContent=String(hh).padStart(2,"0")+":"+String(mm).padStart(2,"0")+(fs ? " at "+fs : " UTC");
   const scoped=!!(fs||ft);
   $("#liveStat").innerHTML=`<b>${fmt(list.length)}</b> airborne`
     + (scoped ? ` <span style="opacity:.7">of ${fmt(all.length)} network-wide</span> · `
@@ -211,6 +241,8 @@ function liveStart(dt){ LIVE.dt=dt||0.25; clearInterval(LIVE.timer); LIVE.timer=
 /* map interaction */
 (function(){
   const wrap=$("#mapwrap"), svg=$("#map");
+  // A pan that ends over a route or an aircraft must not select it on release.
+  let dragMoved=false;
   const tip=el("div",{class:"tip"}); tip.hidden=true; wrap.appendChild(tip);
   svg.addEventListener("mousemove",e=>{
     const t=e.target;
@@ -227,7 +259,7 @@ function liveStart(dt){ LIVE.dt=dt||0.25; clearInterval(LIVE.timer); LIVE.timer=
         tip.style.top=Math.max(4, e.clientY-r.top-12)+"px";
         return; }
     }
-    if(t.classList.contains("arc")){
+    if(t.classList.contains("arc") || t.classList.contains("archit")){
       const m=M.markets.find(x=>x.a===t.dataset.a&&x.b===t.dataset.b); if(!m) return;
       const mix=Object.entries(m.mix).sort((a,b)=>b[1]-a[1]).map(([k,v])=>v+"× "+k).join(", ");
       tip.innerHTML=`<b>${m.a}–${m.b}</b><br>${esc(cityName(m.a))} – ${esc(cityName(m.b))}<br>`
@@ -248,9 +280,11 @@ function liveStart(dt){ LIVE.dt=dt||0.25; clearInterval(LIVE.timer); LIVE.timer=
     if(LIVE.speed>1 && LIVE.clock===null) LIVE.clock=utcNowMin(); };
   LIVE.speed=120; LIVE.clock=utcNowMin(); liveStart();
   svg.addEventListener("click",e=>{
+    if(dragMoved){ dragMoved=false; return; }        // the end of a pan, not a tap
     const pl=e.target.closest && e.target.closest(".plane");
     if(pl){ const fn=+pl.dataset.fn;
       LIVE.sel = LIVE.sel===fn ? null : fn;
+      if(mapMkt){ mapMkt=null; drawMap(); }
       const f=M.flights.find(x=>x.fn===fn);
       if(f && LIVE.sel){ mapSel=null; drawMapSide();
         const rot=M.rots.find(r=>r.id===f.line);
@@ -265,8 +299,10 @@ function liveStart(dt){ LIVE.dt=dt||0.25; clearInterval(LIVE.timer); LIVE.timer=
         const c=$("#clrSel"); if(c) c.onclick=()=>{ LIVE.sel=null; drawMapSide(); drawPlanes(); };
       } else drawMapSide();
       drawPlanes(); return; }
-    if(e.target.classList.contains("dot")){ mapSel=e.target.dataset.c; drawMap(); }
-    else if(e.target.tagName==="svg"){ mapSel=null; drawMap(); }
+    if(e.target.classList.contains("archit")){       // the panel says it all; a tap leaves no stray hover tip
+      mapMkt=e.target.dataset.a+"|"+e.target.dataset.b; mapSel=null; LIVE.sel=null; tip.hidden=true; drawMap(); drawPlanes(); }
+    else if(e.target.classList.contains("dot")){ mapSel=e.target.dataset.c; mapMkt=null; drawMap(); }
+    else if(e.target.tagName==="svg"){ mapSel=null; mapMkt=null; drawMap(); }
   });
   svg.addEventListener("wheel",e=>{
     if(!VIEW) return; e.preventDefault();
@@ -275,9 +311,17 @@ function liveStart(dt){ LIVE.dt=dt||0.25; clearInterval(LIVE.timer); LIVE.timer=
     const nw=Math.max(2,Math.min(260,VIEW.w*k)), nh=VIEW.h*(nw/VIEW.w);
     VIEW.x+=(VIEW.w-nw)*fx; VIEW.y+=(VIEW.h-nh)*fy; VIEW.w=nw; VIEW.h=nh; applyView();
   },{passive:false});
-  svg.addEventListener("pointerdown",e=>{ if(e.target.classList.contains("dot")) return;
-    mapDrag={x:e.clientX,y:e.clientY,vx:VIEW.x,vy:VIEW.y}; svg.classList.add("drag"); svg.setPointerCapture(e.pointerId); });
+  // Capture the pointer only once the press has become a drag. Capturing on the
+  // press itself retargeted every mouse click to the map background, so clicking
+  // a route or an aircraft cleared the selection instead of making one.
+  svg.addEventListener("pointerdown",e=>{ dragMoved=false; if(e.target.classList.contains("dot")) return;
+    mapDrag={x:e.clientX,y:e.clientY,vx:VIEW.x,vy:VIEW.y,id:e.pointerId}; });
   svg.addEventListener("pointermove",e=>{ if(!mapDrag) return;
+    if(!e.buttons){ end(); return; }               // released outside the map before it was a drag
+    if(!dragMoved){
+      if(Math.abs(e.clientX-mapDrag.x)+Math.abs(e.clientY-mapDrag.y)<=5) return;
+      dragMoved=true; svg.classList.add("drag"); svg.setPointerCapture(mapDrag.id);
+    }
     const r=svg.getBoundingClientRect();
     VIEW.x=mapDrag.vx-(e.clientX-mapDrag.x)/r.width*VIEW.w;
     VIEW.y=mapDrag.vy-(e.clientY-mapDrag.y)/r.height*VIEW.h; applyView(); });

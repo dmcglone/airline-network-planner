@@ -185,7 +185,8 @@ tfoot td{padding:8px 10px;border-top:1px solid var(--line);font-weight:600;backg
 .bord{fill:none;stroke:var(--line);stroke-width:.5px;vector-effect:non-scaling-stroke;opacity:.7}
 .arc{fill:none;stroke-linecap:round;vector-effect:non-scaling-stroke;transition:opacity .12s}
 .arc.mute{opacity:.10}
-.arc.hot{stroke:var(--accent)!important;opacity:1!important}
+.arc.hot{stroke:var(--accent)!important;opacity:1!important;stroke-width:3px}
+.archit{fill:none;stroke:transparent;stroke-width:14px;vector-effect:non-scaling-stroke;cursor:pointer;pointer-events:stroke}
 .dot{vector-effect:non-scaling-stroke;cursor:pointer}
 .dot.stn{fill:var(--accent);stroke:var(--surface);stroke-width:2px}
 .dot.spk{fill:var(--steel);stroke:var(--surface);stroke-width:1px}
@@ -206,6 +207,15 @@ tfoot td{padding:8px 10px;border-top:1px solid var(--line);font-weight:600;backg
 .tip b{font-family:var(--mono)}
 .mapside{padding:14px;overflow:auto;max-height:min(72vh,760px)}
 .mapside h3{font-size:16px;margin-bottom:3px}
+/* A phone's map is a narrow box: a tall one left a wide network a strip in the
+   middle, and the legend sat on top of what was left. After the base map rules,
+   so it wins. */
+@media(max-width:760px){
+  .mapwrap{display:flex;flex-direction:column}
+  .mapwrap svg{height:min(62vh,72vw)}
+  .maplegend{position:static;order:1;align-self:flex-start;margin:8px 10px 10px}
+  .mapside{max-height:none}
+}
 .mkt{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid var(--line-2);font-size:12.5px}
 .mkt .m{font-family:var(--mono)}
 
@@ -295,6 +305,7 @@ td.code .fin{ margin-right:5px }
 .playstrip b{ font-family:var(--disp); font-size:16px; color:var(--ink); letter-spacing:.01em }
 .playstrip .ps-v{ font-family:var(--mono); font-size:12.5px; font-variant-numeric:tabular-nums }
 .playstrip .ps-btns{ margin-left:auto; display:flex; gap:6px }
+.playstrip[hidden]{ display:none }
 .ps-bar{ position:absolute; left:0; right:0; bottom:-1px; height:2px }
 .ps-bar i{ display:block; height:100%; width:0; background:var(--accent) }
 .wc-mission{ display:flex; align-items:baseline; gap:8px; font-size:12px; color:var(--ink-2) }
