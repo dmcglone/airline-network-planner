@@ -55,9 +55,10 @@ function connectableViaPairs(hub){
   return {spokes: list, pairs};
 }
 
-/* Connections the schedule actually realises through this station. */
-function realisedVia(hub){
-  const E = econOf(M);
+/* Connections the schedule actually realises through this station. `m` is the
+   live network unless a mission or the edit readout asks about another one. */
+function realisedVia(hub, m){
+  const E = econOf(m || M);
   if(!E || !E.rev || !E.rev.itins) return null;
   let pax = 0, markets = 0;
   for(const opts of E.rev.itins.values())

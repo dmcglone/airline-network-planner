@@ -373,6 +373,31 @@ measured.
 
 ---
 
+## 13. Game loop: the edit readout and missions
+
+**Built**, October 2026, the small version.
+
+- **Edit readout** (`src/ui/readout.js`). After a route edit, a card says what it
+  did: network result, connections, aircraft for the types edited, gates at the
+  edited airports, checks. Measured like the network check, with the rest of the
+  schedule held still, and it names how many other flights the rebuild re-timed
+  without counting them. Only route edits get one; settings, fleet, starters and
+  imports change too much at once.
+- **Missions** (`src/ui/missions.js`, `mission` blocks in `starters.json`). Both
+  starters carry a brief, three objectives and a reference solution. One star per
+  objective, none while a check fails. Objectives use connections at a station,
+  aircraft, departures, routes, and profit on measured demand only. `verify.py`
+  plays each solution and requires all the stars.
+
+**Still open.** A logbook of planning firsts; the player's livery on the map and
+the Board; playing the day back on the map when a mission is won; a readout for
+non-route edits; more missions; leaderboards, which need the public site. One
+honest caveat: mission objectives score the network as rebuilt, so a lucky
+reshuffle counts toward a star even though the readout never credits it to an
+edit. The schedule is real either way, but a player can feel it as noise.
+
+---
+
 ## Sequencing
 
 **Before a public v1**, in order: the two starter networks with a `verify.py`
@@ -468,7 +493,8 @@ edit.
 **If it is revisited.** A small "what changed" readout after an edit ("your
 change +$79k/day; the rebuild also re-timed 64 flights, worth +$170k") would
 make the Economics tab honest without touching the engine. It reuses the
-network check's measurement.
+network check's measurement. Built in October 2026 as the edit readout (item 13),
+which counts the re-timed flights but does not price them.
 
 ## Carried forward
 

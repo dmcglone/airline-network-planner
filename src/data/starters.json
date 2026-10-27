@@ -7,7 +7,8 @@
   "brand": "placeholder airline name, expected to be overwritten immediately",
   "code": "two-letter designator to match",
   "state": "partial state overlaid on baseline(): stations, roles, routes, roster, feed, spacing, redeye, spare",
-  "expect": "metrics this starter must produce. verify.py asserts these and that all ten checks pass. A starter with no expect block is a starter that can rot silently."
+  "expect": "metrics this starter must produce. verify.py asserts these and that all ten checks pass. A starter with no expect block is a starter that can rot silently.",
+  "mission": "optional. A title, a brief, three objectives (connections at a station, aircraftMax, profitMeasured, deps, routes) and a reference solution (add or remove steps). verify.py plays the solution and fails unless the start earns fewer than all the stars and the solution earns all of them. Thresholds were set from a reference path searched on 27 Oct 2026; if one stops being reachable, behaviour changed: find the cause before moving the number."
  },
  "starters": [
   {
@@ -228,6 +229,21 @@
     "roster": 19,
     "gates": 8,
     "checksFailing": 0
+   },
+   "mission": {
+    "title": "Make every aircraft earn",
+    "brief": "Silver State flies 15 routes from Las Vegas on 19 A320s, and not every route pays for the aircraft it ties up. Earn more from a network the same size, on one aircraft fewer.",
+    "objectives": [
+     {"kind": "profitMeasured", "min": 650000},
+     {"kind": "routes", "min": 15},
+     {"kind": "aircraftMax", "max": 18}
+    ],
+    "solution": [
+     {"op": "add", "o": "LAS", "d": "HNL", "t": "A320"},
+     {"op": "remove", "o": "LAS", "d": "LAX"},
+     {"op": "remove", "o": "LAS", "d": "SAN"},
+     {"op": "add", "o": "LAS", "d": "ABQ", "t": "A320"}
+    ]
    }
   },
   {
@@ -778,6 +794,21 @@
     "roster": 41,
     "gates": 22,
     "checksFailing": 0
+   },
+   "mission": {
+    "title": "Make Denver connect",
+    "brief": "Front Range runs 40 spokes through banked complexes at Denver on all 41 aircraft it owns. Not every spoke earns its aircraft or feeds the banks. Sell more connections through Denver and earn more, on fewer aircraft.",
+    "objectives": [
+     {"kind": "connections", "at": "DEN", "min": 5550},
+     {"kind": "profitMeasured", "min": 1045000},
+     {"kind": "aircraftMax", "max": 40}
+    ],
+    "solution": [
+     {"op": "add", "o": "DEN", "d": "SJC", "t": "A320"},
+     {"op": "add", "o": "DEN", "d": "BUR", "t": "A320"},
+     {"op": "remove", "o": "DEN", "d": "LGA"},
+     {"op": "remove", "o": "DEN", "d": "JFK"}
+    ]
    }
   }
  ]

@@ -41,6 +41,7 @@ function pushUndo(label){
 }
 
 function restore(json){
+  if(typeof hideReadout === "function"){ EDIT = null; hideReadout(); }   // it described the edit just undone
   state = JSON.parse(json);
   applyStationConfig(state);
   reconcileGeom(state.fleet);

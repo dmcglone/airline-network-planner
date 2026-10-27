@@ -89,9 +89,12 @@ function netSnapshot(m, o, d, costOnly, t){
    is, and still captures what matters: passengers the route feeds onto your
    flights, and passengers it takes from connections you already sell. */
 function isolatedRevenue(base, trial, o, d){
-  const key = pairKey(o, d);
-  const kept = base.flights.filter(f => pairKey(f.o, f.d) !== key);
-  const added = trial.flights.filter(f => pairKey(f.o, f.d) === key)
+  return isolatedRevenueFor(base, trial, new Set([pairKey(o, d)]));
+}
+/* The same, for every market an edit touched at once. The edit readout uses it. */
+function isolatedRevenueFor(base, trial, keys){
+  const kept = base.flights.filter(f => !keys.has(pairKey(f.o, f.d)));
+  const added = trial.flights.filter(f => keys.has(pairKey(f.o, f.d)))
     .map((f, i) => Object.assign({}, f, {id: 9e8 + i}));
   // The same allocation revenueModel() runs, without its second "ceiling" pass,
   // which this comparison never reads.

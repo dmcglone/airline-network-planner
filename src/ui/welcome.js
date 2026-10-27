@@ -19,6 +19,8 @@ let welcomeFirst = false;     // opened because nothing was saved: the full exam
 function welcomeCards(){
   const cards = (typeof STARTERS !== "undefined" ? STARTERS : []).map(s => ({
     id: s.id, name: s.name, blurb: s.blurb,
+    mission: s.mission ? {title: s.mission.title, of: s.mission.objectives.length,
+                          best: typeof missionBest === "function" ? missionBest(s.id) : 0} : null,
     facts: s.expect ? `${fmt(s.expect.routes)} routes · ${fmt(s.expect.tails)} aircraft `
                     + `· ${fmt((s.state.fleet||[]).length)} type`
                     + `${(s.state.fleet||[]).length===1?"":"s"} · ${fmt(s.expect.gates)} gates` : ""
@@ -63,7 +65,10 @@ function drawWelcome(){
         + (now ? ` aria-label="${esc(c.name)}, open now. Choosing it starts it again from scratch."` : "") + `>`
         + `<span class="wc-name">${esc(c.name)}${now ? ` <span class="wc-now">Open now</span>` : ""}</span>`
         + (c.facts ? `<span class="wc-facts">${esc(c.facts)}</span>` : "")
-        + `<span class="wc-blurb">${esc(c.blurb)}</span></button>`; }).join("")
+        + `<span class="wc-blurb">${esc(c.blurb)}</span>`
+        + (c.mission ? `<span class="wc-mission">Mission: ${esc(c.mission.title)} `
+            + `${starsHTML(c.mission.best, c.mission.of)}</span>` : "")
+        + `</button>`; }).join("")
     + `</div>`
     + `<div class="toolbar" style="padding-left:0">`
     + `<button class="btn sm" data-welclose="1">${welcomeFirst

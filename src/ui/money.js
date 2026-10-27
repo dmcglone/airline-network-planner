@@ -21,6 +21,7 @@ function scheduleEcon(){
     econOf(M);
     drawKpis();
     fillRouteMoney();
+    if(typeof readoutAfterEcon === "function") readoutAfterEcon();
   }, 60);
 }
 
@@ -79,6 +80,7 @@ function drawKpis(){
   host.classList.add("head");
   host.innerHTML = money + lf + air + fl + chk;
   const ks = $("#kstrip"); if(ks) ks.innerHTML = strip.join("");
+  if(typeof drawMission === "function") drawMission();
 }
 
 /* ---- Network table ---- */

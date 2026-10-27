@@ -133,10 +133,12 @@ let pending=null;
 /* `label` names the action for the undo button. Callers that pass nothing get
    the generic label, which is fine — the snapshot is what matters. */
 function rebuild(label){
+  if(typeof noteEdit === "function") noteEdit(label);
   if(typeof pushUndo === "function") pushUndo(label || "change");
   const k=$("#kpis"); if(k) k.setAttribute("aria-busy","true");
   clearTimeout(pending);
   pending=setTimeout(()=>guard(()=>{ M=build(); save();
+    if(typeof editBuilt==="function") editBuilt();
     if(typeof fillSelects==="function") fillSelects();
     draw();
     if(typeof markCommitted === "function") markCommitted();

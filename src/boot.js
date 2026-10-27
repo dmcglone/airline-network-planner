@@ -12,6 +12,8 @@ function pageSource(){
   {const e=c.querySelector("#tabs"); if(e) e.innerHTML="";}
   {const e=c.querySelector("#kstrip"); if(e) e.innerHTML="";}
   {const e=c.querySelector("#pinbar"); if(e) e.classList.remove("stuck");}
+  {const e=c.querySelector("#missionCard"); if(e){ e.innerHTML=""; e.hidden=true; }}
+  {const e=c.querySelector("#readout"); if(e){ e.innerHTML=""; e.hidden=true; }}
   {const e=c.querySelector("#tRoutes"); if(e) e.innerHTML="";}
   {const e=c.querySelector("#tSched"); if(e) e.innerHTML="";}
   {const e=c.querySelector("#tRot"); if(e) e.innerHTML="";}

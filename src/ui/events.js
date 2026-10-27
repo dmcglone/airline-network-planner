@@ -5,8 +5,10 @@
    computed on but not the schedule (the demand source): the cached economics
    must go. */
 function commitNow(label, priced){
+  if(typeof noteEdit==="function") noteEdit(label);
   pushUndo(label);
   M=build();
+  if(typeof editBuilt==="function") editBuilt();
   if(priced && typeof netCache!=="undefined") netCache={m:null, map:new Map()};
   save(); draw();
   if(typeof markCommitted==="function") markCommitted();

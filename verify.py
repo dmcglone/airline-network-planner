@@ -69,6 +69,23 @@ def check_starters(pg):
         out.append((name, not wrong, "; ".join(wrong) if wrong
                     else f"{got.get('routes')} routes, {got.get('tails')} tails, ten checks clean"))
 
+        # A mission is a promise that it can be won. Play its reference solution
+        # and require all the stars, and require that the start does not already
+        # have them, or the mission asks for nothing.
+        ms = pg.evaluate("""(id)=>{ const mi = missionOf(id); if(!mi) return null;
+            loadStarter(id); M = build();
+            const b = missionScore(M, econOf(M), mi);
+            for(const s of mi.solution) applyMissionStep(state.routes, s);
+            M = build();
+            const a = missionScore(M, econOf(M), mi);
+            return {title: mi.title, of: mi.objectives.length, before: b.stars, after: a.stars,
+                    values: a.results.map(r => Math.round(r.value))}; }""", sid)
+        if ms:
+            ok = ms["after"] == ms["of"] and ms["before"] < ms["of"]
+            out.append((f"  mission", ok,
+                        f"{ms['title']}: {ms['before']} of {ms['of']} stars at the start, "
+                        f"{ms['after']} with the reference solution {ms['values']}"))
+
     # leave the page on the shipped network, so anything after this sees it
     pg.evaluate("()=>{ state = load(); applyStationConfig(state); M=build(); draw(); }")
     pg.wait_for_timeout(400)

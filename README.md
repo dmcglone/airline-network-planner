@@ -146,6 +146,11 @@ Both engines must produce 365 rotations with the same split by type
 `python -m pip install tzdata` first. Without it every UTC offset falls back
 to 0 and the engine builds 366 rotations with no error.
 
+Each starting network in `src/data/starters.json` carries an `expect` block
+that `verify.py` asserts. A starter with a `mission` is also played: the start
+must earn fewer than all its stars, and its reference solution must earn all of
+them, so every shipped mission is proven winnable on every build.
+
 ## The ten checks
 
 Every required leg is flown exactly as often as required; no leg is flown that
