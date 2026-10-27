@@ -10,7 +10,7 @@ over HTTP at the site root, the same way Cloudflare does, because file:// hides
 the charset bug that once killed the boot script on a real server.
 
 WHAT IT DOES
-  * builds the web target (dist/index.html + demand.json + og.png)
+  * builds the web target (dist/index.html + demand.<hash>.json + og.png)
   * serves dist/ with caching off, so a reload always gets the latest build
   * polls src/, network.json and build.py once a second and rebuilds on change
   * keeps serving the last good page if a rebuild fails, and says so loudly

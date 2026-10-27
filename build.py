@@ -12,7 +12,7 @@ rather than copied:
   @geo  the coastline and border geometry
 Everything else is copied through verbatim.
 """
-import argparse, shutil, json, pathlib, sys
+import argparse, hashlib, shutil, json, pathlib, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent
 D = ROOT / "src/data"
@@ -43,7 +43,7 @@ def gen_net(defer_demand=False):
            "routes":   state["routes"],
            "stations": load("stations.json")}
     if defer_demand:
-        net["demandUrl"] = "demand.json"
+        net["demandUrl"] = demand_file()[0]
     else:
         net["demand"] = demand()
     return "\n".join([block("net", net), block("cfg", load("config.json")),
@@ -60,6 +60,15 @@ def demand():
     d = load("dot_db1c.json")
     d["intlPax"] = load("intl_pax.json")
     return d
+
+def demand_file():
+    """The deferred demand file's name and text. The page fetches it with
+    cache: "force-cache", so under a fixed name a browser that had loaded the
+    file once kept that copy: when the international rows shipped, returning
+    visitors never got them. The name carries a hash of the contents instead,
+    so new data is a new address and unchanged data stays cached."""
+    text = json.dumps(demand(), separators=(",", ":"))
+    return f"demand.{hashlib.sha256(text.encode('utf-8')).hexdigest()[:12]}.json", text
 
 def gen_geo():
     return "</script>\n" + block("geo", load("geo.json"))
@@ -117,7 +126,8 @@ def main():
     ap.add_argument("--target", choices=["web", "artifact", "standalone", "both"],
                     default="both",
                     help="web: dist/index.html, a complete document that fetches "
-                         "demand.json alongside it. artifact: dist/artifact.html, "
+                         "its demand file (demand.<hash>.json) alongside it. "
+                         "artifact: dist/artifact.html, "
                          "body-only for the Artifact tool. standalone: "
                          "dist/standalone.html, one complete file with the demand data "
                          "inlined — for previewing, emailing or opening offline, where "
@@ -148,8 +158,10 @@ def main():
         # most of them. So the file is copied out and the URL is built from the
         # configured site address.
         shutil.copyfile(ROOT / "src/assets/og.png", ROOT / "dist" / "og.png")
-        (ROOT / "dist" / "demand.json").write_text(
-            json.dumps(demand(), separators=(",", ":")), encoding="utf-8")
+        name, text = demand_file()
+        for old in (ROOT / "dist").glob("demand*.json"):     # last build's, under its old name
+            old.unlink()
+        (ROOT / "dist" / name).write_text(text, encoding="utf-8")
         targets.append(("dist/index.html", inject_site_urls(wrap_standalone(web))))
     if args.target in ("artifact", "both"):
         targets.append(("dist/artifact.html", html))

@@ -12,7 +12,7 @@ and renders inline. Anywhere else it lands in dist/ and the path is printed for
 you to open. Pass --out to put it somewhere specific.
 
 WHICH FILE. dist/standalone.html -- a complete document with the demand data
-inlined. Not index.html: that one fetches demand.json from alongside itself,
+inlined. Not index.html: that one fetches its demand file from alongside itself,
 which is right for a served site and wrong for a single file handed to someone,
 where the fetch 404s and the demand column silently falls back to estimates.
 Not artifact.html either: the <meta charset> in the standalone wrapper is what

@@ -14,6 +14,8 @@ let demandReady = !!DOT, demandFailed = false;
 
 function loadDemand(){
   if(demandReady || !RAW.demandUrl) return Promise.resolve(false);
+  // force-cache is safe only because build.py names the file by a hash of its
+  // contents. Under a fixed name a returning visitor kept the old copy forever.
   return fetch(RAW.demandUrl, {cache:"force-cache"})
     .then(r => r.ok ? r.json() : Promise.reject(new Error("HTTP "+r.status)))
     .then(j => {
