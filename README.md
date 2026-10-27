@@ -173,6 +173,14 @@ the fleet roster, spacing and spare policy, and the station/bank config. Export
 and Import in the app round-trip it. `build.py` injects its routes as the page's
 seed, so the committed state and the published page cannot drift apart.
 
+A Share link, an opened file and saved state are treated as somebody else's
+data. `cleanState()` and `applyConfig()` in `src/state.js`, and `cleanGeom()`
+in `src/seatmap.js`, keep a station code only if it is in the airport table, a
+type code only if Add type would accept it, and a number only if it is a number.
+Their codes and numbers are drawn into markup all over the page, so a new state
+field that the page reads needs a line there. `verify.py` opens a crafted
+airline all three ways and fails if anything in it runs.
+
 ## Model notes
 
 Block time is `ground manoeuvre + distance / cruise speed`, calibrated so

@@ -96,12 +96,14 @@ if(typeof stateFromHash === "function"){
       if(!sawSavedState){ welcomeOpen = true; welcomeFirst = true; drawWelcome(); }
       return;
     }
+    const dropped = cleanState(shared);
     state = shared;
     applyStationConfig(state); syncFeedModes(); reconcileGeom(state.fleet); applyBrand();
     save(); M = build();
     if(typeof fillSelects === "function") fillSelects();
     draw(); markCommitted(); paintUndo();
-    toast(`Opened a shared airline: ${state.brand || "unnamed"}`);
+    toast(`Opened a shared airline: ${state.brand || "unnamed"}`
+      + (dropped ? `. ${dropped} value${dropped === 1 ? "" : "s"} in the link could not be used and ${dropped === 1 ? "was" : "were"} left out` : ""));
   });
 } else if(!sawSavedState){ welcomeOpen = true; welcomeFirst = true; drawWelcome(); }
 

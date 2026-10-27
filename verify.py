@@ -97,48 +97,88 @@ def check_starters(pg):
 HOSTILE_ATTR = '1000" onload="window.__xss=1" data-x="'
 HOSTILE_TAG = '"><img src=x onerror="window.__xss=1">'
 
-def check_shared_link(b, pg, page_url):
-    """Open a crafted Share link and prove nothing in it runs.
+# One airline with a hostile value in every field the page reads. Marking the
+# A320 as user-added is how a link gets past reconcileGeom(), and the Settings
+# preview draws the A320, so both side views see the hostile geometry. Brand,
+# the airline code and a type's name are text, escaped where they are drawn.
+CRAFT = """([a, t]) => {
+    const st = JSON.parse(JSON.stringify(state));
+    const f = st.fleet.find(x => x.t === 'A320');
+    f.origin = 'user'; f.name = t; f.f41 = t; f.Y = t; f.gnd = t;
+    for(const k of ['F', 'PE', 'rng', 'kt', 'turn', 'util']) f[k] = a;
+    f.geom = Object.assign({}, f.geom, {cabinLength: a, certifiedMax: a,
+        abreast: {F: a, PE: t, Y: a}, pitch: {F: a, PE: t, Y: a},
+        exits: [{type: t, x: 0}, {type: 'III', x: a}, {type: 'C', x: 1}],
+        monuments: [{kind: t, x: a, len: t}]});
+    const g = JSON.parse(JSON.stringify(f)); g.t = t; st.fleet.push(g);
+    st.roster[t] = 1; st.roster.A320 = a; st.pinned.A320 = a;
+    st.routes[0].mix[t] = 1; st.routes[0].mix.E175 = a; st.routes[0].dow = a; st.routes[1].red = t;
+    st.routes.push({o: t, d: 'DEN', dow: 7, mix: {A320: 1}}, {o: 'DEN', d: t, dow: 7, mix: {A320: 1}});
+    st.stations.push(t); st.roles[t] = 'Hub'; st.roles.DEN = t; st.feed[t] = 1;
+    st.brand = t; st.code = t; st.spacing = t; st.spare = a; st.redeye = t;
+    return st; }"""
 
-    A Share link is somebody else's data. reconcileGeom() leaves a user-added
-    type's geometry alone, so whatever a link says about it reaches the side
-    view and the seatmap as written. Before 21b7b38 a string cabin length made
-    the side view throw, which blanked Settings and the Fleet seatmap for that
-    link, and an exit's type went into the seatmap unescaped, which ran script.
-    A string pitch, kept for every type, went into the pitch input's value and
-    ran script until cleanGeom(). Marking the A320 as user-added is how a link
-    gets past reconcileGeom(), and the Settings preview draws the A320, so both
-    views see the hostile values.
+# Every tab, then the seatmap and the Settings preview for the A320. Nothing may
+# throw, no element may carry an on* attribute (the page has none of its own),
+# and nothing may have run.
+TOUR = """() => {
+    const thrown = []; let handlers = 0, imgs = 0;
+    smType = 'A320';
+    for(const t of [...document.querySelectorAll('.tab')].map(x => x.id.replace('tab-', ''))){
+      try{ goTab(t); }catch(e){ thrown.push(t + ': ' + e.message); }
+      for(const el of document.querySelectorAll('*'))
+        if([...el.attributes].some(x => /^on/i.test(x.name))) handlers++;
+      imgs += document.querySelectorAll('img[src="x"]').length;
+    }
+    return {opened: (state.fleet.find(x => x.t === 'A320') || {}).origin === 'user',
+            thrown, handlers, imgs,
+            views: document.querySelectorAll('#airlinePanel .sideview, #seatmapPanel .sideview').length}; }"""
+
+def check_untrusted(b, pg, page_url):
+    """Open a crafted airline the three ways one arrives, and prove nothing in it runs.
+
+    A Share link, an opened file and saved state (a link opened before a fix)
+    are somebody else's data, and their codes and numbers go into markup all
+    over the page. Before cleanState() a crafted link could put markup in a
+    station code, a type code, a route, a range or a route's days per week,
+    and before cleanGeom() in a cabin pitch; any of them ran script. Before
+    21b7b38 a string cabin length made the side view throw and an exit type
+    went into the seatmap unescaped.
     """
-    link = pg.evaluate("""async ([a, t]) => {
-        const st = JSON.parse(JSON.stringify(state));
-        const f = st.fleet.find(x => x.t === 'A320');
-        f.origin = 'user'; f.name = t;
-        f.geom = Object.assign({}, f.geom, {cabinLength: a, certifiedMax: a,
-            abreast: {F: a, PE: t, Y: a}, pitch: {F: a, PE: t, Y: a},
-            exits: [{type: t, x: 0}, {type: 'III', x: a}, {type: 'C', x: 1}]});
-        return '#n=z' + b64urlEncode(await gzipBytes(JSON.stringify(st))); }""",
-        [HOSTILE_ATTR, HOSTILE_TAG])
-    sp = b.new_page(viewport={"width":1480,"height":1050})
-    errs = []; sp.on("pageerror", lambda e: errs.append(str(e)))
-    sp.goto(page_url + link); sp.wait_for_timeout(3000)
-    r = sp.evaluate("""() => {
-        const f = state.fleet.find(x => x.t === 'A320') || {}, thrown = [];
-        smType = 'A320';
-        for(const t of ['settings', 'fleet']){ try{ goTab(t); }catch(e){ thrown.push(t + ': ' + e.message); } }
-        return {opened: f.origin === 'user', thrown,      // the shipped A320 has no origin
-                views: document.querySelectorAll('#airlinePanel .sideview, #seatmapPanel .sideview').length,
-                handlers: [...document.querySelectorAll('*')]
-                  .filter(el => [...el.attributes].some(x => /^on/i.test(x.name))).length,
-                imgs: document.querySelectorAll('img[src="x"]').length}; }""")
+    crafted = pg.evaluate(CRAFT, [HOSTILE_ATTR, HOSTILE_TAG])
+    out = []
+    for how in ("Share link", "opened file", "saved state"):
+        sp = b.new_page(viewport={"width":1480,"height":1050})
+        errs = []; sp.on("pageerror", lambda e: errs.append(str(e)))
+        try:
+            out.append(_open_and_tour(sp, errs, how, pg, page_url, crafted))
+        except Exception as e:      # a load that throws is a failure to report, not to stop on
+            out.append((how, False, "threw: " + str(e).splitlines()[0][:160]))
+        sp.close()
+    return out
+
+def _open_and_tour(sp, errs, how, pg, page_url, crafted):
+    if how == "Share link":
+        link = pg.evaluate("async (st) => '#n=z' + b64urlEncode(await gzipBytes(JSON.stringify(st)))", crafted)
+        sp.goto(page_url + link); sp.wait_for_timeout(3000)
+    elif how == "opened file":
+        sp.goto(page_url); sp.wait_for_timeout(3000)
+        sp.evaluate("""([st, a, t]) => importState({app: APP_ID, schema: STATE_SCHEMA, state: st,
+            config: Object.assign(currentConfig(), {stations: [t], roles: {[t]: 'Hub', DEN: t},
+              banks: {Hub: [a, 360], [t]: [1]}, curfew: {SJC: [t, 1380], [t]: [1, 2]},
+              mct: a, redDep: [t, 1], redArr: t})})""", [crafted, HOSTILE_ATTR, HOSTILE_TAG])
+        sp.wait_for_timeout(600)
+    else:
+        sp.goto(page_url); sp.wait_for_timeout(3000)
+        sp.evaluate("(st) => localStorage.setItem(KEY, JSON.stringify(st))", crafted)
+        sp.reload(); sp.wait_for_timeout(3000)
+    r = sp.evaluate(TOUR)
     sp.wait_for_timeout(800)   # long enough for an onload or onerror to have fired
     r["ran"] = sp.evaluate("()=>!!window.__xss")
-    sp.close()
     good = r["opened"] and not r["thrown"] and r["views"] == 2 and not r["handlers"] \
         and not r["imgs"] and not r["ran"] and not errs
-    note = (f"link opened, both side views drawn, no handler in the page, nothing ran"
-            if good else json.dumps(r) + (f" page errors: {errs[:2]}" if errs else ""))
-    return [("crafted geometry", good, note)]
+    return (how, good, "opened, every tab drawn, no handler in the page, nothing ran" if good
+            else json.dumps(r) + (f" page errors: {errs[:2]}" if errs else ""))
 
 
 def main():
@@ -165,7 +205,7 @@ def main():
             pg.evaluate("(t)=>{document.querySelectorAll('.tab').forEach(b=>{if(b.textContent.trim()===t)b.click();})}", t)
             pg.wait_for_timeout(400)
         starter_report = check_starters(pg)
-        shared_report = check_shared_link(b, pg, page_url)
+        shared_report = check_untrusted(b, pg, page_url)
         b.close()
     srv.shutdown()
 
@@ -184,7 +224,7 @@ def main():
     for name, good, note in starter_report:
         ok &= good
         print(f"  {name:<24}{'ok  ' if good else 'FAIL'}  {note}")
-    print("\nshared links (somebody else's data must not run here):")
+    print("\na crafted airline (somebody else's data must not run here):")
     for name, good, note in shared_report:
         ok &= good
         print(f"  {name:<24}{'ok  ' if good else 'FAIL'}  {note}")

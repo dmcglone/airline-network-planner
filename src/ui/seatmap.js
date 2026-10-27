@@ -466,7 +466,7 @@ function smCommitType(){
   const n = (k, d) => { const x = parseFloat(v(k)); return isFinite(x) ? x : d; };
   const code = v("code").trim().toUpperCase();
   if(!code) return "A type needs a code.";
-  if(!/^[A-Z0-9-]{1,5}$/.test(code)) return "A code is up to five letters, digits or hyphens.";
+  if(!TYPE_CODE_RE.test(code)) return "A code is up to five letters, digits or hyphens.";
   if(state.fleet.some(f=>f.t===code)) return `There is already a type called ${code}.`;
 
   const fr = FRAMES.find(x=>x.id===smFrame);
@@ -518,7 +518,7 @@ function smCommitRename(f){
   const name = ($('[data-rn="name"]') || {}).value;
   const c = (code || "").trim().toUpperCase();
   if(!c) return "A type needs a code.";
-  if(!/^[A-Z0-9-]{1,5}$/.test(c)) return "A code is up to five letters, digits or hyphens.";
+  if(!TYPE_CODE_RE.test(c)) return "A code is up to five letters, digits or hyphens.";
   if(c !== f.t && state.fleet.some(x=>x.t===c)) return `There is already a type called ${c}.`;
   const moved = c !== f.t ? smRenameRefs(f.t, c) : 0;
   f.name = (name || "").trim() || c;

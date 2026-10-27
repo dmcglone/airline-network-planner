@@ -66,6 +66,74 @@ function reconcileGeom(fleet){
   return fleet;
 }
 
+/* State from somewhere else.
+
+   A Share link, an opened file, and saved state (which can be a link opened
+   last week) are somebody else's data. Their codes and numbers go into markup
+   all over the page: a station code into every station dropdown, a type code
+   into every gauge column, a range into the Fleet table. So they are checked
+   here, once, rather than escaped at three hundred places.
+
+   A code is kept only if this planner could have written it: a station is an
+   airport in the airport table, and a type code is what Add type accepts. A
+   number is kept only if it is a number. Anything else is dropped or reset, and
+   the return value counts how many. Everything the planner writes passes
+   through unchanged. A new field that is read from state needs a line here. */
+const TYPE_CODE_RE = /^[A-Z0-9-]{1,5}$/;
+const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+const isStationCode = s => typeof s === "string" && own(AP, s);
+const isTypeCode = t => typeof t === "string" && TYPE_CODE_RE.test(t);
+const TYPE_DEFAULTS = {F:0, PE:0, Y:0, rng:2500, kt:450, gnd:35, turn:45, util:11};
+
+function cleanState(st){
+  let n = 0;
+  const num = (v, d) => {
+    if(typeof v === "number" && Number.isFinite(v)) return v;
+    if(typeof v === "boolean") return v ? 1 : 0;
+    const x = (typeof v === "string" && v.trim()) ? Number(v) : NaN;
+    if(Number.isFinite(x)) return x;
+    n++; return d;
+  };
+  const keep = (list, ok) => (Array.isArray(list) ? list : []).filter(x => ok(x) || (n++, false));
+  const obj = o => (o && typeof o === "object" && !Array.isArray(o)) ? o : {};
+
+  st.fleet = keep(st.fleet, f => f && typeof f === "object" && isTypeCode(f.t));
+  for(const f of st.fleet){
+    const base = FLEET_BASE.find(b => b.t === f.t) || {};
+    for(const k in TYPE_DEFAULTS) if(k in f) f[k] = num(f[k], k in base ? base[k] : TYPE_DEFAULTS[k]);
+  }
+  for(const key of ["roster", "pinned"]){
+    if(!(key in st)) continue;
+    const o = st[key] = obj(st[key]);
+    for(const k of Object.keys(o)){ if(isTypeCode(k)) o[k] = num(o[k], 0); else { delete o[k]; n++; } }
+  }
+
+  st.routes = keep(st.routes, r => r && typeof r === "object" && isStationCode(r.o) && isStationCode(r.d));
+  for(const r of st.routes){
+    if("dow" in r) r.dow = num(r.dow, 7);
+    const mix = obj(r.mix); r.mix = {};
+    for(const k of Object.keys(mix)){ if(isTypeCode(k)) r.mix[k] = num(mix[k], 0); else n++; }
+    if("red" in r && typeof r.red !== "number") r.red = r.red ? 1 : 0;
+  }
+
+  if("stations" in st) st.stations = keep(st.stations, isStationCode);
+  if("roles" in st){
+    const o = st.roles = obj(st.roles);
+    for(const k of Object.keys(o)){
+      if(!isStationCode(k)){ delete o[k]; n++; }
+      else if(!own(ROLE_LABEL, o[k])){ o[k] = "P2P"; n++; }
+    }
+  }
+  if("feed" in st){
+    const o = st.feed = obj(st.feed);
+    for(const k of Object.keys(o)){ if(isStationCode(k)) o[k] = num(o[k], 0); else { delete o[k]; n++; } }
+  }
+  if("spacing" in st && !own(SPACING, st.spacing)){ st.spacing = "balanced"; n++; }
+  if("spare" in st) st.spare = num(st.spare, 0.08);
+  if("redeye" in st) st.redeye = num(st.redeye, 1);
+  return n;
+}
+
 /* Stations and their roles used to live only in the config file, so promoting a
    station to a hub could not survive a reload — STA and ROLE are module-level
    and save() only writes `state`. They are decisions, so they belong in state
@@ -107,7 +175,7 @@ function loadStarter(id){
 
 let sawSavedState = false;
 function load(){
-  try{ const s = localStorage.getItem(KEY); if(s){ sawSavedState = true; const p = JSON.parse(s); if(p&&p.routes&&p.fleet){ if(!p.feed) p.feed={SJC:1,PIT:1,MCO:1,RDU:0,DEN:0}; if(!p.spacing) p.spacing='balanced'; if(!p.roster) p.roster=Object.assign({},FLEET_PINNED); if(p.spare===undefined) p.spare=0.08; if(p.redeye===undefined) p.redeye=1;
+  try{ const s = localStorage.getItem(KEY); if(s){ sawSavedState = true; const p = JSON.parse(s); if(p&&p.routes&&p.fleet){ cleanState(p); if(!p.feed) p.feed={SJC:1,PIT:1,MCO:1,RDU:0,DEN:0}; if(!p.spacing) p.spacing='balanced'; if(!p.roster) p.roster=Object.assign({},FLEET_PINNED); if(p.spare===undefined) p.spare=0.08; if(p.redeye===undefined) p.redeye=1;
         if(p.v!==2){                                     // one-time: seed the default red-eye markets
           p.v=2;
           const keys=new Set(p.routes.map(r=>r.o+"|"+r.d));
@@ -139,16 +207,27 @@ function currentConfig(){
            mct: MCT, spokeEarliest: SPOKE_EARLIEST,
            redDep: RED_DEP.slice(), redArr: RED_ARR };
 }
+/* A file's config is somebody else's data too: the same rules as cleanState().
+   Banks are keyed by role and curfews by station, and both are minutes. Every
+   role needs banks, so a role whose banks are unusable keeps the ones it has. */
 function applyConfig(c){
   if(!c || typeof c!=="object") return;
-  if(Array.isArray(c.stations) && c.stations.length) STA = c.stations.slice();
-  if(c.roles && typeof c.roles==="object") ROLE = Object.assign({}, c.roles);
-  if(c.banks && typeof c.banks==="object") BANKS = JSON.parse(JSON.stringify(c.banks));
-  if(c.curfew && typeof c.curfew==="object") CURFEW = JSON.parse(JSON.stringify(c.curfew));
-  if(typeof c.mct==="number") MCT = c.mct;
-  if(typeof c.spokeEarliest==="number") SPOKE_EARLIEST = c.spokeEarliest;
-  if(Array.isArray(c.redDep) && c.redDep.length===2) RED_DEP = c.redDep.slice();
-  if(typeof c.redArr==="number") RED_ARR = c.redArr;
+  const isNum = x => typeof x === "number" && Number.isFinite(x);
+  const mins = a => Array.isArray(a) && a.every(isNum);
+  const pick = (o, ok) => Object.fromEntries(Object.entries(o).filter(ok));
+  const sta = Array.isArray(c.stations) ? c.stations.filter(isStationCode) : [];
+  if(sta.length) STA = sta;
+  if(c.roles && typeof c.roles==="object")
+    ROLE = pick(c.roles, ([k, v]) => isStationCode(k) && own(ROLE_LABEL, v));
+  if(c.banks && typeof c.banks==="object")
+    BANKS = JSON.parse(JSON.stringify(Object.assign({}, BANKS,
+      pick(c.banks, ([k, v]) => own(ROLE_LABEL, k) && mins(v)))));
+  if(c.curfew && typeof c.curfew==="object")
+    CURFEW = JSON.parse(JSON.stringify(pick(c.curfew, ([k, v]) => isStationCode(k) && mins(v) && v.length===2)));
+  if(isNum(c.mct)) MCT = c.mct;
+  if(isNum(c.spokeEarliest)) SPOKE_EARLIEST = c.spokeEarliest;
+  if(mins(c.redDep) && c.redDep.length===2) RED_DEP = c.redDep.slice();
+  if(isNum(c.redArr)) RED_ARR = c.redArr;
 }
 /* the headline numbers, as the KPI strip shows them — the acceptance test */
 function headline(){
@@ -173,6 +252,7 @@ function importState(obj){
   if(!st.routes || !st.fleet) throw new Error("no routes or fleet in that file");
   applyConfig(o.config);
   state = JSON.parse(JSON.stringify(st));
+  cleanState(state);
   reconcileGeom(state.fleet);
   if(!state.brand) state.brand = BRAND.name;
   if(!state.code)  state.code  = BRAND.code;
