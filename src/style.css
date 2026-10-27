@@ -34,7 +34,21 @@ button,input,select{font:inherit;color:inherit}
 .num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
 
 /* ---- chrome ---- */
-header{position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--line)}
+/* The header scrolls away; only .pinbar (tabs, and the metric strip once the
+   cards are off screen) stays. z-index keeps the More menu above the bar. */
+header{position:relative;z-index:31;background:var(--surface)}
+.pinbar{position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--line)}
+html{scroll-padding-top:var(--pinh,0px)}
+.kstrip{display:none;gap:18px;align-items:baseline;padding:7px 20px 0;white-space:nowrap;
+  overflow-x:auto;scrollbar-width:none;font-size:12px;color:var(--ink-3)}
+.kstrip::-webkit-scrollbar{display:none}
+.pinbar.stuck .kstrip{display:flex}
+.ks{cursor:pointer}
+.ks .k{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;margin-right:6px}
+.ks b{font-family:var(--disp);font-size:14px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.ks b small{font-size:11px;font-weight:500;color:var(--ink-2);margin-left:2px}
+.ks:hover .k{color:var(--accent)}
+.ks.flag, .ks.flag b{color:var(--bad)}
 .bar{display:flex;align-items:center;gap:18px;padding:12px 20px;flex-wrap:wrap}
 .mark{all:unset;display:flex;align-items:baseline;gap:9px;margin-right:2px}
 .mark span{font-family:var(--disp);font-size:20px;font-weight:700;letter-spacing:.01em}
@@ -70,7 +84,8 @@ header{position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:
 .kpi.flag .knote{color:var(--bad)}
 
 /* ---- tabs ---- */
-.tabs{display:flex;gap:2px;padding:0 20px;overflow-x:auto}
+.tabs{display:flex;flex-wrap:wrap;padding:0 20px}
+.tabgroup{display:flex;flex-wrap:nowrap;gap:2px}
 .tab{background:none;border:0;border-bottom:2px solid transparent;padding:9px 13px;cursor:pointer;
   font-family:var(--disp);font-size:16px;font-weight:600;color:var(--ink-3);white-space:nowrap;letter-spacing:.02em}
 .tab:hover{color:var(--ink)}
@@ -239,8 +254,12 @@ tfoot td{padding:8px 10px;border-top:1px solid var(--line);font-weight:600;backg
 #airlinePanel input{ font-size:14px; }
 .kpi.clickable{ cursor:pointer; }
 .kpi.clickable:hover .k{ color:var(--accent); }
-/* group the tabs by what they are for */
-.tabs .tabgap{ width:1px; align-self:center; height:18px; background:var(--line); margin:0 8px; }
+/* group the tabs by what they are for, with a rule you can actually see. The rule
+   trails its group; at the end of a wrapped row it is hidden but keeps its width,
+   so hiding it cannot change where the row breaks. */
+.tabgroup:not(:last-child)::after{ content:""; width:1px; align-self:center; height:20px;
+  background:var(--ink-3); opacity:.4; margin:0 8px 0 10px; }
+.tabgroup.lineend::after{ visibility:hidden }
 
 
 /* announced to screen readers, invisible to everyone else */
@@ -294,12 +313,13 @@ tfoot td{padding:8px 10px;border-top:1px solid var(--line);font-weight:600;backg
   .kpi{ flex:0 0 auto; min-width:112px; padding:8px 13px }
   .kpi .v{ font-size:19px }
 
-  /* the tabs are the only way around the app, so keep them in reach */
-  .tabs{ position:sticky; top:0; z-index:20; background:var(--surface);
-    border-bottom:1px solid var(--line); overflow-x:auto; scrollbar-width:none; }
+  /* one swipeable row of tabs rather than four wrapped ones; .pinbar keeps it in reach */
+  .tabs{ flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; }
   .tabs::-webkit-scrollbar{ display:none; }
+  .tabgroup{ display:contents }
+  .tabgroup::after{ display:none }
   .tab{ flex:0 0 auto }
-  .tabgap{ display:none }
+  .kstrip{ padding:6px 10px 0 }
 
   .panel{ margin:10px 8px }
   /* a select sized to its longest option, and inline chips in the Model tab,
@@ -508,8 +528,7 @@ tfoot td{padding:8px 10px;border-top:1px solid var(--line);font-weight:600;backg
 .tl-row.short .tl-lab .mono{color:var(--bad)}
 .tl-title{font-size:12.5px;padding:8px 0 0}
 .tl-title b{font-family:var(--disp);font-size:16px}
-.tl-head{position:sticky;top:0;z-index:2;background:var(--surface);border-bottom:1px solid var(--line-2);min-height:30px}
-@media (max-width:640px){ .tl-head{top:44px} }
+.tl-head{position:sticky;top:var(--pinh,0px);z-index:2;background:var(--surface);border-bottom:1px solid var(--line-2);min-height:30px}
 .tl-lab{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:8px}
 .tl-lab b{font-family:var(--disp);font-size:15px}
 .tl-end{font-size:11.5px;text-align:right;white-space:nowrap;padding-left:8px}

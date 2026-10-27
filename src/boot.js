@@ -10,6 +10,8 @@ function pageSource(){
   c.querySelectorAll(".tip,.aclist,.toast").forEach(n=>n.remove());
   {const e=c.querySelector("#kpis"); if(e) e.innerHTML="";}
   {const e=c.querySelector("#tabs"); if(e) e.innerHTML="";}
+  {const e=c.querySelector("#kstrip"); if(e) e.innerHTML="";}
+  {const e=c.querySelector("#pinbar"); if(e) e.classList.remove("stuck");}
   {const e=c.querySelector("#tRoutes"); if(e) e.innerHTML="";}
   {const e=c.querySelector("#tSched"); if(e) e.innerHTML="";}
   {const e=c.querySelector("#tRot"); if(e) e.innerHTML="";}

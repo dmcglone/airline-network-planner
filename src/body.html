@@ -17,7 +17,6 @@
     <button class="btn" id="btnExport">Export state</button>
     <button class="btn" id="btnImport">Import state</button>
     <span class="barsep" aria-hidden="true"></span>
-    <button class="btn" id="btnSettings">Settings</button>
     <details class="moremenu"><summary class="btn" title="Less common actions">More</summary>
       <div class="moremenu-list">
         <button class="btn sm" id="btnCopy">Copy routes CSV</button>
@@ -32,8 +31,11 @@
   </div>
   <div id="firstHint" hidden></div>
   <div class="kpis" id="kpis" aria-busy="false"></div>
-  <div class="tabs" role="tablist" id="tabs"></div>
 </header>
+<div class="pinbar" id="pinbar">
+  <div class="kstrip" id="kstrip" aria-hidden="true"></div>
+  <div class="tabs" role="tablist" id="tabs"></div>
+</div>
 <div id="welcome" hidden></div>
 <div id="live" aria-live="polite" aria-atomic="true" class="sronly"></div>
 

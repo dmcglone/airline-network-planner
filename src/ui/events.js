@@ -108,7 +108,6 @@ $("#schedModeList").addEventListener("click", ()=>{ schedMode="list"; drawSched(
 $("#rotModeTime").addEventListener("click", ()=>{ rotMode="timeline"; drawRot(); });
 $("#rotModeTable").addEventListener("click", ()=>{ rotMode="table"; drawRot(); });
 $("#schedModeBanks").addEventListener("click", ()=>{ schedMode="banks"; drawSched(); });
-$("#btnSettings").addEventListener("click", ()=>{ goTab("settings"); });
 if($("#btnHelp")) $("#btnHelp").addEventListener("click", ()=>{ dismissHint(true); goTab("model"); });
 
 /* A single line pointing at Help, shown only to someone who has never opened it.

@@ -9,11 +9,11 @@ const tc = s => String(s).replace(/([A-Za-zÀ-ÿ])([A-Za-zÀ-ÿ']*)/g,(m,a,b)=>a
 const cityOf = a => AP[a] ? (tc(AP[a][1])+", "+(AP[a][5]==="United States"?"US":AP[a][5])) : "";
 const cityName = a => AP[a] ? tc(AP[a][1]) : a;
 
-/* Tabs are working surfaces. Checks is a status readout and already has a
-   header metric, Model is documentation and Airline is configuration -- none of
-   them belongs in this bar, so they live on the header instead. The gaps group
-   what is left by what it is for: decide the network, see the day it produces,
-   judge the result. */
+/* The gaps group the tabs by what they are for: decide the network, see the day
+   it produces, judge the money, then check, configure and read up. Each group is
+   drawn as one unit, so a narrow window wraps between groups rather than inside
+   one. Settings is a tab and nothing else: the header scrolls away, the tab bar
+   stays. */
 const TABS=[["network","Network"],["map","Map"],["suggest","Suggestions"],["gap"],
             ["schedule","Schedule"],["rot","Rotations"],["board","Board"],["stations","Stations"],["gap"],
             ["fleet","Fleet"],["econ","Economics"],["gap"],["checks","Checks"],["settings","Settings"],["model","Help"]];
@@ -45,17 +45,42 @@ function tabKeys(e){
 function drawTabs(){
   const c=$("#tabs"); c.innerHTML="";
   c.onkeydown = tabKeys;
+  let g=null;
   TABS.forEach(([id,label])=>{
-    if(id==="gap"){ c.appendChild(el("span",{class:"tabgap","aria-hidden":"true"})); return; }
+    if(id==="gap" || !g){ g=el("span",{class:"tabgroup", role:"none"}); c.appendChild(g); }
+    if(id==="gap") return;
     const b=el("button",{class:"tab", role:"tab", id:"tab-"+id,
                          "aria-selected":String(tab===id),
                          "aria-controls":"pane-"+id,
                          tabindex: tab===id ? "0" : "-1"}, esc(label));
     b.onclick=()=>goTab(id);
-    c.appendChild(b);
+    g.appendChild(b);
   });
   paintChecksTab();
+  markTabRows();
 }
+/* A group whose neighbour wrapped onto the next row ends that row, and a divider
+   there would point at nothing. */
+function markTabRows(){
+  const gs=[...document.querySelectorAll("#tabs .tabgroup")];
+  gs.forEach((g,i)=>g.classList.toggle("lineend", !!gs[i+1] && gs[i+1].offsetTop > g.offsetTop));
+}
+
+/* Only the tab bar stays pinned, plus a one-line copy of the metric cards once
+   the cards themselves have scrolled away. The whole header used to stay pinned,
+   which on a laptop screen was a third of the height before any content.
+   --pinh is the bar's height, for anything else that pins below it. */
+(function pinbar(){
+  const bar=$("#pinbar"), cards=$("#kpis");
+  if(!bar || !cards) return;
+  if("IntersectionObserver" in window)
+    new IntersectionObserver(([e])=>bar.classList.toggle("stuck", !e.isIntersecting)).observe(cards);
+  const setH=()=>{ markTabRows();
+    document.documentElement.style.setProperty("--pinh", bar.offsetHeight+"px"); };
+  if("ResizeObserver" in window) new ResizeObserver(setH).observe(bar);
+  setH();
+})();
+
 /* The Checks tab carries its own status, so a failure is visible from anywhere. */
 function paintChecksTab(){
   const b=$("#tab-checks"); if(!b || typeof M==="undefined" || !M) return;

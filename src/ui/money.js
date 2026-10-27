@@ -39,11 +39,17 @@ function drawKpis(){
   const T = M.totals, bad = failCount(), E = econReady();
   const R = M.feedStats ? M.feedStats.redeyes : 0;
   const short = M.fleet.filter(f => f.short > 0);
-  const card = (label, value, note, goto, flag, title) =>
-    `<button class="kpi clickable${flag ? " flag" : ""}" data-goto="${goto}"`
+  // Each card also goes on the pinned one-line strip. There a note only shows
+  // when it is the warning; otherwise it waits in the tooltip.
+  const strip = [];
+  const card = (label, value, note, goto, flag, title) => {
+    strip.push(`<span class="ks${flag ? " flag" : ""}" data-goto="${goto}" title="${esc(title || "")}">`
+      + `<span class="k">${esc(label)}</span><b>${value}</b>${flag ? ` ${note}` : ""}</span>`);
+    return `<button class="kpi clickable${flag ? " flag" : ""}" data-goto="${goto}"`
     + (title ? ` title="${esc(title)}"` : "") + `>`
     + `<span class="k">${esc(label)}</span><span class="v">${value}</span>`
     + `<span class="knote">${note}</span></button>`;
+  };
 
   let money, lf;
   if(E){
@@ -72,6 +78,7 @@ function drawKpis(){
   const host = $("#kpis");
   host.classList.add("head");
   host.innerHTML = money + lf + air + fl + chk;
+  const ks = $("#kstrip"); if(ks) ks.innerHTML = strip.join("");
 }
 
 /* ---- Network table ---- */
