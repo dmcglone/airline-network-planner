@@ -121,13 +121,13 @@ rather than adjusting expectations:
 | Metric | Expected |
 |---|---|
 | Fleet roster | 400 |
-| Surplus | +1 aircraft spare |
+| Surplus | +2 aircraft spare |
 | Block hours/day | 3,786 |
 | Daily ASMs | 192.6m |
-| Peak gates | 213 |
+| Peak gates | 211 |
 | Routes | 404 |
 | Daily flights | 1,650 |
-| Rotations | 366 |
+| Rotations | 365 |
 
 If one of these moves, behaviour changed. Find the cause before editing the
 expectation — these came off a schedule known to be sound.
@@ -138,8 +138,12 @@ For Python↔JS parity:
 python3 make_legs.py && python3 engine.py && python3 validate.py
 ```
 
-Both engines must produce 366 rotations with the same split by type
-(A319 129, A320 61, A320E 17, A321 66, E175 76, E145 17).
+Both engines must produce 365 rotations with the same split by type
+(A319 129, A320 76, A321 67, E175 76, E145 17).
+
+`engine.py` needs time zone data. On Windows, run
+`python -m pip install tzdata` first. Without it every UTC offset falls back
+to 0 and the engine builds 366 rotations with no error.
 
 ## The ten checks
 

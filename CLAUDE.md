@@ -109,14 +109,6 @@ the pre-ship test.
   not deploy.
 - CI (`.github/workflows/verify.yml`) runs build, `verify.py` and the Python
   parity check on every push to `main` and every PR.
-- **Known issue (CI red since 13 Sep 2026):** the "Python reference engine
-  agrees with the JS engine" step fails on every push. Build and `verify.py`
-  pass. That step still asserts 366 rotations with A320E 17, but the A320E
-  retirement moved `verify.py` to 365 tails and no route in `network.json` uses
-  the A320E any more. Likely a stale assertion, unconfirmed: run
-  `python make_legs.py`, `python engine.py`, read the split from `lines.json`,
-  compare it with the JS engine's tails by type, and only then update the CI
-  numbers, with a comment saying why.
 
 ## Hooks in `.claude/`
 
