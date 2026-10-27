@@ -29,7 +29,7 @@ python build.py              src/ -> dist/index.html (web) + dist/artifact.html
 python verify.py             acceptance metrics + ten checks + starters (Playwright)
 python make_legs.py          network.json -> legs.json for the Python engine
 python engine.py             reference engine;  python validate.py  its checks
-python economics.py          then  node tools/econ_parity.js   (cost, Python vs JS)
+python economics.py --json   then  node tools/econ_parity.js   (cost, Python vs JS)
 python revenue.py            then  node tools/rev_parity.js    (revenue, Python vs JS)
 npm run deploy               build + wrangler deploy (manual; see below)
 ```
