@@ -455,6 +455,11 @@ td.code .fin{ margin-right:5px }
   box-shadow:0 10px 30px rgba(0,0,0,.18); }
 .moremenu-list .btn{ justify-content:flex-start; text-align:left; }
 @media (max-width: 760px){ .barsep{ display:none } .moremenu-list{ right:auto; left:0 } }
+/* Save to file and Open file open below the button row, full width. Inside the
+   row they opened out of sight on a phone, where the row scrolls sideways. */
+.statepanel .pad{ padding:10px 20px 12px; max-width:860px }
+.statepanel .mkt{ justify-content:flex-start }
+@media (max-width: 760px){ .statepanel .pad{ padding:8px 10px 10px } }
 
 
 /* the "is this worth flying" line under the Add route facts */
