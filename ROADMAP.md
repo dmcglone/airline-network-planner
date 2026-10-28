@@ -518,9 +518,17 @@ Still open from before this list:
   were both evaluated and set aside. International pairs now come from the
   published OAG/MIDT sheet PAX_DATA_2025-26 (`tools/intl_pax.py`, October 2026).
   Grow proposes the international pairs it lists, with a destination switch
-  (All, US, International). Still open: its licence is unverified, pairs it does
-  not list fall back to the gravity estimate and are never proposed, and the
-  planner does not know which stations can clear international arrivals.
+  (All, US, International). Europe was added in October 2026: 517 European
+  airports the sheet lists (`tools/airports.py`, including current ones the old
+  OpenFlights list lacks, such as BER), Europe's coastline on the map
+  (`tools/geo_europe.py`), and 16,130 more sheet pairs. A European route appears
+  in Grow only once the fleet has a type that can reach it. Still open: Asia,
+  Africa, the Middle East and Oceania (about two thirds of the sheet), European
+  night restrictions (a Heathrow departure can be scheduled at 05:30), airports
+  the old list lacks in the Americas too (Tulum, TQO), its licence is
+  unverified, pairs it does not list fall back to the gravity estimate and are
+  never proposed, and the planner does not know which stations can clear
+  international arrivals.
 - Editable curfews. `CURFEW` is a per-station map in the config with no UI, so a
   station the user adds cannot be given a night restriction and SJC's cannot be
   changed. Curfew is one of the ten checks, which means the model currently

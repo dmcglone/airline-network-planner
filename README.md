@@ -55,9 +55,10 @@ src/
   suggest.js        fix / fill / grow
   ui/               one file per tab, plus render.js and events.js
   data/
-    airports.json   2,198 airports: name, city, lat/lon, UTC offset, country
+    airports.json   2,715 airports in the Americas and Europe (tools/airports.py): name, city, lat/lon, UTC offset, country
     dot_db1c.json   12,241 US markets from DOT DB1C + gravity-model sizes
-    intl_pax.json   8,395 international pairs from the OAG/MIDT sheet (tools/intl_pax.py)
+    intl_pax.json   24,525 international pairs from the OAG/MIDT sheet (tools/intl_pax.py)
+    geo.json        coastlines and borders for the map; Europe's from Natural Earth (tools/geo_europe.py)
     stations.json   the bases
     fleet.json      aircraft types and the pinned roster
     config.json     hubs, banks, curfews, feed modes, spacing, red-eye seeds
@@ -193,7 +194,10 @@ July 2025, 40% ticket sample, eleven months (Jul 2025 – May 2026).
 
 International demand comes from OAG and MIDT ticketing records for 2025–26, as
 compiled in the published sheet PAX_DATA_2025-26. `tools/intl_pax.py` fetches it
-and keeps only pairs DB1C does not cover, so DB1C stays the domestic source. On
+and keeps only pairs DB1C does not cover, so DB1C stays the domestic source. It
+keeps a pair only when both airports are in `airports.json`, which covers the
+Americas and Europe: run `tools/airports.py` first when that table changes. Grow
+proposes a European route only once the fleet has a type that can reach it. On
 the 8,270 US pairs both carry, the sheet matches DB1C at a median ratio of 1.00
 (log r² 0.95) with fares about 7% lower, but 1,360 of DB1C's 6,941 markets above
 10 passengers a day are missing from it. These are third-party figures this
