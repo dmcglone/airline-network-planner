@@ -523,6 +523,12 @@ td.code .fin{ margin-right:5px }
 @media (max-width: 760px){ .statepanel .pad{ padding:8px 10px 10px } }
 
 
+/* Add route's overnight option. Its display:flex was inline, which beat the
+   hidden attribute, so the box showed on every route and a tick on one that
+   can't fly overnight was silently dropped. */
+#nRedWrap{ display:flex }
+#nRedWrap[hidden]{ display:none }
+
 /* the "is this worth flying" line under the Add route facts */
 .verdict{ margin-top:7px; padding-top:7px; border-top:1px solid var(--line-2);
   font-size:12.5px; line-height:1.85; color:var(--ink-2); }

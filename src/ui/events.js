@@ -581,7 +581,11 @@ function addInfo(){
   const o=$("#nO").value, d=addDest;
   const box=$("#addInfo");
   const form = syncAddForm(o, d && AP[d] ? d : null);
-  if(!d||!AP[d]){ box.innerHTML='<span class="dim">Pick a destination to see distance, block time and whether the route is worth flying.</span>'; return; }
+  // No airport picked, so no overnight to offer. Leaving the last one's option up
+  // while a new destination was typed showed "Fly overnight SEA→RDU" over LHR.
+  if(!d||!AP[d]){
+    const rw=$("#nRedWrap"); if(rw){ rw.hidden=true; $("#nRedLbl").textContent=""; $("#nRed").checked=false; }
+    box.innerHTML='<span class="dim">Pick a destination to see distance, block time and whether the route is worth flying.</span>'; return; }
   const nm=dist(o,d), t=$("#nT").value;
   const ok=TYPES.filter(x=>nm<=SPEC[x].rng);
   const rv=redeyeInfo(o,d,t);

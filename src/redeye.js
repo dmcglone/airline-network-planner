@@ -15,11 +15,18 @@ function redeyeInfo(o,d,typ){
       if(arr>=300&&arr<=540){ const pen=Math.abs(arr-RED_ARR); if(!best||pen<best.pen) best={pen,dep:m,arr}; }
     }
     if(best) return {ok:true,from:a,to:b,dep:best.dep,arr:Math.round(best.arr),blk:blkm/60};
+    // When neither direction works, name the one whose departure would come
+    // nearest the window. This used to name the earlier clock time, which for
+    // RDU–LHR was "depart 03:37 from LHR" when the near miss is leaving RDU at 17:41.
     const need=mod(RED_ARR-blkm-sh,1440);
-    if(!nearest||need<nearest.need) nearest={need,a,b,sh};
+    const gap=Math.min(mod(RED_DEP[0]-need,1440), mod(need-RED_DEP[1],1440));
+    if(!nearest||gap<nearest.gap) nearest={need,gap,a,b};
   }
+  const n=nearest, win=`overnights leave ${hhmm(RED_DEP[0])} to ${hhmm(RED_DEP[1])}`;
   return {ok:false,blk:blkm/60,
-    why:`would have to depart ${hhmm(nearest.need)} from ${nearest.a} to land at a usable hour`};
+    why: mod(n.need-RED_DEP[0],1440) <= RED_DEP[1]-RED_DEP[0]
+      ? `would have to leave ${n.a} at ${hhmm(n.need)}, which its curfew does not allow`
+      : `would have to leave ${n.a} at ${hhmm(n.need)} to land in ${n.b} at ${hhmm(RED_ARR)}; ${win}`};
 }
 function redeyeSets(){
   const IN=new Set(), OUT=new Set(), done=new Set();
