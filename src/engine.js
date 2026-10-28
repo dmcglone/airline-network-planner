@@ -330,13 +330,21 @@ function assemble(legs,lines,rebal,dowOf,FED,FEED_PAIR,merged){
   const stations = STA.map(s=>{
     const D=new Array(24).fill(0), A=new Array(24).fill(0), G=new Array(24).fill(0);
     for(const f of flights){ if(f.o===s) D[Math.floor(f.dep/60)]++; if(f.d===s) A[Math.floor(f.arr/60)]++; }
-    const per=gp[s]||[];
-    for(let h=0;h<24;h++){ let best=0;
-      for(let m=h*60;m<h*60+60;m+=15){ let c=0;
-        for(const [a,b] of per){ const al=a+off(s), bl=b+off(s);
-          if((al<=m&&m<bl)||(al-1440<=m&&m<bl-1440)||(al+1440<=m&&m<bl+1440)) c++; }
-        if(c>best) best=c; }
-      G[h]=best; }
+    // Aircraft on the ground, counted exactly: +1 where a ground period starts and
+    // -1 where it ends, over two copies of the day so one across midnight counts on
+    // both sides of it. G[h] is the most at once during local hour h. This used to
+    // look every 15 minutes, which missed a bank's peak that fell between two
+    // looks: PIT read 28 gates for a peak of 30. An hour mark is a look of its own,
+    // for an hour no period starts in. Ends sort before starts at the same minute,
+    // because a gate one aircraft leaves as another arrives is one gate.
+    const ev=[];
+    for(const [a,b] of gp[s]||[]){ const a0=mod(a+off(s),1440);
+      for(const k of [0,1440]) ev.push([a0+k,1],[a0+k+(b-a),-1]); }
+    for(let h=0;h<24;h++) ev.push([1440+h*60,0]);
+    ev.sort((x,y)=>x[0]-y[0]||x[1]-y[1]);
+    let on=0;
+    for(const [t,d] of ev){ on+=d;
+      if(d>=0 && t>=1440 && t<2880){ const h=Math.floor((t-1440)/60); if(on>G[h]) G[h]=on; } }
     let deps=0,seats=0,asm=0,nmw=0;
     for(const [k,n] of legs){ const [o,d,t]=k.split("|"); if(o!==s) continue;
       deps+=n; seats+=n*SPEC[t].seats; asm+=n*SPEC[t].seats*dist(o,d)*SM; nmw+=n*dist(o,d); }
@@ -362,22 +370,54 @@ function assemble(legs,lines,rebal,dowOf,FED,FEED_PAIR,merged){
       pinned: FLEET_PINNED[f.t]||0, asm, stage: deps?nmw/deps:0};
   });
   // ---- gate assignment: colour the interval graph of ground periods, per airport ----
+  // Ground periods are arcs on a 24-hour clock. Swept in start order from
+  // midnight, the aircraft parked across midnight came last and took gates of
+  // their own: SJC used 54 gates for a peak of 49. The sweep now starts at the
+  // airport's quietest moment. The few aircraft on the ground then take a gate
+  // each, held from the start until they leave and again from when they arrive
+  // until the sweep comes round. Every other period goes, in start order, to the
+  // free gate that came free last, and opens a new gate only when none is free.
+  // An airport can be equally quiet at several moments, and the sweep from one
+  // can need a gate more than from another (the hub starter's DEN: 23 or 22), so
+  // each is tried and the fewest gates kept. That needs exactly the peak at all
+  // 128 airports of the shipped network and at every airport of both starters.
   const byAp={};
   for(const p of periods){
     const o=off(p.ap); let s0=p.s+o, e0=p.e+o;
     const shift=Math.floor(s0/1440)*1440; s0-=shift; e0-=shift;
     (byAp[p.ap]=byAp[p.ap]||[]).push({s:s0,e:e0,arr:p.arr,dep:p.dep});
   }
-  const ovl=(a,b)=>{ for(const k of [-1440,0,1440]) if(a.s < b.e+k && b.s+k < a.e) return true; return false; };
   const gateOfArr=new Map(), gateOfDep=new Map(), gateCount={};
   for(const ap in byAp){
-    const ps=byAp[ap].slice().sort((x,y)=> x.s-y.s || x.e-y.e);
-    const gates=[];
-    for(const p of ps){
-      let g=gates.findIndex(list=>!list.some(q=>ovl(p,q)));
-      if(g<0){ g=gates.length; gates.push([]); }
-      gates[g].push(p); p.g=g;
-    }
+    const ps=byAp[ap], ev=[];
+    for(const p of ps) for(const k of [0,1440]) ev.push([p.s+k,1],[p.e+k,-1]);
+    ev.sort((x,y)=>x[0]-y[0]||x[1]-y[1]);
+    // Cut in the middle of a gap, where nothing starts or ends: cut on the minute
+    // an aircraft leaves and rounding can keep it there, which gave MEM a third
+    // gate for a peak of two.
+    let on=0; const gaps=[];
+    for(let i=0;i<ev.length-1;i++){ const [t,d]=ev[i]; on+=d;
+      if(t>=1440 && t<2880 && ev[i+1][0]>t) gaps.push({on, T:(t+ev[i+1][0])/2-1440}); }
+    const low=Math.min(...gaps.map(x=>x.on));
+    const sweep=T=>{
+      const arcs=ps.map(p=>{ const s0=mod(p.s-T,1440); return {p, s:s0, e:s0+(p.e-p.s)}; })
+        .sort((x,y)=>x.s-y.s||x.e-y.e);
+      const gates=[];
+      for(const a of arcs) if(a.e>1440) gates.push({free:a.e-1440, until:a.s, ps:[a.p]});
+      for(const a of arcs){ if(a.e>1440) continue;
+        let g=-1;
+        gates.forEach((x,i)=>{ if(x.free<=a.s && a.e<=x.until && (g<0 || x.free>gates[g].free)) g=i; });
+        if(g<0){ g=gates.length; gates.push({free:0, until:1440, ps:[]}); }
+        gates[g].free=a.e; gates[g].ps.push(a.p);
+      }
+      return gates;
+    };
+    let gates=null;
+    for(const x of gaps) if(x.on===low){ const g=sweep(x.T); if(!gates || g.length<gates.length) gates=g; }
+    if(!gates) gates=sweep(0);
+    // the busiest gate is A1, so the letters read from busy to quiet
+    const busy=x=>x.ps.reduce((n,p)=>n+p.e-p.s,0);
+    gates.sort((x,y)=>busy(y)-busy(x)).forEach((x,i)=>{ for(const p of x.ps) p.g=i; });
     gateCount[ap]=gates.length;
     const n=gates.length, cols=n<=6?n:Math.ceil(n/Math.min(4,Math.ceil(n/6)));
     for(const p of ps){

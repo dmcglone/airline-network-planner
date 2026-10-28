@@ -24,7 +24,20 @@ from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 # international handling, and on 45-minute turns the rotations pack slightly
 # better. Retiring a sub-fleet saving an aircraft and two gates is a real result,
 # not a rounding artifact.
-EXPECT = {"roster":400, "surplus":2, "blockHrs":3786, "asmM":192.6, "gates":211,
+#
+# Changed a second time, deliberately, in October 2026, when gates began to be
+# counted exactly. A station's gates had been the most aircraft on the ground at
+# any of 96 looks a day, one every 15 minutes, and a bank's peak between two
+# looks went uncounted. The gate assignment behind the Board's gate letters
+# disagreed as well: it swept from midnight and gave aircraft parked across it
+# gates of their own. Three counts for one thing (SJC 48, 49 and 54) became one.
+#
+#   gates 211 -> 218   (SJC 48 -> 49, PIT 28 -> 30, DEN 18 -> 21, MCO 29 -> 30)
+#
+# and in starters.json the Point-to-point base's gates 8 -> 9: LAS has nine
+# aircraft on the ground for seven and a half minutes at 08:03, between looks.
+# No flight moved: same schedule, same tails, same checks. Only the count did.
+EXPECT = {"roster":400, "surplus":2, "blockHrs":3786, "asmM":192.6, "gates":218,
           "routes":404, "deps":1650, "tails":365, "fleetRequired":398, "checksFailing":0}
 CHECKS = ["unflown","extra","brkSpace","brkGround","open","brkNight","brkSpan","imb","curfew","rangeBad"]
 

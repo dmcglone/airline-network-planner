@@ -698,3 +698,15 @@ td.code .fin{ margin-right:5px }
 .tl-ron{position:absolute;top:4px;transform:translateX(-50%);font-family:var(--mono);font-size:9.5px;line-height:13px;color:var(--ink-3);white-space:nowrap;background:var(--surface);padding:0 3px}
 .tl-row:hover .tl-ron{background:var(--surface-2)}
 @media (max-width:640px){ .tl-row{grid-template-columns:72px minmax(0,1fr) 54px} .tl-end .mono{display:none} }
+
+/* gate chart (Stations): the timeline's track and bars, one row per gate */
+.gt-chart{padding:4px 16px 14px}
+.gt-row{display:grid;grid-template-columns:52px minmax(0,1fr) 64px;align-items:center;min-height:17px}
+.gt-row:hover:not(.tl-head){background:var(--surface-2)}
+.gt-row.gt-first{margin-top:6px}
+.gt-row .tl-track{height:17px}
+.gt-row .tl-fl{top:2px}
+.gt-row .tl-fl.gt-night,.tl-sw.gt-night{background:var(--livery);opacity:.38}
+.gt-lab{font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--ink-2)}
+.gt-end{font-family:var(--mono);font-size:11px;color:var(--ink-3);text-align:right}
+@media (max-width:640px){ .gt-row{grid-template-columns:34px minmax(0,1fr) 0} .gt-end{display:none} .gt-row .tl-fl span{display:none} }

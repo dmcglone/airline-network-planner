@@ -55,7 +55,8 @@ The parity tools read `lines.json`, so run `make_legs.py` and `engine.py` first.
    explaining it, like the A320E retirement note already there.
 5. **`verify.py` is the source of truth for the metrics**, not any document.
    Older notes say 366 tails, +1 surplus, 213 gates; the A320E retirement moved
-   those to 365, +2, 211.
+   those to 365, +2, 211, and counting gates exactly (October 2026) moved 211
+   to 218.
 6. **The airline is configuration.** Name, wordmark, hubs, banks, curfews, feed
    modes, spacing, red-eye seeds, fleet and roster live in `src/data/*.json`.
    Nothing airline-specific goes in `src/*.js`.

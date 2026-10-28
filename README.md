@@ -127,7 +127,7 @@ rather than adjusting expectations:
 | Surplus | +2 aircraft spare |
 | Block hours/day | 3,786 |
 | Daily ASMs | 192.6m |
-| Peak gates | 211 |
+| Peak gates | 218 |
 | Routes | 404 |
 | Daily flights | 1,650 |
 | Rotations | 365 |
@@ -186,8 +186,12 @@ airline all three ways and fails if anything in it runs.
 
 Block time is `ground manoeuvre + distance / cruise speed`, calibrated so
 SJC–LAX blocks about 1h15 and SJC–EWR about 5h20. All distances are nautical
-miles. Spares are 8% of rotations, rounded up. Gates come from interval-graph
-colouring over ground periods.
+miles. Spares are 8% of rotations, rounded up. A station's gates are the most
+aircraft on its ground at once, counted exactly. Each aircraft is given a gate by
+colouring the ground periods, swept from the station's quietest moment so that
+aircraft parked across midnight need no gates of their own; that uses exactly the
+peak at every airport the shipped network and the starters fly to. The Stations
+tab draws the result, a row per gate.
 
 US demand is real: DOT DB1C Market data, the O&D product that replaced DB1B in
 July 2025, 40% ticket sample, eleven months (Jul 2025 – May 2026).
