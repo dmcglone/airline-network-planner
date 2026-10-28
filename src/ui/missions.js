@@ -12,7 +12,7 @@
    Every one of the ten checks has to pass before any star counts. A network that
    breaks a rule has not been planned, whatever it earns. */
 
-const MISSION_KEY = "anp-missions";      // best stars per mission, this browser only
+const MISSION_KEY = "anp-missions";      // the logbook: each mission's best result, this browser only
 
 function missionOf(id){
   const s = (typeof STARTERS !== "undefined" ? STARTERS : []).find(x => x.id === id);
@@ -78,19 +78,60 @@ function missionScore(m, E, mission){
   return {checksOk, results, stars: checksOk ? results.filter(r => r.met).length : 0};
 }
 
-function missionBest(id){
-  try { return JSON.parse(localStorage.getItem(MISSION_KEY) || "{}")[id] || 0; }
-  catch(e){ return 0; }
+/* The logbook: each mission's best result, as {stars, at, values}, with the date
+   it was flown and the value of each objective then. A record from before the
+   logbook is the star count alone, and gets its figures the next time the
+   mission is played. Storage can hold anything, and these figures go into
+   markup, so a record is read back as numbers and a date or not at all. */
+function missionLogAll(){
+  try { const all = JSON.parse(localStorage.getItem(MISSION_KEY) || "{}");
+    return all && typeof all === "object" ? all : {}; }
+  catch(e){ return {}; }
 }
-/* Returns true when this is a new best. */
-function missionRecord(id, stars){
+function missionLog(id){
+  const all = missionLogAll(), v = own(all, id) ? all[id] : null;
+  if(typeof v === "number") return Number.isFinite(v) ? {stars: Math.max(0, Math.min(9, Math.round(v))), at: null, values: null} : null;
+  if(!v || typeof v !== "object") return null;
+  const n = Number(v.stars);
+  return {stars: Number.isFinite(n) ? Math.max(0, Math.min(9, Math.round(n))) : 0,
+    at: typeof v.at === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v.at) ? v.at : null,
+    values: Array.isArray(v.values) && v.values.every(x => typeof x === "number" && Number.isFinite(x)) ? v.values : null};
+}
+function missionBest(id){ return (missionLog(id) || {stars: 0}).stars; }
+/* Logs a scored network when it beats the record: more stars, or the same stars
+   and a better first objective, which is each mission's headline. A result with
+   no stars is not logged. Returns true when this is a new best. */
+function missionRecord(id, S){
+  if(!S || !S.stars) return false;
+  const old = missionLog(id), values = S.results.map(r => r.value), o = S.results[0].o;
+  const better = !old || S.stars > old.stars || (S.stars === old.stars
+    && (!old.values || (o.kind === "aircraftMax" ? values[0] < old.values[0] : values[0] > old.values[0])));
+  if(!better) return false;
+  const d = new Date(), p = n => String(n).padStart(2, "0");
   try {
-    const all = JSON.parse(localStorage.getItem(MISSION_KEY) || "{}");
-    if((all[id] || 0) >= stars) return false;
-    all[id] = stars; localStorage.setItem(MISSION_KEY, JSON.stringify(all));
+    const all = missionLogAll();
+    all[id] = {stars: S.stars, at: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`, values};
+    localStorage.setItem(MISSION_KEY, JSON.stringify(all));
     return true;
   } catch(e){ return false; }
 }
+/* An objective's value in a few words, for the logbook line. */
+function objectiveShort(o, v){
+  const n = fmt(Math.round(v));
+  switch(o.kind){
+    case "connections":    return `${n} connections at ${esc(o.at)}`;
+    case "aircraftMax":    return `${n} aircraft`;
+    case "profitMeasured": return objectiveShown(o, v);
+    case "deps":           return `${n} departures`;
+    case "routes":         return `${n} routes`;
+  }
+  return n;
+}
+const logDay = at => { const [y, m, d] = at.split("-").map(Number);
+  return `${d} ${"Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(" ")[m - 1] || ""} ${y}`; };
+/* "+$754k/day · 15 routes · 18 aircraft", or "" for a record without figures. */
+const missionLogLine = (mi, rec) => rec && rec.values && rec.values.length === mi.objectives.length
+  ? mi.objectives.map((o, i) => objectiveShort(o, rec.values[i])).join(" · ") : "";
 
 const starsHTML = (n, of) => `<span class="stars" role="img" aria-label="${n} of ${of} stars">`
   + Array.from({length: of}, (_, i) => `<span${i < n ? ` class="on"` : ""}>★</span>`).join("") + `</span>`;
@@ -104,8 +145,8 @@ function drawMission(){
   if(!mi){ host.innerHTML = ""; return; }
   const E = econReady();
   const S = E ? missionScore(M, E, mi) : null;
-  if(S) missionRecord(mi.id, S.stars);
-  const of = mi.objectives.length, best = missionBest(mi.id);
+  if(S) missionRecord(mi.id, S);
+  const of = mi.objectives.length, rec = missionLog(mi.id), line = missionLogLine(mi, rec);
   const rows = mi.objectives.map((o, i) => {
     const r = S && S.results[i];
     return `<li class="${r && r.met ? "met" : ""}"><span class="mo-mark" aria-hidden="true">${r && r.met ? "✓" : "○"}</span>`
@@ -115,10 +156,14 @@ function drawMission(){
     + `<div class="pad"><p class="note">${esc(mi.brief)}</p><ul class="mission-obj">${rows}</ul>`
     + (S && S.stars === of ? `<p class="mission-play">${PLAY_BUTTON}`
         + `<span class="dim">Your schedule on the map, one day in about a minute.</span></p>` : "")
+    + (rec && rec.stars
+        ? `<p class="mission-best"><b>Your best</b> ${starsHTML(rec.stars, of)}`
+          + (rec.at ? `<span class="dim">${logDay(rec.at)}</span>` : "")
+          + (line ? `<span class="mb-v">${line}</span>` : "") + `</p>`
+        : `<p class="note dim">No stars on this mission yet.</p>`)
     + `<p class="note dim mission-foot">`
     + (S && !S.checksOk ? `<b>No stars while a check is failing.</b> Fix it on the Checks tab first. ` : "")
-    + `Best so far: ${fmt(best)} of ${fmt(of)} stars. Every mission is checked to be winnable `
-    + `each time the planner is built.</p></div>`;
+    + `Every mission is checked to be winnable each time the planner is built.</p></div>`;
   const pb = host.querySelector("[data-playday]"); if(pb) pb.onclick = playMissionDay;
 }
 

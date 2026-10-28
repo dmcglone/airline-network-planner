@@ -19,8 +19,14 @@ let welcomeFirst = false;     // opened because nothing was saved: the full exam
 function welcomeCards(){
   const cards = (typeof STARTERS !== "undefined" ? STARTERS : []).map(s => ({
     id: s.id, name: s.name, blurb: s.blurb,
-    mission: s.mission ? {title: s.mission.title, of: s.mission.objectives.length,
-                          best: typeof missionBest === "function" ? missionBest(s.id) : 0} : null,
+    mission: s.mission ? (() => {
+      const rec = typeof missionLog === "function" ? missionLog(s.id) : null;
+      return {title: s.mission.title, of: s.mission.objectives.length, best: rec ? rec.stars : 0,
+        // the logbook line: when and what, or that it hasn't earned a star yet. A
+        // record from before the logbook has neither, and its stars say it all.
+        log: !rec || !rec.stars ? "Not flown yet" : !rec.at && !missionLogLine(s.mission, rec) ? ""
+          : `Best${rec.at ? " " + logDay(rec.at) : ""}`
+            + (missionLogLine(s.mission, rec) ? ": " + missionLogLine(s.mission, rec) : "")}; })() : null,
     facts: s.expect ? `${fmt(s.expect.routes)} routes · ${fmt(s.expect.tails)} aircraft `
                     + `· ${fmt((s.state.fleet||[]).length)} type`
                     + `${(s.state.fleet||[]).length===1?"":"s"} · ${fmt(s.expect.gates)} gates` : ""
@@ -67,7 +73,8 @@ function drawWelcome(){
         + (c.facts ? `<span class="wc-facts">${esc(c.facts)}</span>` : "")
         + `<span class="wc-blurb">${esc(c.blurb)}</span>`
         + (c.mission ? `<span class="wc-mission">Mission: ${esc(c.mission.title)} `
-            + `${starsHTML(c.mission.best, c.mission.of)}</span>` : "")
+            + `${starsHTML(c.mission.best, c.mission.of)}</span>`
+            + (c.mission.log ? `<span class="wc-best">${c.mission.log}</span>` : "") : "")
         + `</button>`; }).join("")
     + `</div>`
     + `<div class="toolbar" style="padding-left:0">`
