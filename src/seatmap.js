@@ -125,6 +125,7 @@ function cleanGeom(g){
     .map(m => { const o = {kind: typeof m.kind === "string" ? m.kind : "galley"};
       for(const k of ["x", "len", "lavs"]) if(k in m) o[k] = num(m[k]);
       return o; });
+  if(g.engines === "rear") out.engines = "rear";  // the side view's only shape switch
   if(g.seat && typeof g.seat === "object"){        // only the kinds a cabin may be
     out.seat = {};
     for(const c of CABINS) if((CABIN_KINDS[c] || []).includes(g.seat[c])) out.seat[c] = g.seat[c];

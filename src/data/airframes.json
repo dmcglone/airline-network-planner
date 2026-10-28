@@ -928,6 +928,7 @@
    "geom": {
     "cabinLength": 640,
     "certifiedMax": 50,
+    "engines": "rear",
     "abreast": {
      "F": 3,
      "PE": 3,
@@ -977,6 +978,7 @@
    "geom": {
     "cabinLength": 830,
     "certifiedMax": 90,
+    "engines": "rear",
     "abreast": {
      "F": 3,
      "PE": 4,

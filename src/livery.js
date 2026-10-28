@@ -123,41 +123,133 @@ function finInline(L, code, px){
     + `<path d="${FIN_PATH}" style="fill:var(--livery)"/><g clip-path="url(#${id})">${finMark(L, code)}</g></svg>`;
 }
 
+/* -- the tail, side on --
+   An airliner's fin, nose to the left: a leading edge swept back from a curved
+   fillet, a short tip, a trailing edge leaning aft and the rudder hinge. Root
+   chord about 1.2 times the height, the A320's proportion. The mark sits where
+   the fin is widest, scaled to its width there. */
+const TAIL_PATH = "M2 24 C7 23.6 9.6 19.4 11.2 15.6 L20.6 1 L29.4 1 L27.4 24 Z";
+const TAIL_MARK = "translate(20.8 12.6) scale(1.15) translate(-12.7 -13.6)";
+
 /* -- the aircraft, side on --
-   A plain airliner scaled to the type: cabin length sets the fuselage, seats
-   abreast set its depth. Cheatline, tail cone and fin wear the livery. */
+   Drawn from the type's own numbers. Cabin length and seats abreast give the
+   fuselage, and the exits the seatmap uses put the doors and over-wing exits
+   where they are. The rest follows published drawings of the A320, E175 and
+   ERJ-145, as fractions of fuselage depth: nose and tail cone length, fin
+   height, wing, engine and gear positions, ground clearance. A geometry with
+   engines "rear" (ERJ-145, CRJ) gets them on the rear fuselage under a T-tail;
+   every other type hangs them under the wing. The airframe is white in either
+   theme; the fin, tail, cheatline and engines wear the livery. */
 function liverySideView(f, px){
   const g = (f && f.geom) || {};
   // A user-added type's geometry can arrive in somebody else's shared link, and
   // these numbers go into markup: make them numbers first. With a string, "+"
   // would concatenate and carry the string into the SVG.
   const num = (v, lo, hi, d) => { const n = Number(v); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
+  const r1 = v => +v.toFixed(1);
   const ab = num(g.abreast && g.abreast.Y, 1, 10, 6);
-  const D = ab >= 5 ? 156 : ab >= 4 ? 118 : 92;           // fuselage depth, inches
-  const L = num(g.cabinLength, 200, 3000, 1000) + D * 2.6; // nose and tail cones beyond the cabin
-  const Ln = D * 1.05, Lt = D * 1.9;
-  const body = `M0 ${D * 0.62} C0 ${D * 0.22} ${Ln * 0.45} 0 ${Ln} 0 L${L - Lt * 0.35} 0 L${L} ${D * 0.1} `
-    + `L${L} ${D * 0.3} C${L - Lt * 0.3} ${D * 0.42} ${L - Lt * 0.75} ${D} ${L - Lt} ${D} L${Ln * 0.85} ${D} `
-    + `C${Ln * 0.35} ${D} 0 ${D * 0.86} 0 ${D * 0.62} Z`;
+  const D = ab >= 5 ? 156 : ab >= 4 ? 118 : 92;          // fuselage depth, inches
+  const rear = g.engines === "rear", regional = D < 140;
+  const cab = num(g.cabinLength, 200, 3000, 1000);
+  const Ln = D * (rear ? 1.7 : regional ? 1.2 : 1.05);   // nose ahead of the cabin
+  const Lt = D * (rear ? 3.9 : regional ? 2.4 : 1.5);    // tail cone behind it
+  const L = Ln + cab + Lt;
+  const finH = D * (rear ? 1.55 : regional ? 1.9 : 1.5);
+  const ground = D * (rear ? 1.36 : regional ? 1.42 : 1.5);
+  const tt = D * 0.32;                                   // the tail tip's height on the body
+
+  // fuselage: crown, tail cone tapering to a small rounded tip, belly sweeping
+  // up, chin, and a radome that falls away from the windscreen (more pointed on
+  // the regional jets)
+  const xb = L - Lt - D * 1.1, pt = rear || regional, ny = D * (pt ? 0.56 : 0.6);
+  const body = `M${r1(Ln)} 0 L${r1(L - Lt * 0.55)} 0 C${r1(L - Lt * 0.25)} 0 ${r1(L - Lt * 0.05)} ${r1(tt - D * 0.12)} ${r1(L - D * 0.05)} ${r1(tt - D * 0.05)}`
+    + ` Q${r1(L)} ${r1(tt)} ${r1(L - D * 0.05)} ${r1(tt + D * 0.05)}`
+    + ` C${r1(L - (L - xb) * 0.18)} ${r1(tt + D * 0.3)} ${r1(xb + (L - xb) * 0.45)} ${r1(D)} ${r1(xb)} ${r1(D)}`
+    + ` L${r1(Ln * 0.75)} ${r1(D)} C${r1(Ln * (pt ? 0.42 : 0.3))} ${r1(D)} ${r1(Ln * (pt ? 0.07 : 0))} ${r1(D * (pt ? 0.84 : 0.9))} 0 ${r1(ny)}`
+    + ` C${r1(Ln * (pt ? 0.12 : 0))} ${r1(D * (pt ? 0.32 : 0.36))} ${r1(Ln * (pt ? 0.5 : 0.3))} ${r1(D * (pt ? 0.02 : 0.05))} ${r1(Ln)} 0 Z`;
+
+  // the fin, placed by its trailing edge root; s is inches per tail-frame unit
+  const s = finH / 23, xr = L - D * (rear ? 0.45 : 0.5);
+  const fx = xr - 27.4 * s, fy = D * 0.05 - 24 * s;
+  const tailFrom = fx + 2 * s + D * 0.2;                  // where the livery sweeps onto the body
+
+  // doors and over-wing exits where the geometry has them; windows between
+  const wy = D * 0.36, cut = [], det = [];
+  for(const e of (Array.isArray(g.exits) ? g.exits : [])){
+    const over = e.type === "III" || e.type === "IV";
+    const w = over ? 20 : e.type === "I" ? 26 : 32, h = over ? 34 : Math.min(72, D * 0.7);
+    const x = Math.min(Ln + cab - w / 2 - 6, Math.max(Ln + w / 2 + 6, Ln + num(e.x, 0, 1, 0) * cab));
+    cut.push([x - w / 2 - 8, x + w / 2 + 8]);
+    det.push(`<rect x="${r1(x - w / 2)}" y="${r1(over ? wy - h / 2 : D * 0.14)}" width="${w}" height="${r1(h)}" rx="${over ? 4 : 6}" class="pl-detail"/>`);
+  }
   const win = [];
-  for(let x = Ln * 1.05; x < L - Lt * 1.05; x += 21) win.push(`<rect x="${x.toFixed(1)}" y="${(D * 0.28).toFixed(1)}" width="8" height="11" rx="3"/>`);
-  const fw = D * 1.45, fx = L - Lt * 0.62 - fw * 0.26, fy = -fw * 0.88;
+  for(let x = Ln + 30; x < Ln + cab - 24; x += 21)
+    if(!cut.some(([a, b]) => x + 9 > a && x < b)) win.push(`<rect x="${r1(x)}" y="${r1(wy - 6)}" width="8.5" height="12.5" rx="4"/>`);
+
+  // wing, belly fairing and gear. The near wing runs aft and up from its root
+  // low on the body (sweep and dihedral), with two flap-track fairings under it.
+  const xw = L * (rear ? 0.42 : 0.3), c = D * (rear ? 1.3 : 1.45);
+  const wy0 = D * 0.7, wy1 = D * 0.84;                   // root leading and trailing edge heights
+  const wing = `M${r1(xw)} ${r1(wy0)} L${r1(xw + c + D * 0.7)} ${r1(D * 0.5)} L${r1(xw + c + D * 1.05)} ${r1(D * 0.52)}`
+    + ` L${r1(xw + c)} ${r1(wy1)} Z`
+    + [0.35, 0.68].map(k => { const x = xw + c + D * 1.05 * k, y = wy1 - (wy1 - D * 0.52) * k;
+        return ` M${r1(x - D * 0.32)} ${r1(y + D * 0.01)} Q${r1(x)} ${r1(y + D * 0.09)} ${r1(x + D * 0.2)} ${r1(y - D * 0.01)} Z`; }).join("");
+  const underWing = x => wy0 + (x - xw) / c * (wy1 - wy0);
+  const fairing = `M${r1(xw - D * 0.25)} ${r1(D * 0.96)} Q${r1(xw + c * 0.5)} ${r1(D * (rear ? 1.06 : 1.12))} ${r1(xw + c + D * 0.35)} ${r1(D * 0.96)} Z`;
+  const gear = (x, r, top) => `<rect x="${r1(x - D * 0.025)}" y="${r1(top)}" width="${r1(D * 0.05)}" height="${r1(ground - r - top)}" class="pl-metal"/>`
+    + `<circle cx="${r1(x)}" cy="${r1(ground - r)}" r="${r1(r)}" class="pl-tyre"/><circle cx="${r1(x)}" cy="${r1(ground - r)}" r="${r1(r * 0.45)}" class="pl-metal"/>`;
+  const xm = L * (rear ? 0.55 : 0.47);
+
+  // engines: a nacelle in the livery, fattest just behind the intake and
+  // tapering to the nozzle, with a metal lip, a dark intake and an exhaust cone
+  const nacelle = (x0, cy, len, d) => `<path d="M${r1(x0 + d * 0.06)} ${r1(cy - d * 0.42)}`
+    + ` C${r1(x0 + len * 0.25)} ${r1(cy - d * 0.53)} ${r1(x0 + len * 0.55)} ${r1(cy - d * 0.52)} ${r1(x0 + len * 0.84)} ${r1(cy - d * 0.34)}`
+    + ` L${r1(x0 + len)} ${r1(cy - d * 0.25)} L${r1(x0 + len)} ${r1(cy + d * 0.25)} L${r1(x0 + len * 0.84)} ${r1(cy + d * 0.34)}`
+    + ` C${r1(x0 + len * 0.55)} ${r1(cy + d * 0.52)} ${r1(x0 + len * 0.25)} ${r1(cy + d * 0.53)} ${r1(x0 + d * 0.06)} ${r1(cy + d * 0.42)}`
+    + ` Q${r1(x0 - d * 0.03)} ${r1(cy)} ${r1(x0 + d * 0.06)} ${r1(cy - d * 0.42)} Z" class="pl-livery pl-edge"/>`
+    + `<path d="M${r1(x0 + d * 0.06)} ${r1(cy - d * 0.42)} Q${r1(x0 - d * 0.03)} ${r1(cy)} ${r1(x0 + d * 0.06)} ${r1(cy + d * 0.42)}`
+    + ` L${r1(x0 + d * 0.24)} ${r1(cy + d * 0.48)} L${r1(x0 + d * 0.24)} ${r1(cy - d * 0.48)} Z" class="pl-metal pl-edge"/>`
+    + `<ellipse cx="${r1(x0 + d * 0.04)}" cy="${r1(cy)}" rx="${r1(d * 0.05)}" ry="${r1(d * 0.34)}" class="pl-glass"/>`
+    + `<path d="M${r1(x0 + len)} ${r1(cy - d * 0.2)} L${r1(x0 + len + d * 0.36)} ${r1(cy)} L${r1(x0 + len)} ${r1(cy + d * 0.2)} Z" class="pl-metal pl-edge"/>`;
+  let engines;
+  if(rear){
+    const len = D * 1.25, d = D * 0.5, x0 = L - Lt * 0.78;
+    engines = `<path d="M${r1(x0 + len * 0.3)} ${r1(D * 0.3)} L${r1(x0 + len * 0.8)} ${r1(D * 0.3)} L${r1(x0 + len * 0.9)} ${r1(D * 0.46)} L${r1(x0 + len * 0.25)} ${r1(D * 0.46)} Z" class="pl-belly pl-edge"/>`
+      + nacelle(x0, D * 0.28, len, d);
+  } else {
+    // hung forward of the wing on a pylon that meets the wing's underside
+    const len = D * 1.1, d = D * (regional ? 0.55 : 0.52), x0 = xw - D * 0.2, cy = D * 1.12;
+    const pa = x0 + len * 0.3, pb = x0 + len * 0.92;
+    engines = `<path d="M${r1(pa)} ${r1(cy - d * 0.45)} L${r1(pa + D * 0.15)} ${r1(underWing(pa + D * 0.15))}`
+      + ` L${r1(pb + D * 0.25)} ${r1(underWing(pb + D * 0.25))} L${r1(pb)} ${r1(cy - d * 0.38)} Z" class="pl-belly pl-edge"/>`
+      + nacelle(x0, cy, len, d);
+  }
+  // tail planes: swept back under the fin and short of the tail tip, or across
+  // the top of the fin for a T-tail
+  const stab = rear
+    ? `M${r1(fx + 16 * s)} ${r1(fy + 1.6 * s)} L${r1(fx + 31 * s)} ${r1(fy + 0.2 * s)} L${r1(fx + 32.5 * s)} ${r1(fy + 1.4 * s)} L${r1(fx + 19 * s)} ${r1(fy + 3 * s)} Z`
+    : `M${r1(L - Lt * 0.92)} ${r1(tt + D * 0.12)} L${r1(L - D * 0.42)} ${r1(tt - D * 0.03)} L${r1(L - D * 0.32)} ${r1(tt + D * 0.03)} L${r1(L - Lt * 0.5)} ${r1(tt + D * 0.17)} Z`;
+
   const id = "lvBody" + (++lvClipN);
-  const vb = `-12 ${(fy - 6).toFixed(0)} ${(L + 24).toFixed(0)} ${(D * 1.32 - fy + 8).toFixed(0)}`;
+  const top = fy - D * 0.12, vb = `${r1(-D * 0.06)} ${r1(top)} ${r1(L + D * 0.1)} ${r1(ground + D * 0.08 - top)}`;
   return `<svg class="sideview" viewBox="${vb}" width="${px}" role="img" aria-label="${esc((f && f.t) || "Aircraft")} in your livery">`
     + `<defs><clipPath id="${id}"><path d="${body}"/></clipPath></defs>`
-    + `<path d="M${L * 0.36} ${D * 0.78} L${L * 0.58} ${D * 0.82} L${L * 0.6} ${D * 0.9} L${L * 0.4} ${D * 0.9} Z" style="fill:var(--ink-3);opacity:.55"/>`
-    + `<use href="#liveryFin" x="${fx.toFixed(1)}" y="${fy.toFixed(1)}" width="${fw.toFixed(1)}" height="${fw.toFixed(1)}"/>`
-    + `<path d="${body}" style="fill:var(--surface);stroke:var(--ink-3);stroke-width:2.5"/>`
+    + `<ellipse cx="${r1(L * 0.5)}" cy="${r1(ground)}" rx="${r1(L * 0.47)}" ry="${r1(D * 0.07)}" class="pl-shadow"/>`
+    + gear(Ln * 1.1, D * 0.1, D * 0.9) + gear(xm, D * 0.15, D * 0.95)
+    + `<path d="${fairing}" class="pl-belly pl-edge"/>`          // under the body, so only its bulge shows
+    + `<use href="#liveryTail" x="${r1(fx)}" y="${r1(fy)}" width="${r1(32 * s)}" height="${r1(24 * s)}"/>`
+    + `<path d="${body}" class="pl-body"/>`
     + `<g clip-path="url(#${id})">`
-    +   `<rect x="0" y="${(D * 0.47).toFixed(1)}" width="${L}" height="${(D * 0.09).toFixed(1)}" style="fill:var(--livery)"/>`
-    +   `<rect x="${(L - Lt * 0.9).toFixed(1)}" y="0" width="${(Lt).toFixed(1)}" height="${D}" style="fill:var(--livery)"/>`
-    +   `<rect x="0" y="${(D * 0.86).toFixed(1)}" width="${L}" height="${(D * 0.14).toFixed(1)}" style="fill:var(--line-2)"/>`
+    +   `<rect x="0" y="${r1(D * 0.64)}" width="${r1(L)}" height="${r1(D * 0.4)}" class="pl-belly"/>`
+    +   `<rect x="${r1(Ln * 0.55)}" y="${r1(D * 0.48)}" width="${r1(tailFrom - Ln * 0.55)}" height="${r1(D * 0.04)}" class="pl-livery"/>`
+    +   `<path d="M${r1(tailFrom)} -2 L${r1(L + 2)} -2 L${r1(L + 2)} ${r1(D)} L${r1(tailFrom + D * 1.5)} ${r1(D)} Z" class="pl-livery"/>`
     + `</g>`
-    + `<g style="fill:var(--ink-2);opacity:.75">${win.join("")}</g>`
-    + `<path d="M${Ln * 0.22} ${D * 0.3} L${Ln * 0.5} ${D * 0.2} L${Ln * 0.56} ${D * 0.36} L${Ln * 0.2} ${D * 0.42} Z" style="fill:var(--ink-2);opacity:.75"/>`
-    + `<ellipse cx="${L * 0.43}" cy="${D * 1.07}" rx="${D * 0.42}" ry="${D * 0.2}" style="fill:var(--surface-2);stroke:var(--ink-3);stroke-width:2.5"/>`
-    + `<path d="M${L - Lt * 0.55} ${D * 0.2} L${L - Lt * 0.05} ${D * 0.12} L${L - Lt * 0.02} ${D * 0.2} L${L - Lt * 0.5} ${D * 0.3} Z" style="fill:var(--livery)"/>`
+    + `<path d="${body}" class="pl-edge" style="fill:none"/>`
+    + `<g class="pl-glass">${win.join("")}</g>${det.join("")}`
+    + `<path d="M${r1(Ln * 0.33)} ${r1(D * 0.3)} L${r1(Ln * 0.47)} ${r1(D * 0.15)} L${r1(Ln * 0.75)} ${r1(D * 0.09)} L${r1(Ln * 0.77)} ${r1(D * 0.21)} L${r1(Ln * 0.48)} ${r1(D * 0.25)} Z" class="pl-glass"/>`
+    + `<path d="${stab}" class="pl-body pl-edge"/>`
+    + `<path d="${wing}" class="pl-belly pl-edge"/>`
+    + engines
     + `</svg>`;
 }
 
@@ -179,7 +271,12 @@ function applyLivery(){
   const sp = document.getElementById("liverySprite");
   if(sp) sp.innerHTML = `<defs><clipPath id="liveryFinClip"><path d="${FIN_PATH}"/></clipPath>`
     + `<symbol id="liveryFin" viewBox="0 0 24 24"><path d="${FIN_PATH}" style="fill:var(--livery)"/>`
-    + `<g clip-path="url(#liveryFinClip)">${finMark(L, state.code)}</g></symbol></defs>`;
+    + `<g clip-path="url(#liveryFinClip)">${finMark(L, state.code)}</g></symbol>`
+    + `<clipPath id="liveryTailClip"><path d="${TAIL_PATH}"/></clipPath>`
+    + `<symbol id="liveryTail" viewBox="0 0 32 24"><path d="${TAIL_PATH}" class="pl-livery"/>`
+    + `<g clip-path="url(#liveryTailClip)"><g transform="${TAIL_MARK}">${finMark(L, state.code)}</g>`
+    + `<path d="M26.2 1 L21.6 24" class="pl-hinge"/></g>`
+    + `<path d="${TAIL_PATH}" class="pl-edge" style="fill:none"/></symbol></defs>`;
   const hf = document.getElementById("brandFin");
   if(hf) hf.innerHTML = finUse(22);
 }

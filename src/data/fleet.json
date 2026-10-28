@@ -294,6 +294,7 @@
      }
     ],
     "certifiedMax": 50,
+    "engines": "rear",
     "seat": {
      "F": "recliner",
      "PE": "standard",
