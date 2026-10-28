@@ -193,6 +193,12 @@ aircraft parked across midnight need no gates of their own; that uses exactly th
 peak at every airport the shipped network and the starters fly to. The Stations
 tab draws the result, a row per gate.
 
+A red-eye leaves 21:00 to 23:00 local and lands 05:00 to 09:00, aiming for 06:45
+(`redDep`, `redArr` in `config.json`). A long eastbound flight that no departure
+in that window lands by 09:00 may leave from 17:00 instead (`redDepEvening`), so
+RDU–LHR leaves at 17:35 and lands at 06:43. No route in the shipped network needs
+it.
+
 US demand is real: DOT DB1C Market data, the O&D product that replaced DB1B in
 July 2025, 40% ticket sample, eleven months (Jul 2025 – May 2026).
 

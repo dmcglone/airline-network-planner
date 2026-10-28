@@ -108,13 +108,15 @@ function build(){
         const named = FT_[B]!==undefined && FT_[B]!=="dawn";
         let depX, slk;
         if(isRed && REDEYE_IN.has(B+"|"+night)){
+          // the usual window, or the evening one for a flight too long for it (redeye.js)
+          const W=redeyeWindow(night,B,bo)||RED_DEP;
           let bst=null;
-          for(let m=RED_DEP[0];m<=RED_DEP[1];m+=5){
+          for(let m=W[0];m<=W[1];m+=5){
             if(CURFEW[night] && (m<CURFEW[night][0]||m>CURFEW[night][1])) continue;
             const dX=utc(night,m)-1440, pen=Math.abs(mod(loc(B,dX+bo),1440)-RED_ARR);
             if(!bst||pen<bst[0]) bst=[pen,dX];
           }
-          depX = bst ? bst[1] : utc(night,RED_DEP[0])-1440;
+          depX = bst ? bst[1] : utc(night,W[0])-1440;
           const fb=banks.find(bk=>utc(B,bk) >= depX+bo+MCT-EPS);
           startbank = fb!==undefined ? fb : banks[0];
         } else if(isRed && REDEYE_OUT.has(B+"|"+night)){
@@ -182,8 +184,9 @@ function build(){
           dep = cand.length ? Math.min.apply(null,cand) : Math.min(Math.max(t,utc(B,banks[0])),latest);
         } else dep = Math.min(Math.max(Math.ceil(t/5)*5, utc(B,startbank)), latest);
         if(isRed && REDEYE_OUT.has(B+"|"+night)){
-          let hi=RED_DEP[1]; if(CURFEW[B]) hi=Math.min(hi,CURFEW[B][1]);
-          const want=[]; for(let m=RED_DEP[0];m<=hi;m+=5) want.push(utc(B,m));
+          const W=redeyeWindow(B,night,bi)||RED_DEP;
+          let hi=W[1]; if(CURFEW[B]) hi=Math.min(hi,CURFEW[B][1]);
+          const want=[]; for(let m=W[0];m<=hi;m+=5) want.push(utc(B,m));
           const ok=want.filter(x=>x>=t-EPS&&x<=latest+EPS);
           dep = ok.length ? ok.reduce((a,b)=>Math.abs(mod(loc(night,b+bi),1440)-RED_ARR)<Math.abs(mod(loc(night,a+bi),1440)-RED_ARR)?b:a)
                           : Math.max(t, Math.min.apply(null,want));
@@ -452,7 +455,7 @@ function assemble(legs,lines,rebal,dowOf,FED,FEED_PAIR,merged){
   let tight=0;
   for(const k in mkSeen){ const v=mkSeen[k].slice().sort((a,b)=>a-b);
     for(let i=0;i<v.length-1;i++){ const g=Math.min(v[i+1]-v[i],1440-(v[i+1]-v[i])); if(g<40) tight++; } }
-  const redeyes=flights.filter(f=>(f.dep>=1230||f.dep<=90)&&f.day>0&&f.blk>=3.25&&f.arr>=300&&f.arr<=540).length;
+  const redeyes=flights.filter(isRedeyeFlight).length;
   const nightOdd=flights.filter(f=>!(f.dep>=330&&f.dep<=1410)&&f.blk<4).length;
   const lastDep={};
   for(const f of flights){ if(STA.includes(f.o)) continue;

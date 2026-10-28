@@ -79,7 +79,7 @@ function drawRotTimeline(){
       for(let i = 0; i < L.length; i++){
         const {f, s, e} = L[i];
         // The engine's own red-eye test, so the chart and the Settings count agree.
-        const red = (f.dep >= 1230 || f.dep <= 90) && f.day > 0 && f.blk >= 3.25 && f.arr >= 300 && f.arr <= 540;
+        const red = isRedeyeFlight(f);
         const tip = `${state.code || BRAND.code} ${f.fn} · ${f.o}→${f.d} · dep ${hhmm(f.dep)} ${f.o} · arr ${hhmm(f.arr)} ${f.d} `
           + `(local) · ${hrsHM(f.blk)}${f.gDep ? ` · gate ${f.gDep}` : ""}${red ? " · red-eye" : ""}`;
         bars += seg(`tl-fl${red ? " red" : ""}`, s, e, tip, `<span>${esc(f.d)}</span>`);

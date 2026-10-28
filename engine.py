@@ -31,6 +31,7 @@ REDEYE_IN={("PIT","SJC"),("RDU","SJC"),("MCO","SJC"),("RDU","LAS"),("PIT","LAS")
 # own. The aircraft turns straight round and works its base's afternoon. (base, outstation)
 REDEYE_OUT={("SJC","BOS"),("SJC","EWR"),("SJC","JFK")}
 RED_DEP=(1260,1380)         # a red-eye departs between 21:00 and 23:00 local
+RED_DEP_EVE=(1020,1255)     # or from 17:00, when nothing in 21:00-23:00 lands it by 09:00
 RED_ARR_TARGET=405          # and aims to land about 06:45 local
 SPOKE_EARLIEST=330          # no spoke pushes before 05:30 local
 MIN_MKT_GAP=40
@@ -60,6 +61,16 @@ def block(a,b,t):
     f=FLEET[t]; return f['gnd']+dist(a,b)/f['kt']*60      # minutes
 def loc(ap,utc_min): return utc_min+OFF[ap]
 def utc(ap,local_min): return local_min-OFF[ap]
+def red_window(a,b,blkm):
+    # The usual window when a departure in it lands at b between 05:00 and 09:00,
+    # otherwise the evening one, for a long eastbound overnight (RDU-LHR leaves
+    # 17:35). None when neither lands it. Mirrors redeyeWindow() in redeye.js.
+    sh=OFF[b]-OFF[a]
+    for w in (RED_DEP,RED_DEP_EVE):
+        for m in range(w[0],w[1]+1,5):
+            if a in CURFEW and not(CURFEW[a][0]<=m<=CURFEW[a][1]): continue
+            if 300<=(m+blkm+sh)%1440<=540: return w
+    return None
 def hhmm(m):
     d,m=divmod(int(round(m)),1440); return f"{m//60:02d}:{m%60:02d}",d
 
@@ -181,7 +192,8 @@ for (B,T) in sorted(turns, key=lambda k:(-len(turns[k]),k)):
             if is_red and (B,night) in REDEYE_IN:
                 # push from the outstation late last night so we land at the base around dawn
                 best_r=None
-                for m in range(RED_DEP[0],RED_DEP[1]+1,5):
+                W=red_window(night,B,bo) or RED_DEP
+                for m in range(W[0],W[1]+1,5):
                     if night in CURFEW and not(CURFEW[night][0]<=m<=CURFEW[night][1]): continue
                     dX=utc(night,m)-1440; aB=dX+bo
                     pen=abs(loc(B,aB)%1440-RED_ARR_TARGET)
@@ -267,7 +279,7 @@ for (B,T) in sorted(turns, key=lambda k:(-len(turns[k]),k)):
             else:
                 dep=min(max(math.ceil(t/5)*5, utc(B,startbank)), latest)
             if is_red and (B,night) in REDEYE_OUT:
-                lo_r,hi_r=RED_DEP
+                lo_r,hi_r=red_window(B,night,bi) or RED_DEP
                 if B in CURFEW: hi_r=min(hi_r,CURFEW[B][1])
                 want=[utc(B,m) for m in range(lo_r,hi_r+1,5)]
                 ok=[x for x in want if t-EPS<=x<=latest+EPS]

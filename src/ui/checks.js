@@ -30,7 +30,8 @@ function drawChecks(){
   const F=M.feedStats;
   h+=`<p class="note" style="margin-top:12px"><b>Departure spacing:</b> ${F.tight} same-market pairs depart within 40 minutes of each other; `
    + `${F.nightOdd} short flights sit outside 05:30–23:30; ${F.noAft} spoke cities with three or more departures have nothing after 15:00. `
-   + `${F.redeyes} true red-eyes operate (depart 21:00–23:00, land 05:00–09:00). `
+   + `${F.redeyes} true red-eyes operate (depart ${hhmm(RED_DEP[0])}–${hhmm(RED_DEP[1])}, or from ${hhmm(RED_DEP_EVE[0])} on long `
+   + `flights that can't land by 09:00 otherwise; land 05:00–09:00). `
    + `Adjust under Schedule strategy on the <button class="linkbtn" data-goto="settings">Settings</button> tab.</p>`;
   h+=`<p class="note" style="margin-top:12px"><b>Bank feed:</b> ${F.fed} of ${F.planned} planned spokes got an overnight aircraft; `
    + `${F.early} of ${F.spokes} spoke cities now depart before 07:00. `

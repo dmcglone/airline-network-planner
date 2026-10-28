@@ -58,6 +58,8 @@ let MCT = CFG.mct != null ? CFG.mct : 40;      // minimum connect time, minutes
 const DEFAULT_RED = new Set(CFG.defaultRedEyes || []);
 const pairKey = (a,b) => a<b ? a+"|"+b : b+"|"+a;
 let RED_DEP = (CFG.redDep || [1260,1380]).slice();   // a red-eye departs 21:00–23:00 local
+// unless no departure then lands it by 09:00: a long eastbound overnight (RDU–LHR) leaves from 17:00
+let RED_DEP_EVE = (CFG.redDepEvening || [1020,1255]).slice();
 let RED_ARR = CFG.redArr != null ? CFG.redArr : 405; // and aims to land about 06:45 local
 let SPOKE_EARLIEST = CFG.spokeEarliest != null ? CFG.spokeEarliest : 330;
 const DAWN_STAGGER = CFG.dawnStagger != null ? CFG.dawnStagger : 7;

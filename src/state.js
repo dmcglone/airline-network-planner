@@ -205,7 +205,7 @@ function currentConfig(){
            banks: JSON.parse(JSON.stringify(BANKS)),
            curfew: JSON.parse(JSON.stringify(CURFEW)),
            mct: MCT, spokeEarliest: SPOKE_EARLIEST,
-           redDep: RED_DEP.slice(), redArr: RED_ARR };
+           redDep: RED_DEP.slice(), redDepEvening: RED_DEP_EVE.slice(), redArr: RED_ARR };
 }
 /* A file's config is somebody else's data too: the same rules as cleanState().
    Banks are keyed by role and curfews by station, and both are minutes. Every
@@ -227,6 +227,7 @@ function applyConfig(c){
   if(isNum(c.mct)) MCT = c.mct;
   if(isNum(c.spokeEarliest)) SPOKE_EARLIEST = c.spokeEarliest;
   if(mins(c.redDep) && c.redDep.length===2) RED_DEP = c.redDep.slice();
+  if(mins(c.redDepEvening) && c.redDepEvening.length===2) RED_DEP_EVE = c.redDepEvening.slice();
   if(isNum(c.redArr)) RED_ARR = c.redArr;
 }
 /* the headline numbers, as the KPI strip shows them — the acceptance test */
