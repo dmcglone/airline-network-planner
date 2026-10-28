@@ -198,9 +198,13 @@ tfoot td{padding:8px 10px;border-top:1px solid var(--line);font-weight:600;backg
 .dot.stn{fill:var(--accent);stroke:var(--surface);stroke-width:2px}
 .dot.spk{fill:var(--steel);stroke:var(--surface);stroke-width:1px}
 .dot.mute{opacity:.22}
-.plane path{fill:var(--livery);stroke:var(--surface);stroke-width:1.4px;opacity:.95}
-.plane.on path{fill:var(--bad);stroke-width:1.5px}
-.plane{cursor:pointer}
+/* the silhouette is a <use>, so it takes its paint from the group; the outline
+   sits behind the fill, where it cannot thin the wings */
+.plane{cursor:pointer;fill:var(--livery);stroke:var(--surface);paint-order:stroke;stroke-linejoin:round;opacity:.95}
+.plane.on{fill:var(--bad)}
+.plane circle{fill:transparent;stroke:none}
+.mapwrap svg.legplane{display:inline-block;width:14px;height:14px;vertical-align:-3px;margin-right:3px;
+  fill:var(--livery);cursor:inherit}
 .dotlab{font-family:var(--mono);font-weight:600;fill:var(--ink);paint-order:stroke;
   stroke:var(--surface-2);pointer-events:none;dominant-baseline:middle}
 .mapctl{position:absolute;top:10px;left:10px;display:flex;gap:5px;flex-wrap:wrap;z-index:5}

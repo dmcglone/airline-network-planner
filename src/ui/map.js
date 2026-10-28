@@ -37,6 +37,12 @@ function gcPoint(a,b,f){
   return {lat: Math.atan2(z,Math.sqrt(x*x+y*y))/r, lon: Math.atan2(y,x)/r};
 }
 function ringPath(r){ return "M"+r.map(p=>{const q=merc(p[0],p[1]);return q[0].toFixed(2)+" "+q[1].toFixed(2);}).join("L"); }
+/* An airliner from above, nose up, one unit from nose to tail: wings swept 25
+   degrees and spanning 0.94 of the length, as the A320's do, and a tailplane.
+   The fuselage is drawn a little wider than life so it still reads at 8 px.
+   Defined once in the map and placed with <use>, like the fin on the board. */
+const PLANE_TOP = "M0 -.5C.035 -.5 .062 -.46 .062 -.4L.062 -.1L.47 .11L.47 .16L.062 .08L.052 .32L.17 .41L.17 .45L.028 .44L.012 .5"
+  + "L-.012 .5L-.028 .44L-.17 .45L-.17 .41L-.052 .32L-.062 .08L-.47 .16L-.47 .11L-.062 -.1L-.062 -.4C-.062 -.46 -.035 -.5 0 -.5Z";
 
 function fitView(all){
   let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
@@ -96,7 +102,7 @@ function drawMap(){
   $("#ramp").innerHTML=RAMP.map(c=>`<i style="background:${c}"></i>`).join("");
   $("#mapCount").textContent=`${fmt(mkts.length)} markets · ${fmt(Object.keys(M.apStats).length)} airports`;
   const active = c => !fs || c===fs;
-  let h = `<g>${LAND.map(r=>`<path class="land" d="${ringPath(r)}Z"/>`).join("")}</g>`
+  let h = `<defs><path id="planeTop" d="${PLANE_TOP}"/></defs><g>${LAND.map(r=>`<path class="land" d="${ringPath(r)}Z"/>`).join("")}</g>`
         + `<g>${BORD.map(r=>`<path class="bord" d="${ringPath(r)}"/>`).join("")}</g><g id="arcs">`;
   // A route line is a pixel or three wide, too thin to tap on a phone, so each
   // one gets a wide transparent twin on top that takes the hover and the tap.
@@ -209,13 +215,23 @@ function drawPlanes(){
   if(!LIVE.on){ g.innerHTML=""; $("#liveStat").textContent=""; return; }
   const fs=$("#mStation").value, ft=$("#mType").value;
   const now=liveClock(), all=airborne(now), list=airborne(now,{st:fs,ty:ft});
-  const k=VIEW.w/(svg.clientWidth||1000), sz=(6.5*k).toFixed(3);
+  const k=VIEW.w/(svg.clientWidth||1000);
+  // Types are drawn to scale with each other, by the length the hangar uses. The
+  // longest is 8 to 16 px: small on the overview, where two hundred aircraft can
+  // share a phone-sized map, and larger as you zoom in.
+  const len={}; let Lmax=1;
+  for(const f of state.fleet){ len[f.t]=sideDims(f).L; Lmax=Math.max(Lmax,len[f.t]); }
+  const top=Math.min(16,Math.max(8,1.1/k));
   g.innerHTML=list.map(a=>{
     const m1=merc(a.p.lon,a.p.lat), m2=merc(a.q.lon,a.q.lat);
     const ang=Math.atan2(m2[1]-m1[1],m2[0]-m1[0])*180/Math.PI+90;
-    const on=LIVE.sel===a.f.fn;
-    return `<g transform="translate(${m1[0].toFixed(3)} ${m1[1].toFixed(3)}) rotate(${ang.toFixed(1)})" class="plane${on?" on":""}" data-fn="${a.f.fn}">`
-      + `<path d="M0,${-sz} L${sz*0.62},${sz*0.8} L0,${sz*0.42} L${-sz*0.62},${sz*0.8} Z" vector-effect="non-scaling-stroke"/></g>`;
+    const on=LIVE.sel===a.f.fn, px=top*(len[a.f.t]||Lmax)/Lmax*(on?1.4:1);
+    // One unit is px pixels here, so the outline and the tap circle are set in
+    // pixels by dividing by it. The circle keeps a small plane as easy to tap
+    // as the arrowhead it replaced.
+    return `<g transform="translate(${m1[0].toFixed(3)} ${m1[1].toFixed(3)}) rotate(${ang.toFixed(1)}) scale(${(px*k).toFixed(4)})"`
+      + ` class="plane${on?" on":""}" data-fn="${a.f.fn}" stroke-width="${(1.6/px).toFixed(3)}">`
+      + `<circle r="${Math.max(0.6,6/px).toFixed(2)}"/><use href="#planeTop"/></g>`;
   }).join("");
   // Filtered to a station, the clock is that station's: banks are planned in local time.
   const t=mod(fs ? loc(fs,now) : now,1440), hh=Math.floor(t/60), mm=Math.floor(t%60);
