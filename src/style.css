@@ -605,6 +605,24 @@ td.code .fin{ margin-right:5px }
 @media (max-width:640px){ .kpis.head{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:2px 12px 10px}
   .kpis.head .kpi{min-width:0;padding:6px 10px} .kpis.head .kpi .v{font-size:20px} .kpis.head .kpi .knote{white-space:normal} }
 #tRoutes .neg{color:var(--bad)}
+/* The route grid's boxes show their number and nothing else until the row is
+   hovered or the box focused, so the first screen is not a wall of empty fields.
+   They stay inputs. A touch screen has no hover, so there they keep a faint edge. */
+#tRoutes input[type=number]{background:transparent;border-color:transparent}
+#tRoutes tr:hover input[type=number],#tRoutes input[type=number]:focus{background:var(--surface-2);border-color:var(--line)}
+@media (hover:none){ #tRoutes input[type=number]{border-color:var(--line-2)} }
+/* economics: one-colour bars, square where they start and rounded where they end */
+.tbar{display:inline-block;height:10px;background:var(--accent);opacity:.75;border-radius:0 4px 4px 0;vertical-align:-1px}
+.sharecell{display:flex;align-items:center;gap:8px}
+.bb-row{display:grid;grid-template-columns:52px 64px minmax(0,1fr) 84px 92px;gap:10px;align-items:center;
+  padding:8px 16px;border-bottom:1px solid var(--line-2);font-size:13px}
+.bb-row:last-child{border-bottom:0}
+.bb-row .num.bad{color:var(--bad)}
+.bb-track{position:relative;height:12px}
+.bb-bar{position:absolute;top:0;height:100%;background:var(--accent);opacity:.75;border-radius:0 4px 4px 0}
+.bb-bar.neg{background:var(--bad);border-radius:4px 0 0 4px}
+.bb-zero{position:absolute;top:-4px;bottom:-4px;width:1px;background:var(--line)}
+@media (max-width:640px){ .bb-row{grid-template-columns:44px minmax(0,1fr) 76px} .bb-row > :nth-child(2),.bb-row .bb-n{display:none} }
 .cutv{white-space:nowrap}
 .cutv .gi-why{white-space:normal}
 .cuta{white-space:nowrap;text-align:right}

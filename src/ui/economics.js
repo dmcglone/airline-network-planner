@@ -76,16 +76,45 @@ function drawEcon(){
         `${fmt(Math.round(R.stats.conn))} of ${fmt(Math.round(R.stats.pax))} passengers`)
   ].join("");
 
-  // cost stack
+  // contribution by base: every flight belongs to one rotation and so to one
+  // base, so the bases add up to the contribution in the figures above
+  const bases = new Map();
+  for(const {f, cost} of C.flights){
+    const b = bases.get(f.base) || bases.set(f.base, {b:f.base, rev:0, direct:0}).get(f.base);
+    b.rev += R.legrev.get(f.id) || 0; b.direct += cost.direct;
+  }
+  const bl = [...bases.values()].map(x => Object.assign(x, {c: x.rev - x.direct,
+    tails: M.rots.filter(r => r.base === x.b).length})).sort((x,y) => y.c - x.c);
+  // one base is the figure above again, so the chart only shows from two
+  $("#econBasesPanel").hidden = bl.length < 2;
+  const lo = Math.min(0, ...bl.map(x => x.c)), hi = Math.max(0, ...bl.map(x => x.c)), span = (hi - lo) || 1;
+  const zero = -lo / span * 100;
+  $("#econBases").innerHTML = bl.map(x => {
+    const w = Math.abs(x.c) / span * 100, left = x.c < 0 ? zero - w : zero, role = ROLE[x.b] || "P2P";
+    return `<div class="bb-row" title="${esc(x.b)}: revenue ${moneyK(x.rev)}, direct cost ${moneyK(x.direct)} a day">`
+      + `<span class="code">${esc(x.b)}</span>`
+      + `<span><span class="chip${role === "Hub" ? " hub" : role === "Focus" ? " focus" : ""}">${esc(ROLE_SHORT[role] || role)}</span></span>`
+      + `<span class="bb-track">${lo < 0 ? `<i class="bb-zero" style="left:${zero.toFixed(2)}%"></i>` : ""}`
+      + `<i class="bb-bar${x.c < 0 ? " neg" : ""}" style="left:${left.toFixed(2)}%;width:${w.toFixed(2)}%"></i></span>`
+      + `<span class="num mono${x.c < 0 ? " bad" : ""}">${moneyK(x.c)}</span>`
+      + `<span class="dim bb-n">${fmt(x.tails)} aircraft</span></div>`;
+  }).join("");
+
+  // cost stack: overhead is listed so the shares add up to the whole
   const els = [["fuel","Fuel"],["crew","Crew"],["maint","Maintenance"],
                ["landing","Landing fees"],["handling","Ground handling"],
-               ["own","Ownership"]];
+               ["own","Ownership"],["overhead","Overhead"]];
+  const part = k => k === "overhead" ? T.allocated - T.direct - T.own : T[k];
+  const topShare = Math.max(...els.map(([k]) => part(k) / T.allocated));
   let h = `<table><thead><tr><th>Cost element</th><th class="num">Per day</th>`
-    + `<th class="num">¢/ASM</th><th class="num">Share</th></tr></thead><tbody>`;
-  for(const [k,label] of els)
-    h += `<tr><td>${label}</td><td class="num mono">${moneyK(T[k])}</td>`
-      + `<td class="num mono">${(T[k]/T.asm*100).toFixed(2)}</td>`
-      + `<td class="num mono dim">${Math.round(T[k]/T.allocated*100)}%</td></tr>`;
+    + `<th class="num">¢/ASM</th><th>Share of fully allocated</th></tr></thead><tbody>`;
+  for(const [k,label] of els){
+    const s = part(k) / T.allocated;
+    h += `<tr><td>${label}</td><td class="num mono">${moneyK(part(k))}</td>`
+      + `<td class="num mono">${(part(k)/T.asm*100).toFixed(2)}</td>`
+      + `<td style="width:38%"><span class="sharecell"><span class="tbar" style="width:${(s/topShare*82).toFixed(1)}%"></span>`
+      + `<span class="mono dim">${Math.round(s*100)}%</span></span></td></tr>`;
+  }
   h += `<tr><td><b>Direct</b></td><td class="num mono"><b>${moneyK(T.direct)}</b></td>`
     + `<td class="num mono"><b>${(T.direct/T.asm*100).toFixed(2)}</b></td><td></td></tr>`;
   h += `<tr><td><b>Fully allocated</b></td><td class="num mono"><b>${moneyK(T.allocated)}</b></td>`
@@ -102,9 +131,7 @@ function drawEcon(){
     h += `<tr><td>${label}</td><td class="num mono">${fmt(b.deps)}</td>`
       + `<td class="num mono">${b.casm.toFixed(2)}</td>`
       + `<td class="num mono">${fmt(Math.round(b.perDep))}</td>`
-      + `<td style="width:38%"><span style="display:inline-block;height:9px;`
-      + `border-radius:3px;background:var(--accent);opacity:.7;`
-      + `width:${(b.casm/worst*100).toFixed(1)}%"></span></td></tr>`;
+      + `<td style="width:38%"><span class="tbar" style="width:${(b.casm/worst*100).toFixed(1)}%"></span></td></tr>`;
   }
   h += `</tbody></table>`;
   $("#econStage").innerHTML = h;
