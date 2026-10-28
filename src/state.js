@@ -224,11 +224,16 @@ function applyConfig(c){
       pick(c.banks, ([k, v]) => own(ROLE_LABEL, k) && mins(v)))));
   if(c.curfew && typeof c.curfew==="object")
     CURFEW = JSON.parse(JSON.stringify(pick(c.curfew, ([k, v]) => isStationCode(k) && mins(v) && v.length===2)));
-  if(isNum(c.mct)) MCT = c.mct;
-  if(isNum(c.spokeEarliest)) SPOKE_EARLIEST = c.spokeEarliest;
-  if(mins(c.redDep) && c.redDep.length===2) RED_DEP = c.redDep.slice();
-  if(mins(c.redDepEvening) && c.redDepEvening.length===2) RED_DEP_EVE = c.redDepEvening.slice();
-  if(isNum(c.redArr)) RED_ARR = c.redArr;
+  // Minutes of the day, and windows of them. The engine walks a red-eye window and
+  // the spoke push hours in 5-minute steps, so a window like [0, 1e15] or a push
+  // hour of -1e15 from somebody else's file would hang the page that opened it.
+  const minute = x => isNum(x) && x >= 0 && x <= 1440;
+  const win = a => Array.isArray(a) && a.length===2 && a.every(minute) && a[0] <= a[1];
+  if(minute(c.mct)) MCT = c.mct;
+  if(minute(c.spokeEarliest)) SPOKE_EARLIEST = c.spokeEarliest;
+  if(win(c.redDep)) RED_DEP = c.redDep.slice();
+  if(win(c.redDepEvening)) RED_DEP_EVE = c.redDepEvening.slice();
+  if(minute(c.redArr)) RED_ARR = c.redArr;
 }
 /* the headline numbers, as the KPI strip shows them — the acceptance test */
 function headline(){

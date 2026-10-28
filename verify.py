@@ -168,7 +168,27 @@ def check_untrusted(b, pg, page_url):
         except Exception as e:      # a load that throws is a failure to report, not to stop on
             out.append((how, False, "threw: " + str(e).splitlines()[0][:160]))
         sp.close()
+    out.append(_config_bounds(b, page_url))
     return out
+
+def _config_bounds(b, page_url):
+    """A file's config numbers become loop bounds. Until 28 Oct 2026 a red-eye
+    window like [0, 1e15] or a spoke push hour of -1e15 was taken, and the
+    engine's 5-minute walk over it hung the page that opened the file. Refused
+    values must leave the config as it was. This calls applyConfig() without a
+    rebuild, so a regression fails here instead of hanging the test."""
+    sp = b.new_page()
+    try:
+        sp.goto(page_url); sp.wait_for_timeout(3000)
+        r = sp.evaluate("""() => { const was = JSON.stringify(currentConfig());
+          applyConfig({redDep: [0, 1e15], redDepEvening: [1e15, 0], spokeEarliest: -1e15, redArr: 1e15, mct: -5});
+          const now = JSON.stringify(currentConfig()); return {same: was === now, now}; }""")
+        return ("config numbers", r["same"], "out-of-day windows and minutes refused" if r["same"]
+                else "taken: " + r["now"][:220])
+    except Exception as e:
+        return ("config numbers", False, "threw: " + str(e).splitlines()[0][:160])
+    finally:
+        sp.close()
 
 def _open_and_tour(sp, errs, how, pg, page_url, crafted):
     if how == "Share link":
