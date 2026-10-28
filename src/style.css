@@ -283,6 +283,20 @@ td.code .fin{ margin-right:5px }
 .pl-edge,.pl-detail{ stroke:var(--plane-line); stroke-width:1px; vector-effect:non-scaling-stroke; stroke-linejoin:round }
 .pl-detail{ fill:none; opacity:.6 }
 .pl-hinge{ fill:none; stroke:rgba(0,0,0,.18); stroke-width:1px; vector-effect:non-scaling-stroke }
+/* the hangar: the fleet side on and to scale, standing on one ground line. On a
+   phone the line scrolls sideways rather than stacking into a screenful. */
+.hangar{ display:flex; flex-wrap:wrap; align-items:flex-start; gap:16px 30px; padding:16px 20px 14px; border-bottom:1px solid var(--line-2) }
+.hangar:empty{ display:none }
+.hg-a{ display:flex; flex-direction:column; align-items:flex-start; gap:3px; background:none; border:0; padding:6px;
+  margin:-6px; border-radius:8px; cursor:pointer; font:inherit; color:inherit; text-align:left }
+.hg-a:hover{ background:var(--surface-2) }
+.hg-a:focus-visible{ outline:2px solid var(--accent); outline-offset:2px }
+.hg-ac{ display:flex; align-items:flex-end; height:var(--hg-h, auto) }
+.hg-ac .sideview{ max-width:none }
+.hg-n{ font-family:var(--disp); font-size:22px; font-weight:600; line-height:1; margin-top:3px }
+.hg-n small{ font-family:var(--mono); font-size:12px; font-weight:600; color:var(--ink-2); margin-left:6px; letter-spacing:.04em }
+.hg-s{ font-size:11.5px; color:var(--ink-3) } .hg-s.bad{ color:var(--bad) }
+@media (max-width:760px){ .hangar{ flex-wrap:nowrap; overflow-x:auto; gap:22px; padding:12px 12px 10px } .hg-a{ flex:none } }
 .sm-side{ padding-bottom:0 }
 .sm-side .sideview{ max-width:440px }
 

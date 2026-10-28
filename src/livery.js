@@ -140,20 +140,25 @@ const TAIL_MARK = "translate(20.8 12.6) scale(1.15) translate(-12.7 -13.6)";
    engines "rear" (ERJ-145, CRJ) gets them on the rear fuselage under a T-tail;
    every other type hangs them under the wing. The airframe is white in either
    theme; the fin, tail, cheatline and engines wear the livery. */
-function liverySideView(f, px){
+// A user-added type's geometry can arrive in somebody else's shared link, and
+// these numbers go into markup: make them numbers first. With a string, "+"
+// would concatenate and carry the string into the SVG.
+const lvNum = (v, lo, hi, d) => { const n = Number(v); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
+/* The airframe's overall size, in inches. The hangar draws types to scale with
+   each other by these. */
+function sideDims(f){
   const g = (f && f.geom) || {};
-  // A user-added type's geometry can arrive in somebody else's shared link, and
-  // these numbers go into markup: make them numbers first. With a string, "+"
-  // would concatenate and carry the string into the SVG.
-  const num = (v, lo, hi, d) => { const n = Number(v); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
-  const r1 = v => +v.toFixed(1);
-  const ab = num(g.abreast && g.abreast.Y, 1, 10, 6);
-  const D = ab >= 5 ? 156 : ab >= 4 ? 118 : 92;          // fuselage depth, inches
+  const ab = lvNum(g.abreast && g.abreast.Y, 1, 10, 6);
+  const D = ab >= 5 ? 156 : ab >= 4 ? 118 : 92;          // fuselage depth
   const rear = g.engines === "rear", regional = D < 140;
-  const cab = num(g.cabinLength, 200, 3000, 1000);
+  const cab = lvNum(g.cabinLength, 200, 3000, 1000);
   const Ln = D * (rear ? 1.7 : regional ? 1.2 : 1.05);   // nose ahead of the cabin
   const Lt = D * (rear ? 3.9 : regional ? 2.4 : 1.5);    // tail cone behind it
-  const L = Ln + cab + Lt;
+  return {g, D, rear, regional, cab, Ln, Lt, L: Ln + cab + Lt};
+}
+function liverySideView(f, px){
+  const {g, D, rear, regional, cab, Ln, Lt, L} = sideDims(f), num = lvNum;
+  const r1 = v => +v.toFixed(1);
   const finH = D * (rear ? 1.55 : regional ? 1.9 : 1.5);
   const ground = D * (rear ? 1.36 : regional ? 1.42 : 1.5);
   const tt = D * 0.32;                                   // the tail tip's height on the body

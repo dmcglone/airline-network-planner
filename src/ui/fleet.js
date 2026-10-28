@@ -1,7 +1,35 @@
 /* ----- fleet ----- */
+/* The hangar: every type side on in the livery, to scale with each other and
+   standing on one ground line, with what you own and what flies. It reads the
+   same figures as the table below. Clicking a type opens its seatmap. */
+function drawHangar(){
+  const h=$("#hangar"); if(!h) return;
+  const types=M.fleet.map(x=>({x, f:state.fleet.find(y=>y.t===x.t)})).filter(a=>a.f);
+  const widthOf=f=>{ const d=sideDims(f); return d.L+d.D*0.1; };
+  const maxW=Math.max(1,...types.map(a=>widthOf(a.f))), maxPx=innerWidth>760?230:170;
+  let tallest=0;
+  h.innerHTML=types.map(({x,f})=>{
+    const px=Math.round(maxPx*widthOf(f)/maxW), svg=liverySideView(f,px);
+    const vb=/viewBox="\S+ \S+ (\S+) (\S+)"/.exec(svg);
+    if(vb) tallest=Math.max(tallest, px*vb[2]/vb[1]);
+    const flying=x.tails-(x.short>0?x.short:0), spare=Math.max(0,x.roster-flying);
+    return `<button class="hg-a" type="button" data-hgtype="${esc(x.t)}" title="Open the ${esc(x.t)} seatmap">`
+      +`<span class="hg-ac">${svg}</span>`
+      +`<span class="hg-n">${fmt(x.roster)}<small>${esc(x.t)}</small></span>`
+      +`<span class="hg-s">${fmt(flying)} flying · ${fmt(spare)} spare · ${fmt(x.seats)} seats</span>`
+      +(x.short>0?`<span class="hg-s bad">${fmt(x.short)} rotation${x.short===1?"":"s"} can't be flown</span>`:"")
+      +`</button>`;}).join("");
+  h.style.setProperty("--hg-h", Math.ceil(tallest)+"px");
+  h.querySelectorAll("[data-hgtype]").forEach(b=>b.onclick=()=>{
+    smType=b.dataset.hgtype; smAdding=false; smRenaming=false; drawSeatmap();
+    const p=$("#seatmapPanel"); if(p) p.scrollIntoView({behavior:"smooth", block:"start"});
+  });
+}
+
 /* One table: what the schedule needs of each type, and what you own. It used to be
    two tables that repeated each other's first half. */
 function drawRoster(){
+  drawHangar();
   const t=$("#tFleet"); const F=M.fleet, T=M.totals;
   const sp=Math.round((state.spare===undefined?0.08:state.spare)*100);
   $("#spareNote").innerHTML=`Needed includes ${sp}% spares · <button class="linkbtn" data-goto="settings">change</button>`;
