@@ -81,6 +81,8 @@ function drawKpis(){
   host.innerHTML = money + lf + air + fl + chk;
   const ks = $("#kstrip"); if(ks) ks.innerHTML = strip.join("");
   if(typeof drawMission === "function") drawMission();
+  // after drawMission(), which logs a new best, so the stars count it
+  if(typeof missionsKpi === "function") host.insertAdjacentHTML("beforeend", missionsKpi());
 }
 
 /* ---- Network table ---- */

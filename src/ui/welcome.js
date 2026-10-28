@@ -91,7 +91,14 @@ function welcomeEvent(t){
   if(!t || !t.dataset) return false;
   if(t.dataset.welclose){ welcomeOpen = false; welcomeFirst = false; drawWelcome(); return true; }
   if(!t.dataset.starter) return false;
-  const id = t.dataset.starter;
+  startAirline(t.dataset.starter);
+  return true;
+}
+
+/* Swap in a starting airline: a starter, the full example or an empty one. The
+   welcome cards and the Missions panel both start here, so Undo brings the old
+   airline back either way. False when the starter cannot be loaded. */
+function startAirline(id){
   if(id === "__example"){
     state = baseline();
   } else if(id === "__empty"){
@@ -105,7 +112,7 @@ function welcomeEvent(t){
     state.fleet = state.fleet.filter(f => f.t === "A320");
     state.brand = "My Airline"; state.code = "XX"; state.codeSetByUser = false;
   } else if(!loadStarter(id)){
-    return true;
+    return false;
   }
   state.origin = id;            // which card this airline came from, for the "open now" tag
   welcomeOpen = false; welcomeFirst = false; drawWelcome();

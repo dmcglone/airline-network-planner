@@ -160,6 +160,7 @@ document.addEventListener("click", e=>{
   if(b && b.dataset && b.dataset.growscope){ growScope = b.dataset.growscope; drawSuggest(); return; }
   if(b && b.dataset && b.dataset.gloss){ showGlossTerm(b.dataset.gloss); return; }
   if(b && b.dataset && b.dataset.help){ helpSection = b.dataset.help; drawModel(); return; }
+  if(typeof missionsEvent==="function" && missionsEvent(b)) return;
   if(typeof welcomeEvent==="function" && welcomeEvent(b)) return;
     if(typeof stationEvent==="function" && stationEvent(b)) return;
     if(typeof smEvent==="function" && smEvent(b)) return;

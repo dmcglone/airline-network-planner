@@ -13,6 +13,8 @@ function pageSource(){
   {const e=c.querySelector("#kstrip"); if(e) e.innerHTML="";}
   {const e=c.querySelector("#pinbar"); if(e) e.classList.remove("stuck");}
   {const e=c.querySelector("#missionCard"); if(e){ e.innerHTML=""; e.hidden=true; }}
+  {const e=c.querySelector("#missionCardSuggest"); if(e){ e.innerHTML=""; e.hidden=true; }}
+  {const e=c.querySelector("#missionsPanel"); if(e){ e.innerHTML=""; e.hidden=true; }}
   {const e=c.querySelector("#readout"); if(e){ e.innerHTML=""; e.hidden=true; }}
   // the livery is drawn from state at boot, like everything else above
   {const e=c.querySelector("#liveryCss"); if(e) e.remove();}

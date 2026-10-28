@@ -136,13 +136,15 @@ const missionLogLine = (mi, rec) => rec && rec.values && rec.values.length === m
 const starsHTML = (n, of) => `<span class="stars" role="img" aria-label="${n} of ${of} stars">`
   + Array.from({length: of}, (_, i) => `<span${i < n ? ` class="on"` : ""}>★</span>`).join("") + `</span>`;
 
-/* The card at the top of the Network tab. Drawn with the header figures, so it
-   fills in when the money arrives. */
+/* The card at the top of the Network tab, and of Suggestions, where the moves
+   that shift the objectives are. Drawn with the header figures, so it fills in
+   when the money arrives. */
+const MISSION_HOSTS = ["#missionCard", "#missionCardSuggest"];
 function drawMission(){
-  const host = $("#missionCard"); if(!host) return;
+  const hosts = MISSION_HOSTS.map(s => $(s)).filter(Boolean); if(!hosts.length) return;
   const mi = activeMission();
-  host.hidden = !mi;
-  if(!mi){ host.innerHTML = ""; return; }
+  for(const h of hosts) h.hidden = !mi;
+  if(!mi){ for(const h of hosts) h.innerHTML = ""; return; }
   const E = econReady();
   const S = E ? missionScore(M, E, mi) : null;
   if(S) missionRecord(mi.id, S);
@@ -152,7 +154,7 @@ function drawMission(){
     return `<li class="${r && r.met ? "met" : ""}"><span class="mo-mark" aria-hidden="true">${r && r.met ? "✓" : "○"}</span>`
       + `<span>${objectiveLabel(o)}</span><span class="mo-v">${r ? objectiveShown(o, r.value) : "…"}</span></li>`;
   }).join("");
-  host.innerHTML = `<h2>${esc(mi.title)} <span class="sub">Mission</span>${S ? starsHTML(S.stars, of) : ""}</h2>`
+  const html = `<h2>${esc(mi.title)} <span class="sub">Mission</span>${S ? starsHTML(S.stars, of) : ""}</h2>`
     + `<div class="pad"><p class="note">${esc(mi.brief)}</p><ul class="mission-obj">${rows}</ul>`
     + (S && S.stars === of ? `<p class="mission-play">${PLAY_BUTTON}`
         + `<span class="dim">Your schedule on the map, one day in about a minute.</span></p>` : "")
@@ -164,8 +166,84 @@ function drawMission(){
     + `<p class="note dim mission-foot">`
     + (S && !S.checksOk ? `<b>No stars while a check is failing.</b> Fix it on the Checks tab first. ` : "")
     + `Every mission is checked to be winnable each time the planner is built.</p></div>`;
-  const pb = host.querySelector("[data-playday]"); if(pb) pb.onclick = playMissionDay;
+  for(const h of hosts){
+    h.innerHTML = html;
+    const pb = h.querySelector("[data-playday]"); if(pb) pb.onclick = playMissionDay;
+  }
 }
+
+/* ----- the Missions card and panel -----
+   A mission lived only on the welcome cards, which a returning visitor never
+   sees again. The header's row of figures now ends with a Missions card: the
+   stars won so far, and the mission open now. It opens a panel of every mission
+   with its brief, its objectives against your best, and Play. Playing swaps the
+   airline exactly as a welcome card does, so Undo brings yours back. */
+let missionsOpen = false;
+const allMissions = () => (typeof STARTERS !== "undefined" ? STARTERS : [])
+  .filter(s => s.mission).map(s => ({s, mi: missionOf(s.id)}));
+function missionStars(){
+  return allMissions().reduce((t, {mi}) => [t[0] + missionBest(mi.id), t[1] + mi.objectives.length], [0, 0]);
+}
+/* The card after the four figures. Drawn after drawMission(), so a star won by
+   this build is already counted. */
+function missionsKpi(){
+  if(!allMissions().length) return "";
+  const [n, of] = missionStars(), on = activeMission();
+  return `<button class="kpi clickable missions-kpi" data-missions="open" title="A small airline, three objectives, a star for each">`
+    + `<span class="k">Missions</span><span class="v"><span class="mk-star" aria-hidden="true">★</span>${fmt(n)}`
+    + `<small>of ${fmt(of)} stars</small></span>`
+    + `<span class="knote">${on ? "On: " + esc(on.title) : "Play a mission"}</span></button>`;
+}
+function drawMissionsPanel(){
+  const host = $("#missionsPanel"); if(!host) return;
+  host.hidden = !missionsOpen;
+  if(!missionsOpen){ host.innerHTML = ""; return; }
+  const cards = allMissions().map(({s, mi}) => {
+    const rec = missionLog(mi.id), of = mi.objectives.length, now = state.origin === mi.id;
+    // each objective against your best run, ticked where that run met it
+    const rows = mi.objectives.map((o, i) => {
+      const v = rec && rec.values && rec.values.length === of ? rec.values[i] : null, met = v !== null && objectiveMet(o, v);
+      return `<li class="${met ? "met" : ""}"><span class="mo-mark" aria-hidden="true">${met ? "✓" : "○"}</span>`
+        + `<span>${objectiveLabel(o)}</span><span class="mo-v">${v !== null ? objectiveShown(o, v) : ""}</span></li>`; }).join("");
+    const ex = s.expect || {};
+    return `<div class="ms-card${now ? " now" : ""}"><div class="ms-head"><span class="wc-name">${esc(mi.title)}</span>`
+      + (now ? `<span class="wc-now">Open now</span>` : "") + starsHTML(rec ? rec.stars : 0, of) + `</div>`
+      + `<span class="ms-from">From ${esc(s.name.toLowerCase())}: ${fmt(ex.routes || 0)} routes, ${fmt(ex.roster || 0)} aircraft</span>`
+      + `<p class="note">${esc(mi.brief)}</p><ul class="mission-obj">${rows}</ul>`
+      + `<span class="wc-best">${rec && rec.stars ? "Your best" + (rec.at ? ", " + logDay(rec.at) : "") : "Not flown yet"}</span>`
+      + `<div class="ms-foot"><button class="btn${now ? "" : " primary"}" data-mplay="${esc(mi.id)}">`
+      + `${now ? "Start again" : rec && rec.stars ? "Play again" : "Play"}</button></div></div>`;
+  }).join("");
+  const [n, of] = missionStars();
+  host.innerHTML = `<div class="welcome-inner" role="dialog" aria-modal="true" aria-labelledby="missionsH">`
+    + `<h2 id="missionsH">Missions <span class="ms-total">${fmt(n)} of ${fmt(of)} stars</span></h2>`
+    + `<p class="note">Each mission is a small airline with three objectives, a star for each. No star counts while any `
+    + `of the ten checks fails, and every mission is checked to be winnable each time the planner is built. Your best `
+    + `is kept in this browser.</p>`
+    + `<div class="ms-list">${cards}</div>`
+    + `<div class="toolbar" style="padding-left:0"><button class="btn sm" data-msclose="1">Close</button>`
+    + `<span class="dim" style="font-size:12.5px">Playing replaces your airline: routes, bases and aircraft types. `
+    + `Undo brings it back.</span></div></div>`;
+  const first = host.querySelector("[data-mplay]"); if(first) first.focus();
+}
+/* Clicks from the page's one delegated handler (events.js). */
+function missionsEvent(t){
+  if(!t) return false;
+  if(t.id === "missionsPanel" || (t.dataset && t.dataset.msclose)){
+    if(!missionsOpen) return false;
+    missionsOpen = false; drawMissionsPanel(); return true; }
+  if(!t.dataset) return false;
+  if(t.dataset.missions){ missionsOpen = true; drawMissionsPanel(); return true; }
+  if(t.dataset.mplay){
+    missionsOpen = false; drawMissionsPanel();
+    if(startAirline(t.dataset.mplay)) goTab("network");
+    return true;
+  }
+  return false;
+}
+document.addEventListener("keydown", e => {
+  if(e.key === "Escape" && missionsOpen){ missionsOpen = false; drawMissionsPanel(); }
+});
 
 /* ----- the day, played back -----
    A network holding every star can be watched: one day on the map from 03:00 at

@@ -344,6 +344,29 @@ td.code .fin{ margin-right:5px }
 .ps-bar i{ display:block; height:100%; width:0; background:var(--accent) }
 .wc-mission{ display:flex; align-items:baseline; gap:8px; font-size:12px; color:var(--ink-2) }
 .wc-mission .stars{ margin-left:0; font-size:14px; letter-spacing:1px }
+/* the Missions card, after the four header figures, and the panel it opens */
+.kpis.head .kpi.missions-kpi{ background:var(--accent-soft); border-color:color-mix(in srgb, var(--accent) 35%, transparent) }
+.kpis.head .kpi.missions-kpi:hover{ border-color:var(--accent) }
+.missions-kpi .v .mk-star{ color:var(--accent); font-size:.8em; margin-right:4px }
+@media (max-width:640px){ .kpis.head .kpi.missions-kpi{ grid-column:1/-1 } }
+#missionsPanel{ position:fixed; inset:0; z-index:60; background:rgba(0,0,0,.55); display:flex; align-items:flex-start;
+  justify-content:center; overflow:auto; padding:40px 20px }
+#missionsPanel[hidden]{ display:none }
+.ms-total{ font-family:var(--sans); font-size:14px; font-weight:400; color:var(--ink-3); letter-spacing:0 }
+.ms-list{ display:grid; gap:12px; margin:16px 0 8px; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)) }
+.ms-card{ background:var(--surface-2); border:1px solid var(--line); border-radius:9px; padding:14px 16px;
+  display:flex; flex-direction:column; gap:6px }
+.ms-card.now{ border-color:var(--accent) }
+.ms-head{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap }
+.ms-head .wc-name{ font-size:17px }
+.ms-head .stars{ font-size:17px }
+.ms-from{ font-size:12px; color:var(--ink-3) }
+.ms-card .note{ margin:2px 0 0 }
+.ms-card .mission-obj{ margin:6px 0 2px }
+.ms-card .mission-obj li{ font-size:13px }
+.ms-foot{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px }
+@media (max-width:760px){ #missionsPanel{ padding:10px 8px; align-items:stretch } .ms-list{ grid-template-columns:1fr } }
+
 /* the logbook: a mission's best result, on its welcome card and its mission card */
 .wc-best{ font-family:var(--mono); font-size:11.5px; color:var(--ink-3); font-variant-numeric:tabular-nums }
 /* a note's type without being a .note, so the glossary leaves its figures alone */
