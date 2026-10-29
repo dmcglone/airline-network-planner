@@ -267,8 +267,12 @@ $("#btnTheme").onclick=()=>{
    The steps are order-dependent and there is no reason for four copies of them.
    Anything that replaces the network calls this. */
 function swapNetwork(mutate, label){
-  if(label) pushUndo(label);
+  // The undo step goes on after the change. pushUndo() stores the state as of
+  // the last build and skips when nothing has changed yet, so pushed first it
+  // was skipped: Revert to baseline and Open file could not be undone, and Undo
+  // after either went back past your last edit.
   mutate();
+  if(label) pushUndo(label);
   applyStationConfig(state);
   if(typeof syncFeedModes === "function") syncFeedModes();
   if(typeof reconcileGeom === "function") reconcileGeom(state.fleet);
