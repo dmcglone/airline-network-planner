@@ -214,6 +214,21 @@ def _open_and_tour(sp, errs, how, pg, page_url, crafted):
             else json.dumps(r) + (f" page errors: {errs[:2]}" if errs else ""))
 
 
+def check_retimed(pg):
+    """An edit re-times the whole schedule, so a rule the builder honours on only
+    some paths breaks somewhere the edit never touched. Until 28 Oct 2026 a day
+    turn checked the curfew at its base and not at the far end: making RDU-SJC
+    one A320 and two A321s re-timed a LAS aircraft to turn at SJC and leave at
+    23:15. Every check must pass on that edit."""
+    c = pg.evaluate("""() => { const keep = JSON.stringify(state.routes);
+      for (const r of state.routes) if (pairKey(r.o, r.d) === pairKey('RDU', 'SJC')) r.mix = {A320: 1, A321: 2};
+      M = build(); const c = {...M.checks}; c.rangeBad = c.rangeBad.length;
+      state.routes = JSON.parse(keep); M = build();
+      return c; }""")
+    failing = [k for k in CHECKS if c.get(k)]
+    return [("RDU-SJC 1 A320, 2 A321", not failing,
+             "all ten checks pass" if not failing else "failing: " + ", ".join(f"{k} {c[k]}" for k in failing))]
+
 def main():
     # Serve dist/ over HTTP and load the ROOT URL, because that is how Cloudflare
     # will serve it — not file://. The difference is not cosmetic: a missing
@@ -237,6 +252,7 @@ def main():
         for t in pg.evaluate("()=>[...document.querySelectorAll('.tab')].map(t=>t.textContent.trim())"):
             pg.evaluate("(t)=>{document.querySelectorAll('.tab').forEach(b=>{if(b.textContent.trim()===t)b.click();})}", t)
             pg.wait_for_timeout(400)
+        retimed_report = check_retimed(pg)
         starter_report = check_starters(pg)
         shared_report = check_untrusted(b, pg, page_url)
         b.close()
@@ -253,6 +269,10 @@ def main():
         good = checks.get(c) == 0
         ok &= good
         print(f"  {c:<14}{checks.get(c)}  {'ok' if good else '<-- FAIL'}")
+    print("\nan edit that re-times the schedule (all ten checks must still pass):")
+    for name, good, note in retimed_report:
+        ok &= good
+        print(f"  {name:<24}{'ok  ' if good else 'FAIL'}  {note}")
     print("\nstarting networks (each must build and pass all ten checks):")
     for name, good, note in starter_report:
         ok &= good

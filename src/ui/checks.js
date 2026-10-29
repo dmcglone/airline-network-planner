@@ -27,6 +27,13 @@ function drawChecks(){
   if(c.rangeBad.length) h+=`<p class="note" style="margin-top:12px"><b>Over range:</b> `
     + c.rangeBad.slice(0,12).map(r=>`${r.o}–${r.d} on ${r.t} (${fmt(r.nm)} nm vs ${fmt(r.rng)})`).join("; ")
     + (c.rangeBad.length>12?` and ${c.rangeBad.length-12} more`:"") + `. Change the gauge on the Network tab, or raise the type's range on the Fleet tab.</p>`;
+  // Which flights, as for range: a count alone left nothing to act on. The same
+  // test the engine and validate.js count with.
+  const late = M.flights.filter(f => CURFEW[f.o] && (f.dep < CURFEW[f.o][0] || f.dep > CURFEW[f.o][1]));
+  if(late.length) h+=`<p class="note" style="margin-top:12px"><b>Outside a curfew:</b> `
+    + late.slice(0,12).map(f=>`${f.o}–${f.d} departs ${hhmm(f.dep)} on ${esc(f.line)}`).join("; ")
+    + (late.length>12?` and ${late.length-12} more`:"") + `. The schedule builder sets departure times, so changing the gauge `
+    + `or frequency on one of these routes, or on the one you changed last, makes it re-time them.</p>`;
   const F=M.feedStats;
   h+=`<p class="note" style="margin-top:12px"><b>Departure spacing:</b> ${F.tight} same-market pairs depart within 40 minutes of each other; `
    + `${F.nightOdd} short flights sit outside 05:30–23:30; ${F.noAft} spoke cities with three or more departures have nothing after 15:00. `

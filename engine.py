@@ -259,6 +259,9 @@ for (B,T) in sorted(turns, key=lambda k:(-len(turns[k]),k)):
                 while (not gap_ok(B,d,dep) or not gap_ok(d,B,dep+out+turn)
                        or not civil_ok(B,dep,out) or not civil_ok(d,dep+out+turn,back)) and n<90: dep+=5; n+=1
                 if B in CURFEW and not(CURFEW[B][0]-EPS<=loc(B,dep)%1440<=CURFEW[B][1]+EPS): continue
+                # the far end's curfew as well: land at it and leave it in its hours
+                if d in CURFEW and not(CURFEW[d][0]-EPS<=loc(d,dep+out)%1440<=CURFEW[d][1]+EPS
+                                       and CURFEW[d][0]-EPS<=loc(d,dep+out+turn)%1440<=CURFEW[d][1]+EPS): continue
                 if not civil_ok(B,dep,out) or not civil_ok(d,dep+out+turn,back): continue
                 fin=dep+out+turn+back
                 if fin+turn > latest+EPS: continue

@@ -164,6 +164,11 @@ function build(){
             while((!gapOk(B,d,dep) || !gapOk(d,B,dep+out+turn) ||
                    !civilOk(B,dep,out) || !civilOk(d,dep+out+turn,back)) && n2<90){ dep+=5; n2++; } }
           if(CURFEW[B]){ const l=mod(loc(B,dep),1440); if(l<CURFEW[B][0]-EPS||l>CURFEW[B][1]+EPS) continue; }
+          // The far end's curfew as well: the turn must land at it and leave it in
+          // its hours. Only the base's was checked, so a LAS aircraft could turn at
+          // SJC and leave at 23:15 once a rebuild re-timed its day.
+          if(CURFEW[d]){ const a=mod(loc(d,dep+out),1440), l=mod(loc(d,dep+out+turn),1440);
+            if(a<CURFEW[d][0]-EPS||a>CURFEW[d][1]+EPS||l<CURFEW[d][0]-EPS||l>CURFEW[d][1]+EPS) continue; }
           if(!civilOk(B,dep,out)||!civilOk(d,dep+out+turn,back)) continue;   // never strand a short flight at night
           const fin=dep+out+turn+back;
           if(fin+turn > latest+EPS) continue;
