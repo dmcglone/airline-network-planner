@@ -227,9 +227,17 @@ function drawEcon(){
     + `domestic. Those routes are marked <span class="chip bad">est</span> and `
     + `${pctRev(R.stats.estRev)}% of revenue rests on them.<br><br>`
     + `<b>Connections.</b> The schedule offers ${fmt(R.itineraries.nonstop)} `
-    + `nonstop and ${fmt(R.itineraries.onestop)} one-stop itineraries. Each `
+    + `nonstop, ${fmt(R.itineraries.onestop)} one-stop and ${fmt(R.itineraries.twostop)} `
+    + `two-stop itineraries. Each `
     + `fare is prorated across the legs that carried it by distance, so a `
     + `connecting passenger is counted once rather than once per leg. Market `
     + `share is quality-of-service against one rival of equal schedule quality; `
-    + `load factor is an output of that, not a target.`;
+    + `load factor is an output of that, not a target.<br><br>`
+    + `<b>Two-stops.</b> A trip over two of your stations is offered only in a `
+    + `measured market you give no nonstop or one-stop. Its rival is assumed to `
+    + `fly the market nonstop once it has ${fmt(REV_RIVAL_NONSTOP_PAX)} passengers a `
+    + `day each way, since the data does not say who flies what. Two-stop passengers `
+    + `take only seats left empty after everyone else, so they never displace a `
+    + `better fare: ${fmt(Math.round(R.stats.twoStop))} a day, `
+    + `${pctRev(R.stats.twoStopRev)}% of revenue.`;
 }

@@ -96,6 +96,15 @@ lines each side, plus a parity re-run.
 **Knock-on.** Makes gauge selection meaningfully harder. An A319 that spills into
 a same-day A321 is a different route from one that spills into nothing.
 
+**Related, found October 2026 while adding two-stops.** Spill shares a full
+flight out in proportion to demand, with no revenue management, so a low-value
+connecting passenger can displace a local paying more for the same seat. Adding
+two-stops on equal terms made network revenue fall by $268k a day even as they
+added $348k; they now take only seats left empty. One-stops still compete with
+locals on equal terms. Spilling the lowest fare per seat first would fix both.
+The two-stop rival is also an assumption (a nonstop from 30 passengers a day
+each way); BTS T-100 segment data would say who actually flies each market.
+
 ## 5. Season switch
 
 Scale every market's demand by its own monthly value from the seasonality spark

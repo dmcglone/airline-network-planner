@@ -218,3 +218,14 @@ factor calibrated on the Caribbean markets DB1C counts as domestic. Against real
 DB1C the gravity model scores r² = 0.52 and ranks market pairs correctly about
 75% of the time, typically off by ~7× — good enough to order candidates, not to
 size them.
+
+Revenue comes from the itineraries the schedule offers: nonstops, one-stops over
+a station, and two-stops whose middle flight joins two stations. A two-stop is
+offered only in a measured market the schedule gives no nonstop or one-stop, at
+a tenth of a nonstop's appeal, against a rival assumed to fly the market nonstop
+once it has 30 passengers a day each way (the data does not say who flies what;
+BTS T-100 segment data would). Two-stop passengers take only seats left empty
+after everyone else, as revenue management would: sharing full flights with them
+displaced better fares and lowered network revenue. On the example they add
+about 816 passengers and $300k a day. `revenue.py` is the reference and
+`tools/rev_parity.js` checks the two agree.

@@ -26,6 +26,18 @@ const REV_CIRCUITY = 1.35;     // connecting path vs nonstop great circle
 const REV_CONNECT_PENALTY = 0.65;
 const REV_COMPETITION = 1.0;   // QSI of every other airline in a market
 const REV_SPILL_PASSES = 4;
+/* Two-stop itineraries: a feeder into one of our stations, a flight to another,
+   a flight out. They are offered only in measured markets the schedule gives no
+   nonstop or one-stop, so no market served today changes. Their rival is
+   another airline's best trip: a nonstop where the market is big enough that
+   someone flies it, otherwise a one-stop. The demand data carries no carrier
+   schedules, so "big enough" is a named assumption; BTS T-100 segment data
+   would replace it. Mirrors revenue.py. */
+const REV_TWO_STOP_WEIGHT = 0.10;      // QSI of a two-stop against a nonstop of equal elapsed time
+const REV_RIVAL_NONSTOP_PAX = 30;      // passengers a day each way from which a rival nonstop is assumed
+const REV_RIVAL_NONSTOP_NM = 200;      // and only beyond this distance
+const REV_RIVAL_GND = 35, REV_RIVAL_KT = 450;              // a rival narrowbody nonstop's block
+const REV_RIVAL_CIRCUITY = 1.15, REV_RIVAL_WAIT = 90;      // and its one-stop: further, and a connection
 /* What a seat is worth against economy, by cabin AND by the kind of seat in it.
    A domestic recliner up front and a lie-flat suite are not the same product and
    must not earn the same fare: the seatmap can tell them apart, so the revenue
@@ -121,12 +133,22 @@ function marketOf(o,d){
   return {pax:grav, fare:FARE_FIT.a*Math.pow(nm,FARE_FIT.b), src:"subthreshold"};
 }
 
-/* Nonstops, plus one-stop connections over the stations. Times are UTC
-   minutes on a repeating day, so a bank wrapping past midnight still
-   connects — the +1440 shift is tried as well as the same-day window. */
+/* Nonstops, plus one-stop connections over the stations, plus two-stops for
+   the markets neither serves. Times are UTC minutes on a repeating day, so a
+   bank wrapping past midnight still connects — the +1440 shift is tried as
+   well as the same-day window. */
 function buildItineraries(F){
   const itins = new Map(), push = (o,d,it) => {
     const k=o+"|"+d; let a=itins.get(k); if(!a){ a=[]; itins.set(k,a); } a.push(it); };
+  // minutes on the ground between flight a and flight b, or null if no connection
+  const waitOf = (a, b) => {
+    const aArr = (a.depX != null ? a.depX : a.depU) + a.blkMin;
+    for(const sh of [0,1440]){
+      const w = (b.depX != null ? b.depX : b.depU) + sh - aArr;
+      if(w >= MCT && w <= REV_MAX_CONNECT) return w;
+    }
+    return null;
+  };
   const arrAt = new Map(), depAt = new Map();
   for(const f of F){
     push(f.o, f.d, {legs:[f], nm:f.nm, elapsed:f.blkMin, stops:0});
@@ -137,17 +159,30 @@ function buildItineraries(F){
     const A=arrAt.get(s)||[], B=depAt.get(s)||[];
     for(const a of A) for(const b of B){
       if(b.d === a.o) continue;                  // a return, not a connection
-      const aArr = (a.depX != null ? a.depX : a.depU) + a.blkMin;
-      let wait = null;
-      for(const sh of [0,1440]){
-        const w = (b.depX != null ? b.depX : b.depU) + sh - aArr;
-        if(w >= MCT && w <= REV_MAX_CONNECT){ wait = w; break; }
-      }
+      const wait = waitOf(a, b);
       if(wait === null) continue;
       const nm = a.nm + b.nm, gc = dist(a.o, b.d);
       if(gc < 50 || nm > REV_CIRCUITY*gc) continue;
       push(a.o, b.d, {legs:[a,b], nm, stops:1,
                       elapsed: a.blkMin + wait + b.blkMin});
+    }
+  }
+  // Two-stops: the middle flight joins two of our stations, and each connection
+  // follows the one-stop rules. Only measured markets nothing above serves.
+  const served = new Set(itins.keys()), sized = new Map();
+  const measured = (o, d) => { const k = o+"|"+d;
+    if(!sized.has(k)){ const m = marketOf(o, d); sized.set(k, m.pax > 0 && (m.src === "db1c" || m.src === "intl")); }
+    return sized.get(k); };
+  for(const L of F){
+    if(!STA.includes(L.o) || !STA.includes(L.d)) continue;
+    const feed = (arrAt.get(L.o)||[]).filter(a => a.o !== L.d && waitOf(a, L) !== null);
+    const on = (depAt.get(L.d)||[]).filter(b => b.d !== L.o && waitOf(L, b) !== null);
+    for(const a of feed) for(const b of on){
+      if(a.o === b.d || served.has(a.o+"|"+b.d)) continue;
+      const nm = a.nm + L.nm + b.nm, gc = dist(a.o, b.d);
+      if(gc < 50 || nm > REV_CIRCUITY*gc || !measured(a.o, b.d)) continue;
+      push(a.o, b.d, {legs:[a,L,b], nm, stops:2,
+                      elapsed: a.blkMin + waitOf(a, L) + L.blkMin + waitOf(L, b) + b.blkMin});
     }
   }
   return itins;
@@ -156,7 +191,9 @@ function buildItineraries(F){
 /* Split each market's demand across its itineraries, then spill.
    `competition` is the QSI attributed to every other airline in a market, so
    our share is Q/(Q+competition): a market we serve with three nonstops takes
-   more than one we only reach over a hub. */
+   more than one we only reach over a hub. In a two-stop market the rival's
+   trip is modelled, and `competition` scales it, so 0 still means every
+   passenger (the ceiling). */
 /* Premiums normalised so the seat-weighted fleet mean is 1.0, which keeps the
    network total pinned to the measured DB1C fares — cabin mix moves revenue
    between flights rather than adding any.
@@ -186,19 +223,31 @@ function flightPremiums(F){
 function allocateDemand(F, itins, competition, prem){
   const boarded=new Map(), legrev=new Map(), estrev=new Map(), perMarket=[];
   const st={pax:0, conn:0, rev:0, spilled:0, markets:0, real:0,
-            estMarkets:0, estPax:0, estRev:0, intlMarkets:0, intlRev:0};
+            estMarkets:0, estPax:0, estRev:0, intlMarkets:0, intlRev:0,
+            twoStop:0, twoStopRev:0};
   for(const [key, opts] of itins){
     const [o,d] = key.split("|");
     const m = marketOf(o,d);
     if(m.pax <= 0) continue;
     let best = Infinity;
     for(const i of opts) if(i.elapsed < best) best = i.elapsed;
+    let rival = competition;
+    if(opts[0].stops === 2){
+      // A two-stop market has only two-stops of ours. The rival's best trip
+      // sets the pace: a nonstop where the market can hold one, else a one-stop.
+      const nm = dist(o,d), ns = REV_RIVAL_GND + nm/REV_RIVAL_KT*60;
+      const nonstop = m.pax >= REV_RIVAL_NONSTOP_PAX && nm >= REV_RIVAL_NONSTOP_NM;
+      const theirs = nonstop ? ns : ns*REV_RIVAL_CIRCUITY + REV_RIVAL_WAIT;
+      best = Math.min(best, theirs);
+      rival = competition * Math.pow(best/theirs, 2) * (nonstop ? 1 : REV_CONNECT_PENALTY);
+    }
     let tq = 0;
     for(const i of opts){
-      i.qsi = Math.pow(best/i.elapsed, 2) * (i.stops ? REV_CONNECT_PENALTY : 1);
+      i.qsi = Math.pow(best/i.elapsed, 2)
+        * (i.stops === 2 ? REV_TWO_STOP_WEIGHT : i.stops ? REV_CONNECT_PENALTY : 1);
       tq += i.qsi;
     }
-    const share = tq/(tq+competition);
+    const share = tq/(tq+rival);
     for(const i of opts) i.pax = m.pax*share*i.qsi/tq;
     st.markets++;
     if(m.src === "db1c") st.real++;
@@ -207,10 +256,16 @@ function allocateDemand(F, itins, competition, prem){
     perMarket.push({o, d, fare:m.fare, src:m.src, opts});
   }
   // Spill. Capping one flight frees demand on another, so a few passes.
+  // Two-stops are left out here and take only the seats left once everyone
+  // else is aboard, as revenue management would: sharing a full flight with
+  // them pushed out passengers paying more per seat, and network revenue fell
+  // as they were added.
+  const first = i => i.stops !== 2;
   const keep = new Map(); for(const f of F) keep.set(f.id, 1);
   for(let p=0; p<REV_SPILL_PASSES; p++){
     boarded.clear();
     for(const m of perMarket) for(const i of m.opts){
+      if(!first(i)) continue;
       let k = 1; for(const f of i.legs) k = Math.min(k, keep.get(f.id));
       for(const f of i.legs) boarded.set(f.id, (boarded.get(f.id)||0) + i.pax*k);
     }
@@ -219,9 +274,29 @@ function allocateDemand(F, itins, competition, prem){
       if(b > f.seats) keep.set(f.id, keep.get(f.id)*f.seats/b);
     }
   }
+  boarded.clear();                             // everyone else, as finally placed
+  for(const m of perMarket) for(const i of m.opts){
+    if(!first(i)) continue;
+    let k = 1; for(const f of i.legs) k = Math.min(k, keep.get(f.id));
+    for(const f of i.legs) boarded.set(f.id, (boarded.get(f.id)||0) + i.pax*k);
+  }
+  const keep2 = new Map(); for(const f of F) keep2.set(f.id, 1);
+  for(let p=0; p<REV_SPILL_PASSES; p++){
+    const b2 = new Map();
+    for(const m of perMarket) for(const i of m.opts){
+      if(first(i)) continue;
+      let k = 1; for(const f of i.legs) k = Math.min(k, keep2.get(f.id));
+      for(const f of i.legs) b2.set(f.id, (b2.get(f.id)||0) + i.pax*k);
+    }
+    for(const f of F){
+      const b = b2.get(f.id)||0, room = Math.max(0, f.seats - (boarded.get(f.id)||0));
+      if(b > room) keep2.set(f.id, keep2.get(f.id)*room/b);
+    }
+  }
   boarded.clear();
   for(const m of perMarket) for(const i of m.opts){
-    let k = 1; for(const f of i.legs) k = Math.min(k, keep.get(f.id));
+    const kk = first(i) ? keep : keep2;
+    let k = 1; for(const f of i.legs) k = Math.min(k, kk.get(f.id));
     const flown = i.pax*k;
     // Kept on the itinerary so the planning surfaces can ask which connections
     // the schedule actually realised, rather than only how many there were.
@@ -240,6 +315,7 @@ function allocateDemand(F, itins, competition, prem){
     im /= i.nm;
     const rev = flown*m.fare*im;
     st.rev += rev;
+    if(i.stops === 2){ st.twoStop += flown; st.twoStopRev += rev; }
     if(m.src === "estimated"){ st.estPax += flown; st.estRev += rev; }
     if(m.src === "intl") st.intlRev += rev;
     for(const f of i.legs){
@@ -262,16 +338,21 @@ function revenueModel(M){
   const seats = F.reduce((s,f)=>s+f.seats, 0);
   // The ceiling: what this schedule fills taking every passenger in every
   // market it touches. Below 100% is capacity that cannot fill unopposed.
+  // Fresh copies of the same itineraries, so this run cannot overwrite the
+  // passengers the real one left on them (ui/connectivity.js reads those),
+  // without searching for every two-stop a second time.
+  const copy = new Map([...itins].map(([k, os]) =>
+    [k, os.map(i => ({legs:i.legs, nm:i.nm, stops:i.stops, elapsed:i.elapsed}))]));
   const ceiling = seats
-    ? [...allocateDemand(F, buildItineraries(F), 0, prem).boarded.values()]
+    ? [...allocateDemand(F, copy, 0, prem).boarded.values()]
         .reduce((a,b)=>a+b,0)/seats : 0;
   const asm = F.reduce((s,f)=>s+f.seats*f.nm, 0)*SM;
   const rpm = F.reduce((s,f)=>s+(r.boarded.get(f.id)||0)*f.nm, 0)*SM;
-  let nonstop=0, onestop=0;
-  for(const opts of itins.values()) for(const i of opts) i.stops ? onestop++ : nonstop++;
+  let nonstop=0, onestop=0, twostop=0;
+  for(const opts of itins.values()) for(const i of opts) i.stops === 2 ? twostop++ : i.stops ? onestop++ : nonstop++;
   return Object.assign(r, {
     itins,                       // for connectivity analysis; see ui/connectivity.js
-    itineraries:{nonstop, onestop}, seats, asm, rpm, ceiling,
+    itineraries:{nonstop, onestop, twostop}, seats, asm, rpm, ceiling,
     lf: seats ? [...r.boarded.values()].reduce((a,b)=>a+b,0)/seats : 0,
     rasm: asm ? r.stats.rev/asm*100 : 0,
     yield: rpm ? r.stats.rev/rpm*100 : 0,

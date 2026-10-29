@@ -73,6 +73,8 @@ const js = {
   intlMarkets: out.stats.intlMarkets, intlRev: out.stats.intlRev,
   seats: out.seats, asm: out.asm, rpm: out.rpm, ceiling: out.ceiling,
   nonstop: out.itineraries.nonstop, onestop: out.itineraries.onestop,
+  twostop: out.itineraries.twostop, twoStop: out.stats.twoStop,
+  twoStopRev: out.stats.twoStopRev,
   lf: out.lf
 };
 
