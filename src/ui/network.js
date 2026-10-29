@@ -35,7 +35,10 @@ function drawRoutes(){
   const t=$("#tRoutes");
   t.innerHTML = "<thead><tr><th>From</th><th>To</th><th class='r'>Distance</th>"
     + TYPES.map(x=>`<th class='r'>${x}</th>`).join("")
-    + "<th class='r'>Flights/day</th><th class='r' title='Passengers a day, each way, from DB1C unless marked. † is international, from OAG and MIDT ticketing records via a published sheet. * is an estimate from the gravity model, often off by several times.'>Pax/day</th><th class='r' title='Revenue less direct cost a day, for the market in both directions. Before aircraft ownership and overhead.'>Contribution/day</th><th>Season</th><th class='r'>Days/wk</th><th>Red-eye</th><th></th></tr></thead>";
+    + "<th class='r'>Flights/day</th><th class='r' title='Passengers a day, each way, from DB1C unless marked. † is international, from OAG and MIDT ticketing records via a published sheet. * is an estimate from the gravity model, often off by several times.'>Pax/day</th><th class='r' title='Revenue less direct cost a day, for the market in both directions. Before aircraft ownership and overhead.'>Contribution/day</th><th>Season</th><th class='r'>Days/wk</th><th>Red-eye"
+    // off for the airline: say so, since a ticked route then flies by day
+    + (state.redeye ? "" : "<span class='redoff' title='Red-eyes are switched off for this airline, so ticked routes fly by day. Ticking one switches them on.'>off · <button class='linkbtn' data-goto='settings'>Settings</button></span>")
+    + "</th><th></th></tr></thead>";
   const tb=el("tbody");
   for(const r of rows){
     const i=state.routes.indexOf(r), nm=dist(r.o,r.d), n=TYPES.reduce((a,x)=>a+(+r.mix[x]||0),0);

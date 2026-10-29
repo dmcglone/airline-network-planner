@@ -681,6 +681,9 @@ td.code .fin{ margin-right:5px }
 @media (max-width:640px){ .kpis.head{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:2px 12px 10px}
   .kpis.head .kpi{min-width:0;padding:6px 10px} .kpis.head .kpi .v{font-size:20px} .kpis.head .kpi .knote{white-space:normal} }
 #tRoutes .neg{color:var(--bad)}
+/* the Red-eye column while the airline's red-eyes are off */
+.redoff{font-family:var(--sans);font-size:10px;letter-spacing:0;text-transform:none;color:var(--warn);margin-left:6px;font-weight:600}
+.redoff .linkbtn{font-weight:600}
 /* The route grid's boxes show their number and nothing else until the row is
    hovered or the box focused, so the first screen is not a wall of empty fields.
    They stay inputs. A touch screen has no hover, so there they keep a faint edge. */

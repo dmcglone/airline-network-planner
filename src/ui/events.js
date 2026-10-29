@@ -54,6 +54,17 @@ function reportError(err, where){
 }
 window.addEventListener("error", ev => reportError(ev.error || ev.message, "window"));
 window.addEventListener("unhandledrejection", ev => reportError(ev.reason, "promise"));
+/* A red-eye ticked while the airline's red-eyes are off was saved and then
+   ignored by the engine, with nothing on screen to say why; both practice
+   airlines ship with them off. Ticking one, or Fly overnight on Add route, is
+   asking for red-eyes, so it switches them on. Unticking never switches them
+   off; the Settings switch does that. */
+const REDEYES_ON = "Red-eyes switched on for this airline, so ticked routes now fly overnight. Settings has the switch.";
+function wantRedeyes(){
+  if(state.redeye) return false;
+  state.redeye = 1; const c=$("#redeyeChk"); if(c) c.checked=true;
+  return true;
+}
 document.addEventListener("input", e=>{
   const t=e.target;
   if(t.dataset && t.dataset.i!==undefined && t.dataset.t){
@@ -67,7 +78,8 @@ document.addEventListener("input", e=>{
   }
   if(t.dataset && t.dataset.red!==undefined){
     guard(()=>{ const r=state.routes[+t.dataset.red];
-      if(r){ if(t.checked) r.red=1; else delete r.red; commitNow("red-eye"); } });
+      if(r){ let on=false; if(t.checked){ r.red=1; on=wantRedeyes(); } else delete r.red;
+        commitNow("red-eye"); if(on) toast(REDEYES_ON); } });
     return; }
   if(t.dataset && t.dataset.w){ const r=state.routes[+t.dataset.i];
     if(r){ r.dow=Math.max(1,Math.min(7,Math.round(+t.value||7))); rebuild(); } return; }
@@ -699,13 +711,15 @@ $("#btnAddGo").onclick=()=>{
   if(!a.d||!AP[a.d]){ toast("Pick a destination airport from the list"); return; }
   if(a.d===a.o){ toast("Origin and destination are the same airport"); return; }
   applyAddRoute(state.routes, a);
+  const on = a.red && wantRedeyes();
   const r=existingRoute(state.routes, a.o, a.d);
   const per=r ? TYPES.reduce((x,t)=>x+(+r.mix[t]||0),0) : a.n;
   const dw=r ? (r.dow||7) : a.w;
   addDest=null; $("#nD").value=""; $("#nRed").checked=false; $("#addRow").hidden=true;
   clearTimeout(netTimer); resetAddDays();
   commitNow(`add ${a.o}–${a.d}`);
-  toast(`${a.o}–${a.d} now ${per} a day, ${dw} day${dw===1?"":"s"} a week`);
+  toast(`${a.o}–${a.d} now ${per} a day, ${dw} day${dw===1?"":"s"} a week`
+    + (on ? `. Red-eyes switched on for this airline; Settings has the switch.` : ""));
 };
 
 /* ----- export / import state ----- */
