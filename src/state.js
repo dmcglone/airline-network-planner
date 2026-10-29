@@ -249,7 +249,10 @@ function exportState(){
            state: JSON.parse(JSON.stringify(state)),
            metrics: headline() };
 }
-function importState(obj){
+/* Take an exported airline as the current one, checked and cleaned like any
+   file, without building it. importState() builds and draws it; the Missions
+   panel's Back to my airline swaps it in through swapNetwork() instead. */
+function adoptState(obj){
   const o = (typeof obj==="string") ? JSON.parse(obj) : obj;
   if(!o || typeof o!=="object") throw new Error("not a state file");
   if(o.app && !APP_IDS.has(o.app)) throw new Error("this file is not a network export from this planner");
@@ -271,6 +274,10 @@ function importState(obj){
   if(state.spare===undefined) state.spare=0.08;
   if(state.redeye===undefined) state.redeye=1;
   state.v=2;
+  return o;
+}
+function importState(obj){
+  const o = adoptState(obj);
   M=build(); save(); draw();
   const got=headline(), want=o.metrics||null;
   const diff = want ? Object.keys(want).filter(k=>want[k]!==got[k]) : [];

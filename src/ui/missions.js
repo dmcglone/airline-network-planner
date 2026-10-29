@@ -155,7 +155,7 @@ function drawMission(){
       + `<span>${objectiveLabel(o)}</span><span class="mo-v">${r ? objectiveShown(o, r.value) : "…"}</span></li>`;
   }).join("");
   const html = `<h2>${esc(mi.title)} <span class="sub">Mission</span>${S ? starsHTML(S.stars, of) : ""}</h2>`
-    + `<div class="pad"><p class="note">${esc(mi.brief)}</p><ul class="mission-obj">${rows}</ul>`
+    + `<div class="pad">${practiceBand()}<p class="note">${esc(mi.brief)}</p><ul class="mission-obj">${rows}</ul>`
     + (S && S.stars === of ? `<p class="mission-play">${PLAY_BUTTON}`
         + `<span class="dim">Your schedule on the map, one day in about a minute.</span></p>` : "")
     + (rec && rec.stars
@@ -176,9 +176,51 @@ function drawMission(){
    A mission lived only on the welcome cards, which a returning visitor never
    sees again. The header's row of figures now ends with a Missions card: the
    stars won so far, and the mission open now. It opens a panel of every mission
-   with its brief, its objectives against your best, and Play. Playing swaps the
-   airline exactly as a welcome card does, so Undo brings yours back. */
+   with its brief, its objectives against your best, and Play.
+
+   Each mission flies its own small practice airline, and playing swaps it in.
+   Undo alone could not be trusted to bring yours back: its history is lost on a
+   reload, and the swap had already saved over your airline. So Play from your
+   own airline first sets a copy of it aside in this browser, and while a
+   practice airline is open its card offers Back to your airline. Going from one
+   mission to another keeps the same airline aside. */
 let missionsOpen = false;
+const OWN_KEY = "anp-own";               // your airline, set aside while a practice airline is open
+/* The airline set aside, or null. Read back through adoptState(), which checks
+   it like a file; the name goes into markup, so only a string is used. */
+function ownAside(){
+  try { const o = JSON.parse(localStorage.getItem(OWN_KEY) || "null");
+    return o && typeof o === "object" && o.state && Array.isArray(o.state.routes) && Array.isArray(o.state.fleet) ? o : null; }
+  catch(e){ return null; }
+}
+const ownName = o => o && typeof o.state.brand === "string" && o.state.brand.trim() ? o.state.brand : "your airline";
+function backToOwn(){
+  const o = ownAside(); if(!o) return;
+  missionsOpen = false; drawMissionsPanel();
+  try { swapNetwork(() => adoptState(o), `back to ${ownName(o)}`); }
+  catch(e){ toast("Your airline could not be read back: " + e.message); return; }
+  try { localStorage.removeItem(OWN_KEY); } catch(e){}
+  goTab("network");
+  toast(`Back to ${ownName(o)}`);
+}
+/* What a mission's airline is, in a few words: "one hub at Denver, 40 routes,
+   41 aircraft". */
+function practiceLine(s){
+  const st = (s.state && s.state.stations) || [], c = st[0], roles = (s.state && s.state.roles) || {}, ex = s.expect || {};
+  const kind = roles[c] === "Hub" ? "hub" : roles[c] === "Focus" ? "focus city" : "base";
+  return `${st.length === 1 ? "one" : fmt(st.length)} ${kind}${st.length === 1 ? "" : "s"} at ${esc(cityName(c))}, `
+    + `${fmt(ex.routes || 0)} routes, ${fmt(ex.roster || 0)} aircraft`;
+}
+/* Above the brief while a practice airline is open: whose airline this is, and
+   the way back to yours. */
+function practiceBand(){
+  const mi = activeMission(), s = mi && (typeof STARTERS !== "undefined" ? STARTERS : []).find(x => x.id === mi.id);
+  if(!s) return "";
+  const o = ownAside();
+  return `<div class="practice-band"><span><b>${esc(s.brand)}</b> is a practice airline for this mission.`
+    + (o ? ` Your airline, <b>${esc(ownName(o))}</b>, is set aside in this browser.` : "") + `</span>`
+    + (o ? `<button class="btn sm" data-backown="1">Back to ${esc(ownName(o))}</button>` : "") + `</div>`;
+}
 const allMissions = () => (typeof STARTERS !== "undefined" ? STARTERS : [])
   .filter(s => s.mission).map(s => ({s, mi: missionOf(s.id)}));
 function missionStars(){
@@ -205,25 +247,30 @@ function drawMissionsPanel(){
       const v = rec && rec.values && rec.values.length === of ? rec.values[i] : null, met = v !== null && objectiveMet(o, v);
       return `<li class="${met ? "met" : ""}"><span class="mo-mark" aria-hidden="true">${met ? "✓" : "○"}</span>`
         + `<span>${objectiveLabel(o)}</span><span class="mo-v">${v !== null ? objectiveShown(o, v) : ""}</span></li>`; }).join("");
-    const ex = s.expect || {};
     return `<div class="ms-card${now ? " now" : ""}"><div class="ms-head"><span class="wc-name">${esc(mi.title)}</span>`
       + (now ? `<span class="wc-now">Open now</span>` : "") + starsHTML(rec ? rec.stars : 0, of) + `</div>`
-      + `<span class="ms-from">From ${esc(s.name.toLowerCase())}: ${fmt(ex.routes || 0)} routes, ${fmt(ex.roster || 0)} aircraft</span>`
+      + `<span class="ms-from"><b>${esc(s.brand)}</b>, a practice airline: ${practiceLine(s)}</span>`
       + `<p class="note">${esc(mi.brief)}</p><ul class="mission-obj">${rows}</ul>`
       + `<span class="wc-best">${rec && rec.stars ? "Your best" + (rec.at ? ", " + logDay(rec.at) : "") : "Not flown yet"}</span>`
       + `<div class="ms-foot"><button class="btn${now ? "" : " primary"}" data-mplay="${esc(mi.id)}">`
       + `${now ? "Start again" : rec && rec.stars ? "Play again" : "Play"}</button></div></div>`;
   }).join("");
   const [n, of] = missionStars();
+  // whose airline Play sets aside: this one, or on a practice airline the one already aside
+  const on = activeMission(), aside = on ? ownAside() : null, mine = on ? (aside ? esc(ownName(aside)) : "") : esc(state.brand || "your airline");
   host.innerHTML = `<div class="welcome-inner" role="dialog" aria-modal="true" aria-labelledby="missionsH">`
     + `<h2 id="missionsH">Missions <span class="ms-total">${fmt(n)} of ${fmt(of)} stars</span></h2>`
-    + `<p class="note">Each mission is a small airline with three objectives, a star for each. No star counts while any `
-    + `of the ten checks fails, and every mission is checked to be winnable each time the planner is built. Your best `
-    + `is kept in this browser.</p>`
+    + `<p class="note">Missions are puzzles on small practice airlines, separate from yours. Each has three objectives, `
+    + `a star for each. No star counts while any of the ten checks fails, and every mission is checked to be winnable `
+    + `each time the planner is built. Your best is kept in this browser.</p>`
+    + (on ? practiceBand() : "")
     + `<div class="ms-list">${cards}</div>`
     + `<div class="toolbar" style="padding-left:0"><button class="btn sm" data-msclose="1">Close</button>`
-    + `<span class="dim" style="font-size:12.5px">Playing replaces your airline: routes, bases and aircraft types. `
-    + `Undo brings it back.</span></div></div>`;
+    + `<span class="dim" style="font-size:12.5px">`
+    + (mine ? `Playing sets ${mine} aside in this browser and opens the practice airline. Back to ${mine} brings `
+        + `yours back, even after a reload.`
+      : `Playing replaces this practice airline with another. Undo brings it back.`)
+    + `</span></div></div>`;
   const first = host.querySelector("[data-mplay]"); if(first) first.focus();
 }
 /* Clicks from the page's one delegated handler (events.js). */
@@ -234,8 +281,11 @@ function missionsEvent(t){
     missionsOpen = false; drawMissionsPanel(); return true; }
   if(!t.dataset) return false;
   if(t.dataset.missions){ missionsOpen = true; drawMissionsPanel(); return true; }
+  if(t.dataset.backown){ backToOwn(); return true; }
   if(t.dataset.mplay){
     missionsOpen = false; drawMissionsPanel();
+    // from your own airline, set it aside; from a practice airline, the one aside stays
+    if(!activeMission()){ try { localStorage.setItem(OWN_KEY, JSON.stringify(exportState())); } catch(e){} }
     if(startAirline(t.dataset.mplay)) goTab("network");
     return true;
   }

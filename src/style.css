@@ -361,6 +361,13 @@ td.code .fin{ margin-right:5px }
 .ms-head .wc-name{ font-size:17px }
 .ms-head .stars{ font-size:17px }
 .ms-from{ font-size:12px; color:var(--ink-3) }
+.ms-from b{ color:var(--ink-2); font-weight:600 }
+/* a practice airline is open: whose it is, and the way back to yours */
+.practice-band{ display:flex; align-items:center; gap:8px 14px; flex-wrap:wrap; padding:10px 13px; margin:0 0 12px;
+  border:1px solid color-mix(in srgb, var(--accent) 35%, transparent); background:var(--accent-soft); border-radius:8px;
+  font-size:13px; color:var(--ink-2) }
+.practice-band b{ color:var(--ink) }
+.practice-band .btn{ margin-left:auto }
 .ms-card .note{ margin:2px 0 0 }
 .ms-card .mission-obj{ margin:6px 0 2px }
 .ms-card .mission-obj li{ font-size:13px }
